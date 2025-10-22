@@ -3,42 +3,94 @@
  * Handles real-time chat with AI and travel plan generation
  */
 
+// State
+let currentMode = 'plan'; // Default mode: plan, ask, edit_plan
+let currentPlan = null; // Store current plan for edit mode
+let currentConversationId = null; // Track current conversation ID
+let chatSessions = []; // Store all chat sessions
+
 // DOM Elements
 let chatMessagesContainer = null;
 let messageInput = null;
 let sendButton = null;
 let planDisplay = null;
+let modeDropdown = null;
+let modeOptions = [];
 
 // Initialize DOM elements after page load
 function initializeDOMElements() {
     chatMessagesContainer = document.getElementById('chatMessages');
     planDisplay = document.getElementById('planDisplay');
-    messageInput = document.querySelector('input[placeholder="Nhập yêu cầu của bạn..."]');
-    
-    // Find send button by looking for the send icon
-    const buttons = document.querySelectorAll('button');
-    for (let btn of buttons) {
-        const icon = btn.querySelector('.material-symbols-outlined');
-        if (icon && icon.textContent.trim() === 'send') {
-            sendButton = btn;
-            break;
-        }
-    }
+    messageInput = document.getElementById('messageInput');
+    sendButton = document.getElementById('sendButton');
+    modeDropdown = document.getElementById('modeDropdown');
+    modeOptions = document.querySelectorAll('.mode-option');
     
     console.log('DOM Elements initialized:', {
         chatMessages: !!chatMessagesContainer,
         planDisplay: !!planDisplay,
         messageInput: !!messageInput,
-        sendButton: !!sendButton
+        sendButton: !!sendButton,
+        modeDropdown: !!modeDropdown,
+        modeOptions: modeOptions.length
     });
 }
 
 // Initialize chat
 window.addEventListener('DOMContentLoaded', () => {
     initializeDOMElements();
+    loadChatSessions();
     addWelcomeMessage();
     attachEventListeners();
+    initializeMarkdown();
 });
+
+// Initialize Markdown renderer
+function initializeMarkdown() {
+    if (typeof marked !== 'undefined') {
+        // Configure marked options
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+            highlight: function(code, lang) {
+                if (lang && hljs.getLanguage(lang)) {
+                    try {
+                        return hljs.highlight(code, { language: lang }).value;
+                    } catch (err) {}
+                }
+                return code;
+            }
+        });
+    }
+}
+
+// Show/hide mode dropdown
+function showModeDropdown() {
+    if (modeDropdown) {
+        modeDropdown.classList.remove('hidden');
+    }
+}
+
+function hideModeDropdown() {
+    if (modeDropdown) {
+        modeDropdown.classList.add('hidden');
+    }
+}
+
+// Handle @ input for mode selection
+function handleAtSymbol() {
+    if (!messageInput) return;
+    
+    const value = messageInput.value;
+    const cursorPos = messageInput.selectionStart;
+    
+    // Check if @ is at cursor position
+    if (value[cursorPos - 1] === '@') {
+        showModeDropdown();
+    } else if (!value.includes('@')) {
+        hideModeDropdown();
+    }
+}
 
 // Add welcome message
 function addWelcomeMessage() {
@@ -57,29 +109,62 @@ function attachEventListeners() {
         console.error('Send button not found!');
     }
     
-    // Enter key
+    // Input events
     if (messageInput) {
+        // Enter key
         messageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
+                hideModeDropdown();
                 handleSendMessage();
             }
+        });
+        
+        // @ symbol detection
+        messageInput.addEventListener('input', handleAtSymbol);
+        
+        // Hide dropdown when focus lost
+        messageInput.addEventListener('blur', () => {
+            setTimeout(hideModeDropdown, 200); // Delay to allow click on dropdown
         });
     } else {
         console.error('Message input not found!');
     }
     
-    // Suggestion buttons - re-query to get fresh elements
-    const suggestionBtns = document.querySelectorAll('.p-4.border-t button.text-sm');
+    // Mode option buttons
+    modeOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            const prefix = option.dataset.prefix;
+            const mode = option.dataset.mode;
+            
+            if (messageInput) {
+                const value = messageInput.value;
+                // Replace @ with mode prefix
+                const newValue = value.replace(/@\s*$/, prefix + ' ');
+                messageInput.value = newValue;
+                messageInput.focus();
+                currentMode = mode;
+            }
+            
+            hideModeDropdown();
+        });
+    });
+    // Suggestion buttons
+    const suggestionBtns = document.querySelectorAll('.suggestion-btn');
     suggestionBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            const text = btn.textContent.trim();
             if (messageInput) {
-                messageInput.value = text;
+                messageInput.value = btn.textContent.trim();
                 handleSendMessage();
             }
         });
     });
+    
+    // New chat button
+    const newChatBtn = document.getElementById('newChatBtn');
+    if (newChatBtn) {
+        newChatBtn.addEventListener('click', createNewChatSession);
+    }
 }
 
 // Handle send message
@@ -87,11 +172,20 @@ async function handleSendMessage() {
     const message = messageInput?.value.trim();
     if (!message) return;
     
+    // Detect mode from message itself
+    let finalMessage = message;
+    if (!message.startsWith('@')) {
+        // Default to @plan if no prefix
+        finalMessage = '@plan ' + message;
+    }
+    
+    console.log(`Sending message:`, finalMessage);
+    
     // Disable input and button
     if (messageInput) messageInput.disabled = true;
     if (sendButton) sendButton.disabled = true;
     
-    // Add user message
+    // Add user message (show as is)
     addUserMessage(message);
     
     // Clear input
@@ -99,17 +193,32 @@ async function handleSendMessage() {
         messageInput.value = '';
     }
     
+    // Hide dropdown if visible
+    hideModeDropdown();
+    
     // Show loading
     const loadingMsg = addLoadingMessage();
     
     try {
+        // Prepare request data
+        const requestData = { 
+            message: finalMessage  // Use finalMessage with mode prefix
+        };
+        
+        // Include current plan if in edit mode
+        if (currentMode === 'edit_plan' && currentPlan) {
+            requestData.current_plan = currentPlan;
+        }
+        
+        console.log('Request data:', requestData);
+        
         // Send to API
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ message })
+            body: JSON.stringify(requestData)
         });
         
         const data = await response.json();
@@ -121,18 +230,27 @@ async function handleSendMessage() {
             // Add bot response
             addBotMessage(data.response);
             
-            // If has plan, update plan view
+            // If has plan, update plan view and store it
             if (data.has_plan && data.plan_data) {
+                currentPlan = data.plan_data;  // Store for edit mode
                 updatePlanView(data.plan_data);
             }
+            
+            // Update session list after sending message
+            loadChatSessions();
+            
+            // Auto-save session title if this is the first message in a new session
+            if (currentConversationId && chatMessagesContainer.children.length === 4) {
+                // 4 children = welcome message (2) + user message (1) + bot message (1)
+                autoSaveSessionTitle(currentConversationId, message);
+            }
         } else {
-            addErrorMessage(data.error || 'Đã có lỗi xảy ra');
+            addErrorMessage(data.error || 'Không thể gửi tin nhắn');
         }
-        
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error sending message:', error);
         loadingMsg.remove();
-        addErrorMessage('Không thể kết nối đến server');
+        addErrorMessage('Lỗi kết nối. Vui lòng thử lại.');
     } finally {
         // Re-enable input and button
         if (messageInput) messageInput.disabled = false;
@@ -140,6 +258,23 @@ async function handleSendMessage() {
         if (messageInput) messageInput.focus();
     }
 }
+
+// Create bot message element
+function createBotMessage(text) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'flex items-end gap-3';
+    
+    // Render markdown
+    let renderedContent;
+    if (typeof marked !== 'undefined') {
+        renderedContent = marked.parse(text);
+    } else {
+        renderedContent = escapeHtml(text).replace(/\n/g, '<br>');
+    }
+    
+    return msgDiv;
+}
+
 
 // Create bot message element
 function createBotMessage(text) {
@@ -391,3 +526,230 @@ function showNotification(type, title, message) {
     // Auto remove after 5 seconds
     setTimeout(() => notif.remove(), 5000);
 }
+
+// ===== CHAT SESSION MANAGEMENT =====
+
+// Load all chat sessions
+async function loadChatSessions() {
+    try {
+        const response = await fetch('/api/chat-sessions');
+        const data = await response.json();
+        
+        if (data.success && data.sessions) {
+            chatSessions = data.sessions;
+            renderChatSessions();
+            
+            // Load current session if exists
+            if (chatSessions.length > 0 && !currentConversationId) {
+                // Load most recent session
+                loadChatSession(chatSessions[0].id);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading chat sessions:', error);
+    }
+}
+
+// Render chat sessions list
+function renderChatSessions() {
+    const sessionsList = document.getElementById('chatSessionsList');
+    if (!sessionsList) return;
+    
+    sessionsList.innerHTML = '';
+    
+    if (chatSessions.length === 0) {
+        sessionsList.innerHTML = `
+            <div class="px-3 py-2 text-xs text-text-secondary-light dark:text-text-secondary-dark text-center">
+                Chưa có cuộc hội thoại nào
+            </div>
+        `;
+        return;
+    }
+    
+    chatSessions.forEach(session => {
+        const sessionDiv = document.createElement('div');
+        const isActive = currentConversationId === session.id;
+        sessionDiv.className = `group flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${
+            isActive 
+                ? 'bg-primary/20 dark:bg-primary/30 text-primary' 
+                : 'text-text-light dark:text-text-dark hover:bg-gray-100 dark:hover:bg-gray-700'
+        }`;
+        
+        sessionDiv.innerHTML = `
+            <span class="material-symbols-outlined text-sm">chat_bubble</span>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium truncate">${escapeHtml(session.title || 'Chat mới')}</p>
+                <p class="text-xs opacity-70 truncate">${formatSessionTime(session.last_message_at || session.created_at)}</p>
+            </div>
+            <button class="delete-session-btn opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/20" data-session-id="${session.id}" title="Xóa">
+                <span class="material-symbols-outlined text-sm text-red-500">delete</span>
+            </button>
+        `;
+        
+        // Click to load session
+        sessionDiv.addEventListener('click', (e) => {
+            if (!e.target.closest('.delete-session-btn')) {
+                loadChatSession(session.id);
+            }
+        });
+        
+        // Delete button
+        const deleteBtn = sessionDiv.querySelector('.delete-session-btn');
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteChatSession(session.id);
+        });
+        
+        sessionsList.appendChild(sessionDiv);
+    });
+}
+
+// Load specific chat session
+async function loadChatSession(sessionId) {
+    try {
+        const response = await fetch(`/api/chat-sessions/${sessionId}/messages`);
+        const data = await response.json();
+        
+        if (data.success && data.messages) {
+            currentConversationId = sessionId;
+            
+            // Clear current messages
+            if (chatMessagesContainer) {
+                chatMessagesContainer.innerHTML = '';
+            }
+            
+            // Add messages
+            data.messages.forEach(msg => {
+                addUserMessage(msg.user_message);
+                addBotMessage(msg.bot_response);
+                
+                // If message has a plan, show it
+                if (msg.plan_id && msg.plan_data) {
+                    currentPlan = msg.plan_data;
+                    updatePlanView(msg.plan_data);
+                }
+            });
+            
+            // Update UI
+            renderChatSessions();
+        }
+    } catch (error) {
+        console.error('Error loading chat session:', error);
+        addErrorMessage('Không thể tải lịch sử chat');
+    }
+}
+
+// Create new chat session
+async function createNewChatSession() {
+    try {
+        const response = await fetch('/api/chat-sessions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title: 'Chat mới'
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.session) {
+            // Clear current chat
+            currentConversationId = data.session.id;
+            currentPlan = null;
+            
+            if (chatMessagesContainer) {
+                chatMessagesContainer.innerHTML = '';
+            }
+            
+            if (planDisplay) {
+                planDisplay.innerHTML = `
+                    <div class="text-center py-12">
+                        <span class="material-symbols-outlined text-gray-300 dark:text-gray-600" style="font-size: 64px;">event_note</span>
+                        <p class="text-gray-500 dark:text-gray-400 mt-4">Kế hoạch của bạn sẽ xuất hiện ở đây</p>
+                        <p class="text-sm text-gray-400 dark:text-gray-500">Bắt đầu chat để tạo kế hoạch du lịch!</p>
+                    </div>
+                `;
+            }
+            
+            // Reload sessions list
+            await loadChatSessions();
+            
+            // Add welcome message
+            addWelcomeMessage();
+            
+            showNotification('success', 'Chat mới', 'Đã tạo cuộc hội thoại mới');
+        }
+    } catch (error) {
+        console.error('Error creating chat session:', error);
+        addErrorMessage('Không thể tạo chat mới');
+    }
+}
+
+// Delete chat session
+async function deleteChatSession(sessionId) {
+    if (!confirm('Bạn có chắc muốn xóa cuộc hội thoại này?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/chat-sessions/${sessionId}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // If deleting current session, create new one
+            if (currentConversationId === sessionId) {
+                await createNewChatSession();
+            } else {
+                await loadChatSessions();
+            }
+            
+            showNotification('success', 'Đã xóa', 'Cuộc hội thoại đã được xóa');
+        }
+    } catch (error) {
+        console.error('Error deleting chat session:', error);
+        addErrorMessage('Không thể xóa chat');
+    }
+}
+
+// Auto-save session title based on first message
+async function autoSaveSessionTitle(sessionId, firstMessage) {
+    try {
+        // Extract a short title from the message (first 50 chars)
+        const title = firstMessage.substring(0, 50).trim() + (firstMessage.length > 50 ? '...' : '');
+        
+        await fetch(`/api/chat-sessions/${sessionId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ title })
+        });
+    } catch (error) {
+        console.error('Error auto-saving session title:', error);
+    }
+}
+
+// Format session time
+function formatSessionTime(timestamp) {
+    if (!timestamp) return '';
+    
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 1) return 'Vừa xong';
+    if (diffMins < 60) return `${diffMins} phút trước`;
+    if (diffHours < 24) return `${diffHours} giờ trước`;
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+    
+    return date.toLocaleDateString('vi-VN');
+}
+

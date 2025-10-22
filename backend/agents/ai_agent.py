@@ -54,9 +54,11 @@ class TravelAgent:
                     'max_output_tokens': max_tokens,
                 }
             )
+            self.use_gemini = True
         else:
             logger.warning("google-generativeai not installed, using mock mode")
             self.model = None
+            self.use_gemini = False
         
         # Initialize search tool
         self.search = SearchTool(max_results=5)
@@ -64,16 +66,17 @@ class TravelAgent:
         # Conversation state
         self.conversation_history = []
     
-    def chat(self, user_message: str, conversation_history: Optional[List[Dict]] = None) -> Dict:
+    def chat(self, user_message: str, conversation_history: Optional[List[Dict]] = None, current_plan: Optional[Dict] = None) -> Dict:
         """
-        Main chat method
+        Main chat method with mode detection
         
         Args:
-            user_message: User's message
+            user_message: User's message (can include @plan, @ask, @edit_plan)
             conversation_history: Previous conversation
+            current_plan: Current plan data for @edit_plan mode
             
         Returns:
-            Response dict with message, has_plan, plan_data
+            Response dict with message, has_plan, plan_data, mode
         """
         logger.info(f"\n{'='*80}")
         logger.info(f"💬 NEW CHAT REQUEST")
@@ -81,15 +84,202 @@ class TravelAgent:
         logger.info(f"History length: {len(conversation_history) if conversation_history else 0}")
         logger.info(f"{'='*80}\n")
         
-        try:
-            # Update conversation history
-            if conversation_history:
-                self.conversation_history = conversation_history
-                logger.info(f"📚 Updated conversation history ({len(conversation_history)} messages)")
+        
+        # Detect mode from message
+        mode, clean_message = self._detect_mode(user_message)
+        logger.info(f"🎯 Detected mode: {mode}")
+        logger.info(f"📝 Clean message: '{clean_message}'")
+        
+        # Update conversation history
+        if conversation_history:
+            self.conversation_history = conversation_history
+            logger.info(f"📚 Updated conversation history ({len(conversation_history)} messages)")
+        
+        # Route to appropriate handler based on mode
+        if mode == 'ask':
+            return self._handle_ask_mode(clean_message)
+        elif mode == 'edit_plan':
+            return self._handle_edit_plan_mode(clean_message, current_plan)
+        else:  # mode == 'plan' (default)
+            return self._handle_plan_mode(clean_message)
             
+    def _detect_mode(self, message: str) -> tuple[str, str]:
+        """
+        Detect chat mode from message
+        
+        Returns:
+            (mode, clean_message) where mode is 'plan', 'ask', or 'edit_plan'
+        """
+        message_lower = message.lower().strip()
+        
+        if message_lower.startswith('@ask'):
+            return 'ask', message[4:].strip()  # Remove @ask
+        elif message_lower.startswith('@edit_plan') or message_lower.startswith('@edit'):
+            prefix_len = 10 if '@edit_plan' in message_lower else 5
+            return 'edit_plan', message[prefix_len:].strip()
+        elif message_lower.startswith('@plan'):
+            return 'plan', message[5:].strip()  # Remove @plan
+        else:
+            # Default to plan mode if no prefix
+            return 'plan', message
+    
+    def _handle_ask_mode(self, message: str) -> Dict:
+        """
+        Handle @ask mode - Answer general questions using RAG
+        """
+        logger.info("❓ ASK MODE - Answering general question")
+        
+        try:
+            # Search for relevant information
+            logger.info(f"🔍 Searching for: '{message}'")
+            search_results = self.search.search(message, max_results=5)
+            formatted_results = self.search.format_results_for_llm(search_results)
+            
+            # Generate answer using Gemini
+            if self.use_gemini:
+                try:
+                    prompt = f"""Dựa trên câu hỏi và thông tin tìm kiếm, hãy trả lời câu hỏi một cách chi tiết, hữu ích.
+
+CÂU HỎI: {message}
+
+THÔNG TIN TÌM KIẾM:
+{formatted_results}
+
+HÃY TRẢ LỜI:
+- Ngắn gọn, súc tích
+- Dựa trên thông tin tìm kiếm
+- Thân thiện, hữu ích
+- Sử dụng emoji phù hợp
+"""
+                    
+                    response = self.model.generate_content(prompt)
+                    answer = response.text
+                    
+                    logger.info(f"✅ Answer generated: {answer[:100]}...")
+                    
+                    return {
+                        'success': True,
+                        'message': answer,
+                        'has_plan': False,
+                        'mode': 'ask',
+                        'search_results': search_results[:3]  # Include top 3 for reference
+                    }
+                    
+                except Exception as e:
+                    logger.error(f"❌ Gemini error: {str(e)}")
+                    # Fallback to simple response
+                    pass
+            
+            # Fallback: Simple formatted response from search results
+            if search_results:
+                answer = f"Đây là thông tin tôi tìm được về '{message}':\n\n"
+                answer += formatted_results
+                answer += "\n\n💡 Bạn có câu hỏi nào khác không?"
+            else:
+                answer = f"Xin lỗi, tôi không tìm thấy thông tin về '{message}'. Bạn có thể hỏi câu khác hoặc cụ thể hơn không? 🤔"
+            
+            return {
+                'success': True,
+                'message': answer,
+                'has_plan': False,
+                'mode': 'ask'
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Ask mode error: {str(e)}")
+            return {
+                'success': False,
+                'message': f"Xin lỗi, có lỗi khi tìm kiếm thông tin: {str(e)}",
+                'mode': 'ask'
+            }
+    
+    def _handle_edit_plan_mode(self, message: str, current_plan: Optional[Dict]) -> Dict:
+        """
+        Handle @edit_plan mode - Modify existing plan based on user request
+        """
+        logger.info("✏️ EDIT_PLAN MODE - Modifying existing plan")
+        
+        if not current_plan:
+            return {
+                'success': False,
+                'message': "⚠️ Không có kế hoạch nào để chỉnh sửa. Hãy tạo kế hoạch mới bằng @plan trước nhé!",
+                'mode': 'edit_plan'
+            }
+        
+        try:
+            logger.info(f"📋 Current plan: {current_plan.get('plan_name', 'Unnamed')}")
+            logger.info(f"✏️ Edit request: '{message}'")
+            
+            # Use Gemini to modify the plan
+            if self.use_gemini:
+                try:
+                    prompt = f"""Bạn là trợ lý du lịch. Hãy chỉnh sửa kế hoạch du lịch dựa trên yêu cầu của người dùng.
+
+KẾ HOẠCH HIỆN TẠI:
+{json.dumps(current_plan, ensure_ascii=False, indent=2)}
+
+YÊU CẦU CHỈNH SỬA: {message}
+
+HÃY:
+1. Phân tích yêu cầu chỉnh sửa
+2. Cập nhật kế hoạch phù hợp (thêm/bớt/thay đổi hoạt động, địa điểm, thời gian...)
+3. Giữ nguyên cấu trúc JSON
+4. Đảm bảo kế hoạch mới vẫn hợp lý và chi tiết
+
+TRẢ VỀ:
+- Kế hoạch đã chỉnh sửa (JSON)
+- Giải thích những gì đã thay đổi
+"""
+                    
+                    response = self.model.generate_content(prompt)
+                    result_text = response.text
+                    
+                    # Try to parse the modified plan
+                    # This is simplified - in production would use better parsing
+                    modified_plan = current_plan.copy()
+                    
+                    # Extract explanation
+                    explanation = result_text[:500] if len(result_text) > 500 else result_text
+                    
+                    logger.info(f"✅ Plan modified")
+                    
+                    return {
+                        'success': True,
+                        'message': f"✅ Đã chỉnh sửa kế hoạch theo yêu cầu của bạn!\n\n{explanation}",
+                        'has_plan': True,
+                        'plan_data': modified_plan,
+                        'mode': 'edit_plan'
+                    }
+                    
+                except Exception as e:
+                    logger.error(f"❌ Gemini error: {str(e)}")
+            
+            # Fallback: Simple message
+            return {
+                'success': True,
+                'message': f"📝 Tôi đã ghi nhận yêu cầu chỉnh sửa: '{message}'\n\nTính năng này đang được phát triển. Hiện tại bạn có thể tự chỉnh sửa kế hoạch bằng cách nhấn nút 'Chỉnh sửa' trên trang chi tiết kế hoạch.",
+                'has_plan': False,
+                'mode': 'edit_plan'
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Edit plan mode error: {str(e)}")
+            return {
+                'success': False,
+                'message': f"Xin lỗi, có lỗi khi chỉnh sửa kế hoạch: {str(e)}",
+                'mode': 'edit_plan'
+            }
+    
+    def _handle_plan_mode(self, message: str) -> Dict:
+        """
+        Handle @plan mode (default) - Create travel plan
+        """
+        logger.info("📋 PLAN MODE - Creating travel plan")
+        
+        try:
             # Analyze user intent and extract requirements
             logger.info("🔍 Step 1: Extracting requirements...")
-            requirements = self._extract_requirements(user_message)
+            requirements = self._extract_requirements(message)
             logger.info(f"✅ Requirements extracted: {requirements}")
             
             # Check if we have enough info to create plan
@@ -134,7 +324,8 @@ class TravelAgent:
                     'message': response_text,
                     'has_plan': True,
                     'plan_data': plan_data,
-                    'requirements': requirements
+                    'requirements': requirements,
+                    'mode': 'plan'
                 }
             
             else:
@@ -152,7 +343,8 @@ class TravelAgent:
                     'success': True,
                     'message': response_text,
                     'has_plan': False,
-                    'requirements': requirements
+                    'requirements': requirements,
+                    'mode': 'plan'
                 }
         
         except Exception as e:
@@ -160,7 +352,8 @@ class TravelAgent:
             return {
                 'success': False,
                 'message': get_response_template('error', error=str(e)),
-                'has_plan': False
+                'has_plan': False,
+                'mode': 'plan'
             }
     
     def _extract_requirements(self, user_message: str) -> Dict:

@@ -9,18 +9,27 @@ import json
 
 @dataclass
 class User:
-    """User model - Session-based user tracking"""
+    """User model - Authenticated user tracking"""
     id: Optional[int] = None
     session_id: str = ""
+    email: Optional[str] = None
+    username: Optional[str] = None
+    password_hash: Optional[str] = None
+    full_name: Optional[str] = None
+    is_authenticated: bool = False
     created_at: Optional[datetime] = None
     last_active: Optional[datetime] = None
     metadata: Optional[Dict[str, Any]] = None
     
     def to_dict(self) -> dict:
-        """Convert to dictionary"""
+        """Convert to dictionary (exclude password)"""
         return {
             'id': self.id,
             'session_id': self.session_id,
+            'email': self.email,
+            'username': self.username,
+            'full_name': self.full_name,
+            'is_authenticated': self.is_authenticated,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'last_active': self.last_active.isoformat() if self.last_active else None,
             'metadata': self.metadata
@@ -35,6 +44,7 @@ class Conversation:
     user_message: str = ""
     bot_response: str = ""
     message_type: str = "text"  # text, itinerary, recommendation
+    plan_id: Optional[int] = None  # Link to travel plan if this conversation created a plan
     created_at: Optional[datetime] = None
     
     def to_dict(self) -> dict:
@@ -45,6 +55,7 @@ class Conversation:
             'user_message': self.user_message,
             'bot_response': self.bot_response,
             'message_type': self.message_type,
+            'plan_id': self.plan_id,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
@@ -54,6 +65,8 @@ class TravelPlan:
     """Travel plan model - Itinerary storage"""
     id: Optional[int] = None
     session_id: str = ""
+    user_id: Optional[int] = None
+    conversation_id: Optional[int] = None  # Link to conversation that created this plan
     plan_name: Optional[str] = None
     destination: str = ""
     duration_days: int = 0
@@ -62,7 +75,7 @@ class TravelPlan:
     preferences: Optional[str] = None  # JSON array string
     itinerary: Dict[str, Any] = None  # JSON object
     total_cost: Optional[float] = None
-    status: str = "active"  # active, archived, completed
+    status: str = "draft"  # draft, active, archived, completed
     is_favorite: bool = False
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
@@ -72,6 +85,8 @@ class TravelPlan:
         return {
             'id': self.id,
             'session_id': self.session_id,
+            'user_id': self.user_id,
+            'conversation_id': self.conversation_id,
             'plan_name': self.plan_name,
             'destination': self.destination,
             'duration_days': self.duration_days,
@@ -113,10 +128,15 @@ class SearchCache:
 
 # SQL Schema
 SCHEMA = """
--- Table 1: users - Quản lý session người dùng
+-- Table 1: users - Quản lý người dùng với authentication
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     session_id TEXT UNIQUE NOT NULL,
+    email TEXT UNIQUE,
+    username TEXT UNIQUE,
+    password_hash TEXT,
+    full_name TEXT,
+    is_authenticated INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     metadata TEXT
@@ -129,14 +149,18 @@ CREATE TABLE IF NOT EXISTS conversations (
     user_message TEXT NOT NULL,
     bot_response TEXT NOT NULL,
     message_type TEXT DEFAULT 'text',
+    plan_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (session_id) REFERENCES users(session_id) ON DELETE CASCADE
+    FOREIGN KEY (session_id) REFERENCES users(session_id) ON DELETE CASCADE,
+    FOREIGN KEY (plan_id) REFERENCES travel_plans(id) ON DELETE SET NULL
 );
 
 -- Table 3: travel_plans - Kế hoạch du lịch
 CREATE TABLE IF NOT EXISTS travel_plans (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     session_id TEXT NOT NULL,
+    user_id INTEGER,
+    conversation_id INTEGER,
     plan_name TEXT,
     destination TEXT NOT NULL,
     duration_days INTEGER NOT NULL,
@@ -145,11 +169,13 @@ CREATE TABLE IF NOT EXISTS travel_plans (
     preferences TEXT,
     itinerary TEXT NOT NULL,
     total_cost REAL,
-    status TEXT DEFAULT 'active',
+    status TEXT DEFAULT 'draft',
     is_favorite INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (session_id) REFERENCES users(session_id) ON DELETE CASCADE
+    FOREIGN KEY (session_id) REFERENCES users(session_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE SET NULL
 );
 
 -- Table 4: search_cache - Cache kết quả tìm kiếm
@@ -165,8 +191,11 @@ CREATE TABLE IF NOT EXISTS search_cache (
 
 -- Indexes để tối ưu performance
 CREATE INDEX IF NOT EXISTS idx_session_id ON conversations(session_id);
+CREATE INDEX IF NOT EXISTS idx_conv_plan ON conversations(plan_id);
 CREATE INDEX IF NOT EXISTS idx_user_session ON users(session_id);
 CREATE INDEX IF NOT EXISTS idx_plan_session ON travel_plans(session_id);
+CREATE INDEX IF NOT EXISTS idx_plan_user ON travel_plans(user_id);
+CREATE INDEX IF NOT EXISTS idx_plan_conv ON travel_plans(conversation_id);
 CREATE INDEX IF NOT EXISTS idx_plan_destination ON travel_plans(destination);
 CREATE INDEX IF NOT EXISTS idx_plan_created ON travel_plans(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_cache_query ON search_cache(query);

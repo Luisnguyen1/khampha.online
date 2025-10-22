@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}Đăng ký - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <!-- Logo/Brand -->
+        <div class="text-center">
+            <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 mb-2">
+                {{ app_name }}
+            </h1>
+            <h2 class="text-2xl font-semibold text-gray-900">
+                Tạo tài khoản mới
+            </h2>
+            <p class="mt-2 text-sm text-gray-600">
+                Đã có tài khoản? 
+                <a href="/login" class="font-medium text-blue-600 hover:text-blue-500">
+                    Đăng nhập ngay
+                </a>
+            </p>
+        </div>
+
+        <!-- Register Form -->
+        <form id="registerForm" class="mt-8 space-y-6">
+            <div class="rounded-md shadow-sm space-y-4">
+                <!-- Full Name -->
+                <div>
+                    <label for="full_name" class="block text-sm font-medium text-gray-700 mb-1">
+                        Họ và tên
+                    </label>
+                    <input 
+                        id="full_name" 
+                        name="full_name" 
+                        type="text" 
+                        autocomplete="name"
+                        class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" 
+                        placeholder="Nguyễn Văn A">
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+                        Email <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        id="email" 
+                        name="email" 
+                        type="email" 
+                        autocomplete="email" 
+                        required 
+                        class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" 
+                        placeholder="email@example.com">
+                </div>
+                
+                <!-- Username -->
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-1">
+                        Username <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        id="username" 
+                        name="username" 
+                        type="text" 
+                        autocomplete="username" 
+                        required 
+                        class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" 
+                        placeholder="username123"
+                        pattern="[a-zA-Z0-9_]{3,20}"
+                        title="Username phải từ 3-20 ký tự, chỉ chứa chữ, số và dấu gạch dưới">
+                    <p class="mt-1 text-xs text-gray-500">3-20 ký tự, chỉ chữ, số và dấu gạch dưới (_)</p>
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+                        Mật khẩu <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        id="password" 
+                        name="password" 
+                        type="password" 
+                        autocomplete="new-password" 
+                        required 
+                        class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" 
+                        placeholder="Mật khẩu"
+                        minlength="6">
+                    <p class="mt-1 text-xs text-gray-500">Tối thiểu 6 ký tự, nên có cả chữ và số</p>
+                </div>
+
+                <!-- Confirm Password -->
+                <div>
+                    <label for="confirm_password" class="block text-sm font-medium text-gray-700 mb-1">
+                        Xác nhận mật khẩu <span class="text-red-500">*</span>
+                    </label>
+                    <input 
+                        id="confirm_password" 
+                        name="confirm_password" 
+                        type="password" 
+                        autocomplete="new-password" 
+                        required 
+                        class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" 
+                        placeholder="Nhập lại mật khẩu">
+                </div>
+            </div>
+
+            <!-- Terms -->
+            <div class="flex items-start">
+                <div class="flex items-center h-5">
+                    <input 
+                        id="terms" 
+                        name="terms" 
+                        type="checkbox" 
+                        required
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                </div>
+                <div class="ml-2 text-sm">
+                    <label for="terms" class="text-gray-600">
+                        Tôi đồng ý với 
+                        <a href="#" class="text-blue-600 hover:text-blue-500">Điều khoản sử dụng</a> 
+                        và 
+                        <a href="#" class="text-blue-600 hover:text-blue-500">Chính sách bảo mật</a>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <div id="errorMessage" class="hidden">
+                <div class="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                    <span class="material-symbols-outlined text-sm align-middle mr-1">error</span>
+                    <span id="errorText"></span>
+                </div>
+            </div>
+
+            <!-- Success Message -->
+            <div id="successMessage" class="hidden">
+                <div class="bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded-lg text-sm">
+                    <span class="material-symbols-outlined text-sm align-middle mr-1">check_circle</span>
+                    <span id="successText"></span>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div>
+                <button 
+                    type="submit" 
+                    id="registerButton"
+                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                        <span class="material-symbols-outlined">person_add</span>
+                    </span>
+                    Đăng ký
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('registerForm');
+    const emailInput = document.getElementById('email');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirm_password');
+    const fullNameInput = document.getElementById('full_name');
+    const registerButton = document.getElementById('registerButton');
+    const errorMessage = document.getElementById('errorMessage');
+    const errorText = document.getElementById('errorText');
+    const successMessage = document.getElementById('successMessage');
+    const successText = document.getElementById('successText');
+
+    // Hide messages on input
+    const hideMessages = () => {
+        errorMessage.classList.add('hidden');
+        successMessage.classList.add('hidden');
+    };
+
+    [emailInput, usernameInput, passwordInput, confirmPasswordInput, fullNameInput].forEach(input => {
+        input.addEventListener('input', hideMessages);
+    });
+
+    // Handle form submit
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideMessages();
+
+        const email = emailInput.value.trim();
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        const fullName = fullNameInput.value.trim();
+
+        // Validate
+        if (!email || !username || !password) {
+            showError('Vui lòng điền đầy đủ thông tin bắt buộc');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            showError('Mật khẩu xác nhận không khớp');
+            return;
+        }
+
+        if (password.length < 6) {
+            showError('Mật khẩu phải có ít nhất 6 ký tự');
+            return;
+        }
+
+        if (username.length < 3 || username.length > 20) {
+            showError('Username phải từ 3-20 ký tự');
+            return;
+        }
+
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+            showError('Username chỉ được chứa chữ, số và dấu gạch dưới');
+            return;
+        }
+
+        // Disable button
+        registerButton.disabled = true;
+        registerButton.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span> Đang xử lý...';
+
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    email, 
+                    username, 
+                    password,
+                    full_name: fullName || null
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showSuccess('Đăng ký thành công! Đang chuyển hướng...');
+                setTimeout(() => {
+                    window.location.href = '/chat';
+                }, 1500);
+            } else {
+                showError(data.error || 'Đăng ký thất bại');
+                // Re-enable button
+                registerButton.disabled = false;
+                registerButton.innerHTML = '<span class="absolute left-0 inset-y-0 flex items-center pl-3"><span class="material-symbols-outlined">person_add</span></span>Đăng ký';
+            }
+        } catch (error) {
+            console.error('Register error:', error);
+            showError('Lỗi kết nối, vui lòng thử lại');
+            // Re-enable button
+            registerButton.disabled = false;
+            registerButton.innerHTML = '<span class="absolute left-0 inset-y-0 flex items-center pl-3"><span class="material-symbols-outlined">person_add</span></span>Đăng ký';
+        }
+    });
+
+    function showError(message) {
+        errorText.textContent = message;
+        errorMessage.classList.remove('hidden');
+    }
+
+    function showSuccess(message) {
+        successText.textContent = message;
+        successMessage.classList.remove('hidden');
+    }
+});
+</script>
+{% endblock %}
