@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Chi tiết Kế hoạch Du lịch</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13a4ec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101c22",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="flex flex-grow">
+<!-- SideNavBar -->
+<aside class="w-72 bg-white dark:bg-background-dark p-4 flex flex-col justify-between border-r border-[#dbe2e6] dark:border-gray-700">
+<div class="flex flex-col gap-4">
+<div class="flex gap-3 items-center">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12" data-alt="Da Nang Hoi An trip avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAMJD6UsCS0L3QbSKsgNM6jDhcAoa7UNtuJBN24E7WZ89gTo-Iil0HRHJN5jVzkgFYCSsvMH7IRwORU_9iEIat_bbd1dNiNj-kImgI9ybdZBaqZBXlG2ujVbnANL5s9j-bJUwOa_4qWlnlwg0kzTxQ8UM3XlIrz9fyiPNtGAqeVWPCCsyjuKrBwrUMamEpQcfkOM9pecdp77OzlIDUgjsH6G9VVVKA9JAvtGTWt--X4EOTA4mSj4O_URbEzEkJlY_r3xWzAs95Lemo");'></div>
+<div class="flex flex-col">
+<h1 class="text-[#111618] dark:text-white text-base font-bold leading-normal">Khám Phá Đà Nẵng - Hội An</h1>
+<p class="text-[#617c89] dark:text-gray-400 text-sm font-normal leading-normal">4 Ngày 3 Đêm</p>
+</div>
+</div>
+<div class="flex flex-col gap-2 mt-4">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<p class="font-medium leading-normal">Ngày 1</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-[#111618] dark:text-gray-300" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<p class="font-medium leading-normal">Ngày 2</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-[#111618] dark:text-gray-300" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<p class="font-medium leading-normal">Ngày 3</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-[#111618] dark:text-gray-300" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<p class="font-medium leading-normal">Ngày 4</p>
+</a>
+<div class="my-2 border-t border-gray-200 dark:border-gray-700"></div>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-[#111618] dark:text-gray-300" href="#">
+<span class="material-symbols-outlined">pie_chart</span>
+<p class="font-medium leading-normal">Tổng kết &amp; Chi phí</p>
+</a>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] gap-2">
+<span class="material-symbols-outlined">download</span>
+<span class="truncate">Tải xuống PDF</span>
+</button>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-[#111618] dark:text-gray-300" href="#">
+<span class="material-symbols-outlined text-yellow-500">lightbulb</span>
+<p class="font-medium leading-normal">Lưu ý quan trọng</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-[#111618] dark:text-gray-300" href="#">
+<span class="material-symbols-outlined">share</span>
+<p class="font-medium leading-normal">Chia sẻ</p>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 p-8 overflow-y-auto">
+<div class="layout-content-container flex flex-col max-w-4xl mx-auto">
+<!-- PageHeading -->
+<div class="flex flex-wrap justify-between gap-4 items-start">
+<div class="flex flex-col gap-2">
+<p class="text-[#111618] dark:text-white text-3xl font-black leading-tight tracking-[-0.033em]">Ngày 1: Khám phá trung tâm Đà Nẵng</p>
+<p class="text-[#617c89] dark:text-gray-400 text-base font-normal leading-normal">Chi tiết lịch trình ngày đầu tiên của bạn</p>
+</div>
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-gray-200 dark:bg-gray-700 text-[#111618] dark:text-white text-sm font-bold leading-normal tracking-[0.015em] gap-2">
+<span class="material-symbols-outlined">edit</span>
+<span class="truncate">Chỉnh sửa kế hoạch</span>
+</button>
+</div>
+<!-- Stats -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+<div class="flex flex-col gap-2 rounded-xl p-6 border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-gray-800">
+<p class="text-[#111618] dark:text-gray-300 text-base font-medium leading-normal">Tổng chi phí</p>
+<p class="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight">15.000.000đ</p>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-6 border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-gray-800">
+<p class="text-[#111618] dark:text-gray-300 text-base font-medium leading-normal">Số ngày</p>
+<p class="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight">4</p>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-6 border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-gray-800">
+<p class="text-[#111618] dark:text-gray-300 text-base font-medium leading-normal">Số người</p>
+<p class="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight">2</p>
+</div>
+</div>
+<div class="mt-8 flex flex-col lg:flex-row gap-8">
+<!-- Timeline -->
+<div class="flex-1">
+<h2 class="text-xl font-bold text-[#111618] dark:text-white mb-4">Lịch trình chi tiết</h2>
+<div class="grid grid-cols-[auto_1fr] gap-x-4">
+<div class="flex flex-col items-center gap-1.5 pt-3">
+<span class="material-symbols-outlined text-primary">restaurant</span>
+<div class="w-[2px] bg-[#dbe2e6] dark:bg-gray-700 h-full"></div>
+</div>
+<div class="flex-1 pb-8">
+<p class="text-sm font-medium text-[#617c89] dark:text-gray-400">8:00 AM</p>
+<p class="text-lg font-semibold text-[#111618] dark:text-white">Ăn sáng - Bún chả cá</p>
+<p class="text-base text-[#617c89] dark:text-gray-400 mt-1">Thưởng thức món đặc sản địa phương để bắt đầu ngày mới.</p>
+<p class="text-sm font-medium text-green-600 mt-2">Chi phí: ~50.000đ/người</p>
+</div>
+<div class="flex flex-col items-center gap-1.5">
+<div class="w-[2px] bg-[#dbe2e6] dark:bg-gray-700 h-full"></div>
+</div>
+<div class="flex-1 pb-8">
+<p class="text-sm font-medium text-[#617c89] dark:text-gray-400">9:30 AM</p>
+<p class="text-lg font-semibold text-[#111618] dark:text-white">Tham quan Bảo tàng Chăm</p>
+<p class="text-base text-[#617c89] dark:text-gray-400 mt-1">Khám phá văn hóa và lịch sử Chăm Pa độc đáo.</p>
+<p class="text-sm font-medium text-green-600 mt-2">Chi phí: 60.000đ/người</p>
+</div>
+<div class="flex flex-col items-center gap-1.5">
+<div class="w-[2px] bg-[#dbe2e6] dark:bg-gray-700 h-full"></div>
+</div>
+<div class="flex-1 pb-8">
+<p class="text-sm font-medium text-[#617c89] dark:text-gray-400">12:00 PM</p>
+<p class="text-lg font-semibold text-[#111618] dark:text-white">Ăn trưa &amp; nghỉ ngơi</p>
+<p class="text-base text-[#617c89] dark:text-gray-400 mt-1">Ăn trưa với hải sản tươi sống tại nhà hàng ven biển.</p>
+<p class="text-sm font-medium text-green-600 mt-2">Chi phí: ~300.000đ/người</p>
+</div>
+<div class="flex flex-col items-center gap-1.5">
+<div class="w-[2px] bg-[#dbe2e6] dark:bg-gray-700 h-full"></div>
+</div>
+<div class="flex-1 pb-8">
+<p class="text-sm font-medium text-[#617c89] dark:text-gray-400">4:00 PM</p>
+<p class="text-lg font-semibold text-[#111618] dark:text-white">Tắm biển Mỹ Khê</p>
+<p class="text-base text-[#617c89] dark:text-gray-400 mt-1">Thư giãn và tận hưởng một trong những bãi biển đẹp nhất hành tinh.</p>
+<p class="text-sm font-medium text-green-600 mt-2">Chi phí: Miễn phí</p>
+</div>
+<div class="flex flex-col items-center gap-1.5">
+<div class="w-[2px] bg-transparent"></div>
+</div>
+<div class="flex-1 pb-8">
+<p class="text-sm font-medium text-[#617c89] dark:text-gray-400">7:00 PM</p>
+<p class="text-lg font-semibold text-[#111618] dark:text-white">Ăn tối &amp; Dạo Cầu Rồng</p>
+<p class="text-base text-[#617c89] dark:text-gray-400 mt-1">Ăn tối và xem Cầu Rồng phun lửa, phun nước vào cuối tuần.</p>
+<p class="text-sm font-medium text-green-600 mt-2">Chi phí: ~250.000đ/người</p>
+</div>
+</div>
+</div>
+<!-- Map -->
+<div class="flex-1 lg:w-1/3">
+<h2 class="text-xl font-bold text-[#111618] dark:text-white mb-4">Bản đồ các địa điểm</h2>
+<div class="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl object-cover" data-location="Da Nang" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDadc-mas04Ak32oJn5ykZCuXpmiACi_zeP5aaMig5zaIBZSs2Uxa5umW4CwJJQXuVp75lwixP9ZoSgzAR6ebbdgFA0Ml0mz8kQ3di0uAZ6ymJgFTYRxK9EJA1IuwiEyeSvdTsSIIE80Ub2yepd7LHcGLBJre0W3dswto6DIIIAGIDI_X9M0BEgqVyxb-pCDLzwfmwD9RthhNgioMzAClFwkroMi2Ajmjwz1B536kxUOI9SIVYjoiioNJFvPWAD-7dC6VM-4VQ76PU')"></div>
+<div class="mt-4 p-4 rounded-xl border border-yellow-300 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-700">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-yellow-500">lightbulb</span>
+<h3 class="text-lg font-semibold text-yellow-800 dark:text-yellow-300">Lưu ý ngày 1</h3>
+</div>
+<ul class="list-disc list-inside mt-2 text-yellow-700 dark:text-yellow-400 space-y-1">
+<li>Mang theo kem chống nắng và mũ.</li>
+<li>Cầu Rồng chỉ phun lửa/nước vào 9h tối thứ 7, Chủ nhật.</li>
+<li>Nên đặt bàn trước tại các nhà hàng hải sản nổi tiếng.</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+<script src="{{ url_for('static', filename='js/chi_tiet_ke_hoach.js') }}"></script>
+</body></html>

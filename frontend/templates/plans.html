@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Kế hoạch đã lưu - {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-6xl">
+    
+    <div class="mb-8">
+        <h2 class="text-3xl font-bold text-gray-800 mb-2">📋 Kế hoạch đã lưu</h2>
+        <p class="text-gray-600">Quản lý các chuyến đi của bạn</p>
+    </div>
+    
+    <!-- Plans Grid -->
+    <div id="plansContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Plans will be loaded here -->
+    </div>
+    
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden text-center py-16">
+        <div class="text-6xl mb-4">📭</div>
+        <h3 class="text-xl font-semibold text-gray-700 mb-2">Chưa có kế hoạch nào</h3>
+        <p class="text-gray-600 mb-6">Hãy bắt đầu chat để tạo kế hoạch du lịch đầu tiên!</p>
+        <a href="/" class="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">
+            Bắt đầu chat 💬
+        </a>
+    </div>
+    
+    <!-- Loading -->
+    <div id="loadingPlans" class="text-center py-16">
+        <div class="inline-flex items-center px-4 py-2 bg-blue-50 rounded-lg">
+            <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+            <span class="text-blue-600">Đang tải...</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/plans.js') }}"></script>
+{% endblock %}

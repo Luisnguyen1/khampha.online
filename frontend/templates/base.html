@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ app_name }}{% endblock %}</title>
+    
+    <!-- TailwindCSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen">
+    
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <a href="/" class="flex items-center space-x-2">
+                    <span class="text-2xl">🧭</span>
+                    <h1 class="text-2xl font-bold text-blue-600">{{ app_name }}</h1>
+                </a>
+                
+                <nav class="flex items-center space-x-4">
+                    <a href="/" class="text-gray-600 hover:text-blue-600 transition">
+                        💬 Chat
+                    </a>
+                    <a href="/plans" class="text-gray-600 hover:text-blue-600 transition">
+                        📋 Kế hoạch
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-auto py-6">
+        <div class="container mx-auto px-4 text-center text-gray-600">
+            <p>&copy; 2025 {{ app_name }} - SGU Hackathon 2025</p>
+            <p class="text-sm mt-2">Made with ❤️ by SGU Innovators</p>
+        </div>
+    </footer>
+    
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Travel Plans</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13a4ec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101c22",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-5">
+<div class="layout-content-container flex flex-col max-w-[960px] flex-1">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f0f3f4] dark:border-b-gray-700 px-4 sm:px-10 py-3">
+<div class="flex items-center gap-4 text-[#111618] dark:text-white">
+<div class="size-6 text-primary">
+<svg fill="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M21.93,3.63a1,1,0,0,0-1-1.25,1,1,0,0,0-.69.22L17.8,4.89a9.85,9.85,0,0,0-11.6,0L3.76,2.6A1,1,0,0,0,2.07,3.63L3.89,6.24A10,10,0,0,0,3.89,17.76L2.07,20.37a1,1,0,0,0,1.69,1l2.44-2.29h.1a10,10,0,0,0,11.52,0h.1l2.44,2.29a1,1,0,0,0,.84.37,1,1,0,0,0,.85-.37,1,1,0,0,0,0-1.41l-1.82-2.61a10,10,0,0,0,0-11.52ZM12,18a8,8,0,1,1,8-8A8,8,0,0,1,12,18Zm1-3.5-3,2a.48.48,0,0,1-.5-.5V8a.5.5,0,0,1,.75-.43l5,3a.5.5,0,0,1,0,.86Z"></path>
+</svg>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">Travel Chatbot</h2>
+</div>
+<div class="flex items-center gap-4">
+<nav class="hidden md:flex items-center gap-9">
+<a class="text-[#111618] dark:text-white text-sm font-medium leading-normal" href="#">Trang chủ</a>
+<a class="text-primary text-sm font-bold leading-normal" href="#">Kế hoạch mới</a>
+<a class="text-[#111618] dark:text-white text-sm font-medium leading-normal" href="#">Tài khoản</a>
+</nav>
+<button class="flex items-center justify-center rounded-full size-10 bg-[#f0f3f4] dark:bg-gray-700 text-[#111618] dark:text-white">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDJENWa_NVIcBZSxgPi4zjbuA1_mm-fHB2t14Fgb3FIwiu2uX4Y7eh0WMtqC5CfBou9deDahRQd6yJIo4du7i5G_c72KfJgVibM8RqIn1yTAUAy7dVgL4OTDm-3dkmhbjNIVxvFWbZGAwQ5A9h_zSi_wCOfDw8Paa--OCI7mQjohHooLa_nv1WRJwwoEQbocvF3BMZLNZt96OdcTiaevt8YX-AQU06HsXgmmmYClWANr8VJ7uXbVnpAULZTGLMBU8DIXIkN0p87eLM");'></div>
+</div>
+</header>
+<main class="flex flex-col flex-1 p-4">
+<div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+<p class="text-[#111618] dark:text-white text-4xl font-black leading-tight tracking-[-0.033em] min-w-72">Kế hoạch của tôi</p>
+                <a href="/chat" class="flex items-center justify-center gap-2 px-4 h-10 rounded-lg bg-primary text-white text-sm font-medium">
+<span class="material-symbols-outlined">add</span>
+<span>Tạo kế hoạch mới</span>
+</a>
+</div>
+<div class="flex flex-col md:flex-row gap-4 mb-4">
+<div class="flex-grow">
+<label class="flex flex-col min-w-40 h-12 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-[#617c89] dark:text-gray-400 flex border-none bg-[#f0f3f4] dark:bg-gray-700 items-center justify-center pl-4 rounded-l-lg border-r-0">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-lg text-[#111618] dark:text-white focus:outline-0 focus:ring-0 border-none bg-[#f0f3f4] dark:bg-gray-700 h-full placeholder:text-[#617c89] dark:placeholder:text-gray-400 px-4 text-base font-normal leading-normal" placeholder="Tìm theo tên, địa điểm, hoặc từ khóa" value=""/>
+</div>
+</label>
+</div>
+<div class="flex gap-3 overflow-x-auto">
+<button class="flex h-12 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-[#f0f3f4] dark:bg-gray-700 px-4">
+<p class="text-[#111618] dark:text-white text-sm font-medium leading-normal">Sắp diễn ra</p>
+<span class="material-symbols-outlined text-[#111618] dark:text-white">expand_more</span>
+</button>
+<button class="flex h-12 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-[#f0f3f4] dark:bg-gray-700 px-4">
+<p class="text-[#111618] dark:text-white text-sm font-medium leading-normal">Đã hoàn thành</p>
+<span class="material-symbols-outlined text-[#111618] dark:text-white">expand_more</span>
+</button>
+<button class="flex h-12 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-[#f0f3f4] dark:bg-gray-700 px-4">
+<p class="text-[#111618] dark:text-white text-sm font-medium leading-normal">Tất cả</p>
+<span class="material-symbols-outlined text-[#111618] dark:text-white">expand_more</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="p-0 @container">
+<div class="flex flex-col items-stretch justify-start rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] bg-white dark:bg-gray-800 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-t-xl" data-alt="Da Nang, Vietnam" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC7N7VoGqXmCE_xTG-tHnfXCsT6TiHXEnb78cYiG6wIN7KRbEyx6sDwE9MQln91NolhXdovFlN3UQ_eckloJVYRGTfODpca0_x5zRkbhI6yzoWvPsykr6SZT9YW8Ei1sETchTtJqPNvegsb9qVia_qAqt_A_C_tcDJS8ZQx-_2EENaani9oNspkWc-QZBEXCQ00Mjc-fTU1vydTmh1Tus7lMQej6ba3oBEpFthiMHAYdn7TZTxv5-pd7Gh9an5JuVdUTayVnHuyIWo");'></div>
+<div class="flex w-full grow flex-col items-stretch justify-center gap-2 p-4">
+<p class="text-[#111618] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Khám phá Đà Nẵng - Hội An 5 ngày 4 đêm</p>
+<div class="flex flex-col gap-1 text-[#617c89] dark:text-gray-400 text-sm">
+<p>25/12/2024 - 29/12/2024 (5 ngày)</p>
+<p>Đà Nẵng, Việt Nam</p>
+</div>
+<div class="flex items-center justify-between mt-2">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-4 bg-primary text-white text-sm font-medium">
+<span class="truncate">Xem chi tiết</span>
+</button>
+<button class="flex items-center justify-center size-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-[#617c89] dark:text-gray-400">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<div class="p-0 @container">
+<div class="flex flex-col items-stretch justify-start rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] bg-white dark:bg-gray-800 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-t-xl" data-alt="Hanoi, Vietnam" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCpyhLTCSZTVWPC0nU5bgn9fdDQbWQPrGSI_k_uh4F_juLXuvOq8duySIAZmoYZeLRWPoJ-7CffdsDdz-uTQBcwnYYWJjWsbOLXYCOUWSt0Kvyq-eSfAEtbg9y5AzUZ2n9mIgaHgal0k_e4bybNu8HnSoPs16_2Q9XHqwJRuRH137AQ0ZAs14vOAoitfN9QWQTg5jk1ZzxRso4xFx3nCEecWl8Iz_0TyaL-hYaLZ87FIZqfX8pWPZtbQ4CWUWkxvv2Hq09QIMBmcMg");'></div>
+<div class="flex w-full grow flex-col items-stretch justify-center gap-2 p-4">
+<p class="text-[#111618] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Cuối tuần tại Hà Nội</p>
+<div class="flex flex-col gap-1 text-[#617c89] dark:text-gray-400 text-sm">
+<p>15/11/2024 - 17/11/2024 (3 ngày)</p>
+<p>Hà Nội, Việt Nam</p>
+</div>
+<div class="flex items-center justify-between mt-2">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-4 bg-primary text-white text-sm font-medium">
+<span class="truncate">Xem chi tiết</span>
+</button>
+<button class="flex items-center justify-center size-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-[#617c89] dark:text-gray-400">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<div class="p-0 @container md:col-span-2 lg:col-span-1">
+<div class="flex flex-col items-stretch justify-start rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] bg-white dark:bg-gray-800 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-t-xl" data-alt="Phu Quoc, Vietnam" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBQD5lLRNpDviaZDOZpdPrd9iWC8TY62N1lkMcGVj3eVGMuxWjq4zkMiJS9ZIEYmiRRAtomgsHERVBAvA15NDaJ2J8yQ4FRMofTdh-6kOBAgOJFRl87lFZm73FbM3w__nLbASluDHOJ-eV4XU_6hJkmiErL7rSwVv0MLkoexkjY4fHohCy3C6k2-n7sCFNKR2BRo_pk0cipWGYnnEfSlz1DHrJ-xhoEpPDpVetjiu4G_h6Yzk6KbnnkCHF4gKSZVzQ0TZFAJA-REZk");'></div>
+<div class="flex w-full grow flex-col items-stretch justify-center gap-2 p-4">
+<p class="text-[#111618] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Nghỉ dưỡng ở Phú Quốc</p>
+<div class="flex flex-col gap-1 text-[#617c89] dark:text-gray-400 text-sm">
+<p>10/08/2024 - 15/08/2024 (6 ngày)</p>
+<p>Phú Quốc, Việt Nam</p>
+</div>
+<div class="flex items-center justify-between mt-2">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-4 bg-primary text-white text-sm font-medium">
+<span class="truncate">Xem chi tiết</span>
+</button>
+<button class="flex items-center justify-center size-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-[#617c89] dark:text-gray-400">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Empty State -->
+<div class="hidden flex-col items-center justify-center text-center p-10 mt-10 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl">
+<img alt="Illustration of a suitcase and a map" class="w-48 h-48 mb-6" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBl4yfGCvMNncCqvEmgITcJeF7fh2BDC4gN06d2CnWngdCY1bkqXMsGRXfxWKYz1-aQErPpR9owyY4qXIfQVemgGDRKAFvziyWh7G6913ayP-zYXamHW3uNBmFCr_o_qT_jvGsDwpFjYnGopf-8-CwtI8N_IdDTuu4AwZ6A14h_zChPUwv47EK5N-7cIT3u3HPew7uiUex6BqTDvM6eps_E3oLo1YM79zuRQ_9VwPA4ok3UDw1v6MynDPZ5zKM2CKdxFC-BBAkPDjw"/>
+<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2">Bạn chưa có kế hoạch nào.</h3>
+<p class="text-[#617c89] dark:text-gray-400 mb-6 max-w-sm">Hãy bắt đầu hành trình mơ ước của bạn bằng cách trò chuyện với chatbot để tạo một kế hoạch chi tiết!</p>
+<a href="/chat" class="flex items-center justify-center gap-2 px-6 h-12 rounded-lg bg-primary text-white text-base font-medium">
+<span class="material-symbols-outlined">add</span>
+<span>Tạo kế hoạch đầu tiên</span>
+</a>
+</div>
+</main>
+</div>
+</div>
+</div>
+</div>
+<script src="{{ url_for('static', filename='js/danh_sach_ke_hoach.js') }}"></script>
+</body></html>

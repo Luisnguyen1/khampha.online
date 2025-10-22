@@ -1,0 +1,28 @@
+# Web Framework
+flask==3.0.0
+flask-cors==4.0.0
+
+# AI & LangChain
+langchain==0.1.0
+langchain-google-genai==0.0.5
+google-generativeai==0.3.1
+
+# Search Tool
+# duckduckgo-search
+ddgs
+
+# Utilities
+python-dotenv==1.0.0
+requests==2.31.0
+werkzeug==3.0.0
+
+# Optional: PDF Export
+reportlab==4.0.0
+
+# Optional: Testing
+pytest==7.4.0
+pytest-cov==4.1.0
+
+# Optional: Code Quality
+pylint==3.0.0
+black

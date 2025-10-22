@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TravelBot</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13a4ec",
+                        "secondary": "#F5A623",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101c22",
+                        "text-light": "#333333",
+                        "text-secondary-light": "#777777",
+                        "text-dark": "#ffffff",
+                        "text-secondary-dark": "#a0aec0",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-light dark:text-text-dark">
+<div class="flex h-screen">
+<!-- Sidebar -->
+<aside class="w-64 bg-white dark:bg-background-dark border-r border-gray-200 dark:border-gray-700 flex flex-col">
+<div class="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-700">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="TravelBot logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAnCrCoQIv7ZTPPRdOh68JTqYl8cr9URHj59RTvAqsE_G3CGbU1UmFupP5IXby2e4UiZtznimU7iWm1-YbcW4nBwicLdUUg3PFwTjALVK8Q_-J5esj3gI6M_sdaHqFStXi-nzqm2B1_44PLwpK2IFrTcMZaTZwj5v01Tj0_y68ZObUtL2S5bq-hP2yaohLhuikaXggGMFOD5KQKH7gHMlYlSc-ai43imCG6FjWdUCfw9GuXVcUI4nqTK-WPmRO23-Yp5POaK3G3QNk");'></div>
+<div class="flex flex-col">
+<h1 class="text-text-light dark:text-text-dark text-base font-medium leading-normal">TravelBot</h1>
+<p class="text-text-secondary-light dark:text-text-secondary-dark text-sm font-normal leading-normal">Your Personal Travel Planner</p>
+</div>
+</div>
+<nav class="flex-1 px-2 py-4 space-y-2">
+                <a class="flex items-center gap-3 px-3 py-2 rounded-xl text-text-light dark:text-text-dark hover:bg-gray-100 dark:hover:bg-gray-700" href="/">
+<span class="material-symbols-outlined">home</span>
+<span class="text-sm font-medium">Trang chủ</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl bg-primary/20 dark:bg-primary/30 text-primary" href="/chat">
+<span class="material-symbols-outlined">chat</span>
+<span class="text-sm font-medium">Chat</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-text-light dark:text-text-dark hover:bg-gray-100 dark:hover:bg-gray-700" href="/plans">
+<span class="material-symbols-outlined">list_alt</span>
+<span class="text-sm font-medium">Kế hoạch</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-text-light dark:text-text-dark hover:bg-gray-100 dark:hover:bg-gray-700" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span class="text-sm font-medium">Discover</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-text-light dark:text-text-dark hover:bg-gray-100 dark:hover:bg-gray-700" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-sm font-medium">Profile</span>
+</a>
+</nav>
+<div class="p-4 border-t border-gray-200 dark:border-gray-700">
+<button class="w-full flex items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-secondary text-white text-sm font-bold leading-normal tracking-[0.015em]">
+<span class="truncate">Lên kế hoạch ngay</span>
+</button>
+<div class="mt-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-text-light dark:text-text-dark hover:bg-gray-100 dark:hover:bg-gray-700" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-text-light dark:text-text-dark hover:bg-gray-100 dark:hover:bg-gray-700" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="text-sm font-medium">Help</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 grid grid-cols-1 md:grid-cols-2">
+<!-- Chat Interface -->
+<div class="flex flex-col h-full bg-white dark:bg-background-dark border-r border-gray-200 dark:border-gray-700">
+<div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-4">
+<!-- Messages will be inserted here by JavaScript -->
+</div>
+<!-- Composer -->
+<div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-background-dark">
+<div class="flex gap-2 mb-2">
+<button class="text-sm border border-gray-300 dark:border-gray-600 rounded-full px-3 py-1 text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-gray-700">Gợi ý một chuyến đi đến Đà Lạt</button>
+<button class="text-sm border border-gray-300 dark:border-gray-600 rounded-full px-3 py-1 text-text-secondary-light dark:text-text-secondary-dark hover:bg-gray-100 dark:hover:bg-gray-700">Lên kế hoạch 3 ngày ở biển</button>
+</div>
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 shrink-0" data-alt="User avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDAOPdig2xXVkpEEaEzNp800SSr_7CUwuQ50cmd62R8CRA0bSGIe7SvaFKzmHOx8rgrRVS4wcWcHWQVxpBq7NLhS7mtVEaZ4OoJNRbqFwnvycSzbPChOyFdcCHwWAEMQvl_by6QrgvsG94XtiGnGxH454lNnz9IWpiERqrfOxffSVcUqb_IapFfafE274RwZSkFfXQsHW-oSYwsQ2ql1dCMCEk0zIBtf31qbAIDjeijcg94WuTOGOhlxhtD_w4RCkN22IJU-UmI3q8");'></div>
+<label class="flex flex-col min-w-40 h-12 flex-1">
+<div class="flex w-full flex-1 items-stretch rounded-xl h-full">
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-text-light dark:text-text-dark focus:outline-0 focus:ring-2 focus:ring-primary border-none bg-gray-100 dark:bg-gray-700 focus:border-none h-full placeholder:text-text-secondary-light dark:placeholder:text-text-secondary-dark px-4 rounded-r-none border-r-0 pr-2 text-base font-normal leading-normal" placeholder="Nhập yêu cầu của bạn..." value=""/>
+<div class="flex border-none bg-gray-100 dark:bg-gray-700 items-center justify-center pr-2 rounded-r-xl">
+<button class="flex items-center justify-center p-1.5 text-text-secondary-light dark:text-text-secondary-dark hover:text-primary">
+<span class="material-symbols-outlined">add_circle</span>
+</button>
+<button class="flex items-center justify-center p-1.5 text-text-secondary-light dark:text-text-secondary-dark hover:text-primary">
+<span class="material-symbols-outlined">mic</span>
+</button>
+<button class="flex items-center justify-center p-2 rounded-lg bg-primary text-white ml-2">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</label>
+</div>
+</div>
+</div>
+<!-- Travel Plan Display -->
+<div class="flex flex-col h-full bg-background-light dark:bg-gray-800">
+<div class="p-4 border-b border-gray-200 dark:border-gray-700">
+<div class="flex flex-wrap justify-between items-center gap-3">
+<p class="text-text-light dark:text-text-dark text-2xl font-bold leading-tight">Your Detailed Plan</p>
+<div class="flex gap-2">
+<button class="flex items-center gap-2 min-w-[84px] cursor-pointer justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-medium leading-normal">
+<span class="material-symbols-outlined">save</span>
+<span class="truncate">Save Plan</span>
+</button>
+<button class="flex items-center gap-2 min-w-[84px] cursor-pointer justify-center overflow-hidden rounded-lg h-10 px-4 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-text-light dark:text-text-dark text-sm font-medium leading-normal">
+<span class="material-symbols-outlined">share</span>
+<span class="truncate">Share</span>
+</button>
+<button class="flex items-center gap-2 min-w-[84px] cursor-pointer justify-center overflow-hidden rounded-lg h-10 px-4 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-text-light dark:text-text-dark text-sm font-medium leading-normal">
+<span class="material-symbols-outlined">edit</span>
+<span class="truncate">Edit</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Empty State -->
+<div class="flex-1 flex flex-col items-center justify-center p-8 text-center" style="display: none;">
+<div class="w-32 h-32 text-gray-300 dark:text-gray-600">
+<svg class="w-full h-full" fill="none" stroke="currentColor" stroke-width="1.5" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</div>
+<h3 class="mt-4 text-lg font-medium text-text-light dark:text-text-dark">Your plan will appear here.</h3>
+<p class="mt-1 text-sm text-text-secondary-light dark:text-text-secondary-dark">Start by chatting with me!</p>
+</div>
+<!-- Itinerary View -->
+<div id="planDisplay" class="flex-1 overflow-y-auto p-4">
+<!-- Plan will be inserted here by JavaScript -->
+<div class="text-center py-12">
+<span class="material-symbols-outlined text-gray-300 dark:text-gray-600" style="font-size: 64px;">event_note</span>
+<p class="text-gray-500 dark:text-gray-400 mt-4">Kế hoạch của bạn sẽ xuất hiện ở đây</p>
+<p class="text-sm text-gray-400 dark:text-gray-500">Bắt đầu chat để tạo kế hoạch du lịch!</p>
+</div>
+</div>
+</div>
+</main>
+</div>
+<script src="{{ url_for('static', filename='js/main_chat.js') }}"></script>
+</body></html>

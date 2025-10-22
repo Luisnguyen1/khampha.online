@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tùy chỉnh kế hoạch du lịch</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13a4ec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101c22",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<div class="flex flex-1">
+<aside class="w-80 bg-white dark:bg-background-dark border-r border-gray-200 dark:border-gray-700 p-4 flex flex-col justify-between">
+<div class="flex flex-col gap-6">
+<div class="flex gap-3 items-center">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12" data-alt="A stylized image of the Eiffel Tower" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB1ww-9ZJw6MMpp9AsK15ueAWI-DA8FyatmtdR8Ia__6PZuTdXVgJLrJN4LVHVV6mNbwjKFMeUNYkgPRf_nBlNkxfDVzjwGOaRYsdRTZiJyPbU3O0iNfJh2FMObvXXKkO6cWfQtkVvIN5fLbFE1Pti_L2FjhDNQjI-3us3tksqXJ2za4tPxgUwxJueZ2fOIIvl7YXOJq9uo93UutoDldeh3-dpJAAOMxc9YJCkjbDKJVJUKXnphVJXAscMFRftnNJw6FzHLw3sGf5w");'></div>
+<div class="flex flex-col">
+<h1 class="text-[#111618] dark:text-white text-lg font-bold leading-normal">Chuyến đi đến Paris</h1>
+<p class="text-[#617c89] dark:text-gray-400 text-sm font-normal leading-normal">12/12/2024 - 15/12/2024</p>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20">
+<span class="material-symbols-outlined text-primary">dashboard</span>
+<p class="text-primary text-sm font-bold leading-normal">Tổng quan</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2">
+<span class="material-symbols-outlined text-[#111618] dark:text-white">paid</span>
+<p class="text-[#111618] dark:text-white text-sm font-medium leading-normal">Chi phí</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2">
+<span class="material-symbols-outlined text-[#111618] dark:text-white">calendar_month</span>
+<p class="text-[#111618] dark:text-white text-sm font-medium leading-normal">Lịch trình</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2">
+<span class="material-symbols-outlined text-[#111618] dark:text-white">note_alt</span>
+<p class="text-[#111618] dark:text-white text-sm font-medium leading-normal">Ghi chú</p>
+</div>
+</div>
+<div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+<h2 class="text-[#111618] dark:text-white font-bold mb-3">Lịch trình chi tiết</h2>
+<div class="relative pl-5">
+<div class="absolute left-2.5 top-2 bottom-2 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
+<div class="relative mb-4">
+<div class="absolute -left-[1.1rem] top-2 size-4 bg-primary rounded-full border-4 border-white dark:border-background-dark"></div>
+<p class="font-bold text-[#111618] dark:text-white text-sm">Ngày 1</p>
+<p class="text-xs text-[#617c89] dark:text-gray-400">Tham quan Tháp Eiffel</p>
+</div>
+<div class="relative mb-4">
+<div class="absolute -left-[1.1rem] top-2 size-4 bg-gray-300 dark:bg-gray-600 rounded-full border-4 border-white dark:border-background-dark"></div>
+<p class="font-bold text-[#111618] dark:text-white text-sm">Ngày 2</p>
+<p class="text-xs text-[#617c89] dark:text-gray-400">Bảo tàng Louvre</p>
+</div>
+<div class="relative">
+<div class="absolute -left-[1.1rem] top-2 size-4 bg-gray-300 dark:bg-gray-600 rounded-full border-4 border-white dark:border-background-dark"></div>
+<p class="font-bold text-[#111618] dark:text-white text-sm">Ngày 3</p>
+<p class="text-xs text-[#617c89] dark:text-gray-400">Đi dạo sông Seine</p>
+</div>
+</div>
+</div>
+</div>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] mt-6">
+<span class="truncate">Chia sẻ</span>
+</button>
+</aside>
+<main class="flex-1 p-8 bg-background-light dark:bg-background-dark">
+<div class="layout-content-container flex flex-col max-w-full flex-1">
+<h1 class="text-[#111618] dark:text-white tracking-light text-[32px] font-bold leading-tight px-4 text-left pb-3 pt-6">Tùy chỉnh kế hoạch chuyến đi của bạn</h1>
+<div class="pb-3">
+<div class="flex border-b border-gray-200 dark:border-gray-700 px-4 gap-8">
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-primary text-primary pb-[13px] pt-4" href="#">
+<p class="text-sm font-bold leading-normal tracking-[0.015em]">Chi phí</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-[#617c89] dark:text-gray-400 pb-[13px] pt-4" href="#">
+<p class="text-sm font-bold leading-normal tracking-[0.015em]">Lịch trình</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-[#617c89] dark:text-gray-400 pb-[13px] pt-4" href="#">
+<p class="text-sm font-bold leading-normal tracking-[0.015em]">Ghi chú</p>
+</a>
+</div>
+</div>
+<div class="p-4 space-y-8">
+<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+<div class="@container">
+<div class="relative flex w-full flex-col items-start justify-between gap-3 @[480px]:flex-row @[480px]:items-center">
+<div class="flex w-full shrink-[3] items-center justify-between">
+<p class="text-[#111618] dark:text-white text-base font-medium leading-normal">Tổng ngân sách</p>
+<p class="text-[#111618] dark:text-white text-sm font-normal leading-normal @[480px]:hidden">15,000,000 VNĐ</p>
+</div>
+<div class="flex h-4 w-full items-center gap-4">
+<div class="flex h-2 flex-1 rounded-sm bg-[#dbe2e6] dark:bg-gray-700">
+<div class="h-full w-[32%] rounded-sm bg-primary"></div>
+<div class="relative"><div class="absolute -left-2 -top-1.5 size-5 rounded-full bg-primary ring-4 ring-primary/30"></div></div>
+</div>
+<p class="text-[#111618] dark:text-white text-base font-medium leading-normal hidden @[480px]:block">15,000,000 VNĐ</p>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 space-y-4">
+<h2 class="text-lg font-bold text-[#111618] dark:text-white">Chi tiết chi phí</h2>
+<div class="flex items-center gap-4 py-2 justify-between border-b border-gray-200 dark:border-gray-700">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined">flight</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#111618] dark:text-white text-base font-medium leading-normal line-clamp-1">Di chuyển</p>
+<p class="text-[#617c89] dark:text-gray-400 text-sm font-normal leading-normal line-clamp-2">Vé máy bay, taxi</p>
+</div>
+</div>
+<div class="shrink-0"><p class="text-[#111618] dark:text-white text-base font-medium leading-normal">5,000,000 VNĐ</p></div>
+</div>
+<div class="flex items-center gap-4 py-2 justify-between border-b border-gray-200 dark:border-gray-700">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined">hotel</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#111618] dark:text-white text-base font-medium leading-normal line-clamp-1">Lưu trú</p>
+<p class="text-[#617c89] dark:text-gray-400 text-sm font-normal leading-normal line-clamp-2">Khách sạn, Airbnb</p>
+</div>
+</div>
+<div class="shrink-0"><p class="text-[#111618] dark:text-white text-base font-medium leading-normal">4,000,000 VNĐ</p></div>
+</div>
+<div class="flex items-center gap-4 py-2 justify-between border-b border-gray-200 dark:border-gray-700">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined">restaurant</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#111618] dark:text-white text-base font-medium leading-normal line-clamp-1">Ăn uống</p>
+<p class="text-[#617c89] dark:text-gray-400 text-sm font-normal leading-normal line-clamp-2">Nhà hàng, quán ăn đường phố</p>
+</div>
+</div>
+<div class="shrink-0"><p class="text-[#111618] dark:text-white text-base font-medium leading-normal">3,500,000 VNĐ</p></div>
+</div>
+<div class="flex items-center gap-4 py-2 justify-between">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined">attractions</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#111618] dark:text-white text-base font-medium leading-normal line-clamp-1">Tham quan</p>
+<p class="text-[#617c89] dark:text-gray-400 text-sm font-normal leading-normal line-clamp-2">Vé vào cửa, tour du lịch</p>
+</div>
+</div>
+<div class="shrink-0"><p class="text-[#111618] dark:text-white text-base font-medium leading-normal">2,500,000 VNĐ</p></div>
+</div>
+</div>
+</div>
+<div class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4 shadow-[0_-2px_5px_rgba(0,0,0,0.05)]">
+<div class="max-w-7xl mx-auto flex justify-end items-center gap-4">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-gray-200 dark:bg-gray-700 text-[#111618] dark:text-white text-sm font-bold leading-normal tracking-[0.015em]">
+<span class="truncate">Đặt lại</span>
+</button>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-gray-200 dark:bg-gray-700 text-[#111618] dark:text-white text-sm font-bold leading-normal tracking-[0.015em] gap-2">
+<span class="material-symbols-outlined text-sm">picture_as_pdf</span>
+<span class="truncate">Xuất PDF</span>
+</button>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#FF7F50] text-white text-sm font-bold leading-normal tracking-[0.015em]">
+<span class="truncate">Lưu thay đổi</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</div>
+</body></html>
