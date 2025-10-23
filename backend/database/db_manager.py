@@ -201,18 +201,20 @@ class DatabaseManager:
     
     def save_conversation(self, session_id: str, user_message: str, 
                          bot_response: str, message_type: str = "text",
-                         plan_id: Optional[int] = None) -> int:
+                         plan_id: Optional[int] = None,
+                         conversation_session_id: Optional[str] = None) -> int:
         """Save conversation to database
         
         Args:
             plan_id: ID of travel plan created in this conversation (if any)
+            conversation_session_id: ID to group conversations into sessions
         """
         with self.get_connection() as conn:
             cursor = conn.execute(
                 """INSERT INTO conversations 
-                (session_id, user_message, bot_response, message_type, plan_id) 
-                VALUES (?, ?, ?, ?, ?)""",
-                (session_id, user_message, bot_response, message_type, plan_id)
+                (session_id, conversation_session_id, user_message, bot_response, message_type, plan_id) 
+                VALUES (?, ?, ?, ?, ?, ?)""",
+                (session_id, conversation_session_id, user_message, bot_response, message_type, plan_id)
             )
             return cursor.lastrowid
     
@@ -247,6 +249,7 @@ class DatabaseManager:
                 Conversation(
                     id=row['id'],
                     session_id=row['session_id'],
+                    conversation_session_id=row['conversation_session_id'] if 'conversation_session_id' in row.keys() else None,
                     user_message=row['user_message'],
                     bot_response=row['bot_response'],
                     message_type=row['message_type'],
@@ -255,32 +258,29 @@ class DatabaseManager:
                 )
                 for row in reversed(rows)
             ]
-    
     def get_chat_sessions(self, session_id: Optional[str] = None, user_id: Optional[int] = None) -> List[Dict]:
-        """Get chat sessions grouped by conversation threads
+        """Get chat sessions grouped by conversation_session_id
         
         Returns a list of session summaries with:
-        - id: unique session identifier (using first conversation ID)
+        - id: conversation_session_id
         - title: first user message (truncated)
         - message_count: number of messages in this session
         - created_at: first message timestamp
         - last_message_at: last message timestamp
         """
         with self.get_connection() as conn:
-            # For now, we'll group conversations by date
-            # In a real implementation, you'd want a session_group_id column
+            # Group by conversation_session_id
             rows = conn.execute(
                 """
                 SELECT 
-                    MIN(id) as id,
+                    conversation_session_id as id,
                     MIN(user_message) as first_message,
                     COUNT(*) as message_count,
                     MIN(created_at) as created_at,
-                    MAX(created_at) as last_message_at,
-                    DATE(created_at) as session_date
+                    MAX(created_at) as last_message_at
                 FROM conversations 
-                WHERE session_id = ?
-                GROUP BY session_date
+                WHERE session_id = ? AND conversation_session_id IS NOT NULL
+                GROUP BY conversation_session_id
                 ORDER BY last_message_at DESC
                 LIMIT 50
                 """,
@@ -291,6 +291,12 @@ class DatabaseManager:
             for row in rows:
                 # Create a short title from first message
                 first_msg = row['first_message'] or 'Chat mới'
+                # Remove @plan, @ask, @edit_plan prefixes
+                for prefix in ['@plan ', '@ask ', '@edit_plan ']:
+                    if first_msg.startswith(prefix):
+                        first_msg = first_msg[len(prefix):]
+                        break
+                
                 title = first_msg[:50] + ('...' if len(first_msg) > 50 else '')
                 
                 sessions.append({
@@ -302,6 +308,37 @@ class DatabaseManager:
                 })
             
             return sessions
+    
+    def get_conversations_by_session(self, session_id: str, conversation_session_id: str, limit: int = 100) -> List[Conversation]:
+        """Get conversations for a specific conversation session
+        
+        Args:
+            session_id: User session ID
+            conversation_session_id: Conversation session ID to filter by
+            limit: Maximum number of conversations to return
+        """
+        with self.get_connection() as conn:
+            rows = conn.execute(
+                """SELECT * FROM conversations 
+                WHERE session_id = ? AND conversation_session_id = ?
+                ORDER BY created_at ASC 
+                LIMIT ?""",
+                (session_id, conversation_session_id, limit)
+            ).fetchall()
+            
+            return [
+                Conversation(
+                    id=row['id'],
+                    session_id=row['session_id'],
+                    conversation_session_id=row['conversation_session_id'] if 'conversation_session_id' in row.keys() else None,
+                    user_message=row['user_message'],
+                    bot_response=row['bot_response'],
+                    message_type=row['message_type'],
+                    plan_id=row['plan_id'] if 'plan_id' in row.keys() else None,
+                    created_at=datetime.fromisoformat(row['created_at'])
+                )
+                for row in rows
+            ]
     
     # ===== TRAVEL PLAN OPERATIONS =====
     

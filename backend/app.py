@@ -203,6 +203,13 @@ def chat():
         # Get or create session
         session_id = get_or_create_session()
         
+        # Get conversation session ID (for grouping messages)
+        conversation_session_id = data.get('conversation_session_id')
+        if not conversation_session_id:
+            # Create new conversation session if not provided
+            conversation_session_id = str(uuid.uuid4())
+            app.logger.info(f"Created new conversation session: {conversation_session_id}")
+        
         # Get conversation history
         conversations = db.get_conversations(session_id, limit=10)
         history = [
@@ -249,19 +256,18 @@ def chat():
                     budget=plan_data.get('budget'),
                     preferences=plan_data.get('preferences'),
                     itinerary=plan_data.get('itinerary', {}),
-                    total_cost=plan_data.get('total_cost'),
                     status='draft'  # Auto-saved plans start as draft
                 )
-                app.logger.info(f"✅ Auto-saved plan as draft: plan_id={plan_id}")
             except Exception as e:
-                app.logger.error(f"❌ Error auto-saving plan: {str(e)}")
+                app.logger.error(f"Error auto-saving plan: {str(e)}")
         
-        # Save conversation with plan_id link
+        # Save conversation with plan_id link and conversation_session_id
         conversation_id = db.save_conversation(
             session_id, 
             user_message, 
             bot_response,
-            plan_id=plan_id
+            plan_id=plan_id,
+            conversation_session_id=conversation_session_id
         )
         
         # Update plan with conversation_id (circular reference)
@@ -278,6 +284,7 @@ def chat():
             'success': True,
             'response': bot_response,
             'session_id': session_id,
+            'conversation_session_id': conversation_session_id,  # Return conversation session ID
             'has_plan': agent_response.get('has_plan', False),
             'mode': agent_response.get('mode', 'plan'),
             'plan_id': plan_id,  # Include plan_id in response
@@ -599,8 +606,8 @@ def create_chat_session():
         }), 500
 
 
-@app.route('/api/chat-sessions/<string:session_id>/messages', methods=['GET'])
-def get_chat_session_messages(session_id):
+@app.route('/api/chat-sessions/<string:conversation_session_id>/messages', methods=['GET'])
+def get_chat_session_messages(conversation_session_id):
     """Get messages for a specific chat session"""
     try:
         user_session_id = get_or_create_session()
@@ -609,10 +616,8 @@ def get_chat_session_messages(session_id):
         current_user = get_current_user()
         user_id = current_user.id if current_user else None
         
-        # Get conversations for this session
-        # Note: For now, we'll just return all conversations
-        # In a real implementation, you'd want to filter by session_id
-        conversations = db.get_conversations(user_session_id, limit=100)
+        # Get conversations for this conversation session
+        conversations = db.get_conversations_by_session(user_session_id, conversation_session_id)
         
         # Convert to messages format with plan data
         messages = []

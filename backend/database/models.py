@@ -41,6 +41,7 @@ class Conversation:
     """Conversation model - Chat history"""
     id: Optional[int] = None
     session_id: str = ""
+    conversation_session_id: Optional[str] = None  # Group conversations into sessions
     user_message: str = ""
     bot_response: str = ""
     message_type: str = "text"  # text, itinerary, recommendation
@@ -52,6 +53,7 @@ class Conversation:
         return {
             'id': self.id,
             'session_id': self.session_id,
+            'conversation_session_id': self.conversation_session_id,
             'user_message': self.user_message,
             'bot_response': self.bot_response,
             'message_type': self.message_type,
@@ -146,6 +148,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS conversations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     session_id TEXT NOT NULL,
+    conversation_session_id TEXT,
     user_message TEXT NOT NULL,
     bot_response TEXT NOT NULL,
     message_type TEXT DEFAULT 'text',
@@ -188,9 +191,9 @@ CREATE TABLE IF NOT EXISTS search_cache (
     expires_at TIMESTAMP NOT NULL,
     hit_count INTEGER DEFAULT 0
 );
-
 -- Indexes để tối ưu performance
 CREATE INDEX IF NOT EXISTS idx_session_id ON conversations(session_id);
+CREATE INDEX IF NOT EXISTS idx_conversation_session_id ON conversations(conversation_session_id);
 CREATE INDEX IF NOT EXISTS idx_conv_plan ON conversations(plan_id);
 CREATE INDEX IF NOT EXISTS idx_user_session ON users(session_id);
 CREATE INDEX IF NOT EXISTS idx_plan_session ON travel_plans(session_id);

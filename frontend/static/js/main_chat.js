@@ -202,7 +202,8 @@ async function handleSendMessage() {
     try {
         // Prepare request data
         const requestData = { 
-            message: finalMessage  // Use finalMessage with mode prefix
+            message: finalMessage,  // Use finalMessage with mode prefix
+            conversation_session_id: currentConversationId  // Send current conversation session ID
         };
         
         // Include current plan if in edit mode
@@ -225,10 +226,14 @@ async function handleSendMessage() {
         
         // Remove loading
         loadingMsg.remove();
-        
         if (data.success) {
             // Add bot response
             addBotMessage(data.response);
+            
+            // Update conversation ID from response (if returned by server)
+            if (data.conversation_session_id) {
+                currentConversationId = data.conversation_session_id;
+            }
             
             // If has plan, update plan view and store it
             if (data.has_plan && data.plan_data) {
@@ -272,22 +277,22 @@ function createBotMessage(text) {
         renderedContent = escapeHtml(text).replace(/\n/g, '<br>');
     }
     
-    return msgDiv;
-}
-
-
-// Create bot message element
-function createBotMessage(text) {
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'flex items-end gap-3';
     msgDiv.innerHTML = `
         <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-10 shrink-0" 
              style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuASndgVA3RbX1H4yCbbqk8hsJujYw-P6pZI-uQr7cNE6Fya18CrfnQF3Q6u5lkHGOdbnxRhwJZDcIr3QYn2d9_fHpzc12fDYZTMAQJ7TptH7Pyu-rlqSErcQwCOM7T7182tN0XX_l_KuPUmWhBcT3Qsf6Y1drq5VInxput-tgaNfjrS50WHYfdtTuf2Ofxb432HdB0uwEupfdrgBaK8ptf5_sLoNoRi-VRHoMj3O_yZSs2pThNsHrNSU7onQN-hig4FR913Omzgito");'></div>
         <div class="flex flex-1 flex-col gap-1 items-start">
             <p class="text-xs text-gray-500">TravelBot</p>
-            <p class="text-base font-normal leading-normal max-w-[480px] rounded-xl px-4 py-3 bg-gray-100 dark:bg-gray-700">${escapeHtml(text)}</p>
+            <div class="markdown-content text-base font-normal leading-normal max-w-[480px] rounded-xl px-4 py-3 bg-gray-100 dark:bg-gray-700">${renderedContent}</div>
         </div>
     `;
+    
+    // Highlight code blocks if hljs is available
+    if (typeof hljs !== 'undefined') {
+        msgDiv.querySelectorAll('pre code').forEach((block) => {
+            hljs.highlightElement(block);
+        });
+    }
+    
     return msgDiv;
 }
 
@@ -524,10 +529,10 @@ function showNotification(type, title, message) {
     document.body.appendChild(notif);
     
     // Auto remove after 5 seconds
-    setTimeout(() => notif.remove(), 5000);
+    setTimeout(() => {
+        notif.remove();
+    }, 5000);
 }
-
-// ===== CHAT SESSION MANAGEMENT =====
 
 // Load all chat sessions
 async function loadChatSessions() {
@@ -539,11 +544,8 @@ async function loadChatSessions() {
             chatSessions = data.sessions;
             renderChatSessions();
             
-            // Load current session if exists
-            if (chatSessions.length > 0 && !currentConversationId) {
-                // Load most recent session
-                loadChatSession(chatSessions[0].id);
-            }
+            // DON'T auto-load session on page load
+            // Only load if explicitly requested by user
         }
     } catch (error) {
         console.error('Error loading chat sessions:', error);
