@@ -184,8 +184,8 @@ function displayDay(dayNum, plan) {
     // Update map
     updateMapImage(plan.destination);
     
-    // Update notes
-    updateNotes(dayData);
+    // Update notes (pass both dayData and plan)
+    updateNotes(dayData, plan);
 }
 
 // Update day stats
@@ -337,21 +337,41 @@ function updateMapImage(destination) {
 }
 
 // Update notes
-function updateNotes(dayData) {
+function updateNotes(dayData, plan) {
     const notesContent = document.getElementById('notes-content');
+    const notesContainer = document.getElementById('day-notes');
     if (!notesContent) return;
     
-    const notes = dayData.notes || [];
+    // Check if viewing a specific day or summary
+    const notes = dayData ? dayData.notes : null;
     
-    if (notes.length === 0) {
-        notesContent.innerHTML = '<p class="text-sm">Không có ghi chú đặc biệt cho ngày này.</p>';
-        return;
+    // Update title
+    const titleElement = notesContainer.querySelector('h3');
+    
+    if (notes && notes.length > 0) {
+        // Show notes for specific day
+        if (titleElement) {
+            titleElement.textContent = `Lưu ý ngày ${dayData.day || ''}`;
+        }
+        const html = '<ul class="list-disc list-inside space-y-1 text-sm">' + 
+            notes.map(note => `<li>${note}</li>`).join('') + 
+            '</ul>';
+        notesContent.innerHTML = html;
+    } else {
+        // Show general notes for the whole trip
+        if (titleElement) {
+            titleElement.textContent = 'Lưu ý tổng quan';
+        }
+        const generalNotes = plan.general_notes || plan.notes || [];
+        if (generalNotes.length > 0) {
+            const html = '<ul class="list-disc list-inside space-y-1 text-sm">' + 
+                generalNotes.map(note => `<li>${note}</li>`).join('') + 
+                '</ul>';
+            notesContent.innerHTML = html;
+        } else {
+            notesContent.innerHTML = '<p class="text-sm">Không có ghi chú đặc biệt.</p>';
+        }
     }
-    
-    const html = '<ul class="list-disc list-inside space-y-1 text-sm">' + 
-        notes.map(note => `<li>${note}</li>`).join('') + 
-        '</ul>';
-    notesContent.innerHTML = html;
 }
 
 // Show summary
@@ -433,6 +453,9 @@ function showSummary(plan) {
         link.classList.remove('bg-primary/20', 'text-primary');
         link.classList.add('hover:bg-gray-100', 'dark:hover:bg-gray-800', 'text-[#111618]', 'dark:text-gray-300');
     });
+    
+    // Update notes for summary view (show general notes)
+    updateNotes(null, plan);
 }
 
 // Edit plan button

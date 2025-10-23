@@ -965,14 +965,23 @@ TRẢ VỀ JSON:
     "activities": {{"amount": 500000, "description": "Mô tả ngắn"}}
   }},
   "total_cost": {budget_number},
-  "notes": ["Lưu ý 1", "Lưu ý 2", "Lưu ý 3"],
+  "general_notes": [
+    "Lưu ý chung về thời tiết, khí hậu",
+    "Lưu ý về di chuyển, phương tiện",
+    "Lưu ý về ăn uống, đặc sản",
+    "Lưu ý về an toàn, số điện thoại khẩn cấp",
+    "Tips hữu ích cho chuyến đi"
+  ],
   "day_themes": [
     {{"day": 1, "theme": "Khám phá trung tâm"}},
     {{"day": 2, "theme": "Vùng ngoại ô"}}
   ]
 }}
 
-CHỈ TRẢ VỀ JSON, KHÔNG TEXT KHÁC."""
+YÊU CẦU:
+- general_notes: 3-5 lưu ý TỔNG QUAN cho cả chuyến đi
+- Lưu ý phải cụ thể, hữu ích, thực tế
+- CHỈ TRẢ VỀ JSON, KHÔNG TEXT KHÁC."""
         
         try:
             logger.info(f"      🤖 Calling Gemini for outline (prompt: {len(prompt)} chars)...")
@@ -1087,12 +1096,14 @@ TRẢ VỀ JSON:
 {{
   "day": {day_num},
   "title": "Ngày {day_num}: {theme}",
+  "description": "Mô tả ngắn gọn về ngày này",
   "activities": [
     {{
       "time": "07:00",
       "type": "breakfast",
       "title": "Tên quán/hoạt động",
       "description": "Mô tả chi tiết, địa chỉ, giá cả",
+      "location": "Địa chỉ cụ thể",
       "cost": 50000
     }},
     {{
@@ -1100,15 +1111,22 @@ TRẢ VỀ JSON:
       "type": "sightseeing",
       "title": "Tên địa điểm",
       "description": "Mô tả, địa chỉ, giá vé",
+      "location": "Địa chỉ cụ thể",
       "cost": 100000
     }}
+  ],
+  "notes": [
+    "Lưu ý riêng cho ngày này (thời tiết, tránh giờ cao điểm...)",
+    "Tips hữu ích cho các hoạt động trong ngày",
+    "Những điều cần chuẩn bị, mang theo"
   ]
 }}
 
 YÊU CẦU:
 - Ít nhất 5-7 hoạt động/ngày
 - Bao gồm: ăn sáng, tham quan, ăn trưa, hoạt động chiều, ăn tối
-- Có địa chỉ cụ thể và giá tiền thực tế
+- Có địa chỉ cụ thể (location) và giá tiền thực tế
+- notes: 2-4 lưu ý CỤ THỂ cho ngày này
 - CHỈ TRẢ VỀ JSON"""
         
         try:
@@ -1196,6 +1214,7 @@ YÊU CẦU:
             itinerary.append({
                 'day': 1,
                 'title': f'Ngày 1: Khám phá trung tâm {destination}',
+                'description': 'Ngày đầu tiên khám phá các điểm tham quan trung tâm thành phố',
                 'activities': [
                     {
                         'time': '07:00',
@@ -1305,6 +1324,12 @@ YÊU CẦU:
                         'transportation': 'Đi bộ từ nhà hàng',
                         'notes': 'Mở từ 19h-23h, nên mặc cả giá, thử bánh tráng nướng và sữa đậu nành nóng'
                     }
+                ],
+                'notes': [
+                    'Mang theo áo ấm vì thời tiết Đà Lạt mát quanh năm, buổi tối có thể xuống 15°C',
+                    'Nên thuê xe máy để di chuyển linh hoạt (100-150k/ngày) hoặc dùng Grab',
+                    'Đặt bàn trước tại các nhà hàng nổi tiếng, đặc biệt vào cuối tuần',
+                    'Mang theo kem chống nắng và mũ vì ban ngày nắng gắt'
                 ]
             })
         
@@ -1312,6 +1337,7 @@ YÊU CẦU:
             itinerary.append({
                 'day': 2,
                 'title': f'Ngày 2: Khám phá ngoại thành {destination}',
+                'description': 'Tham quan các điểm du lịch ngoại thành và làng hoa',
                 'activities': [
                     {
                         'time': '07:00',
@@ -1391,6 +1417,12 @@ YÊU CẦU:
                         'duration': '1.5 giờ',
                         'notes': 'Đặt chỗ trước, bò nướng tảng là món đặc sản nên thử'
                     }
+                ],
+                'notes': [
+                    'Khởi hành sớm để tránh kẹt xe, đặc biệt khi đi Thung Lũng Tình Yêu',
+                    'Mang theo đồ ăn nhẹ và nước uống vì một số điểm tham quan xa trung tâm',
+                    'Nên thuê xe máy hoặc xe ô tô riêng để thuận tiện di chuyển',
+                    'Kiểm tra thời tiết trước khi đi, tránh ngày mưa'
                 ]
             })
         
@@ -1398,6 +1430,7 @@ YÊU CẦU:
             itinerary.append({
                 'day': 3,
                 'title': f'Ngày 3: Mua sắm và trở về',
+                'description': 'Mua sắm đặc sản và chuẩn bị về',
                 'activities': [
                     {
                         'time': '07:00',
@@ -1462,6 +1495,12 @@ YÊU CẦU:
                         'duration': '30 phút',
                         'notes': 'Nhớ kiểm tra phòng trước khi trả, giữ hóa đơn nếu cần'
                     }
+                ],
+                'notes': [
+                    'Nên mua đặc sản tại các cửa hàng uy tín có niêm yết giá rõ ràng',
+                    'Tránh mua hàng ở khu vực du lịch vì giá thường cao hơn',
+                    'Đặt xe về trước để có giá tốt, tránh kẹt xe giờ cao điểm',
+                    'Nhớ mang theo thuốc say xe nếu đi đường đèo dốc'
                 ]
             })
         
@@ -1495,7 +1534,7 @@ YÊU CẦU:
                 }
             },
             'total_cost': budget,
-            'notes': [
+            'general_notes': [
                 '🌡️ Thời tiết Đà Lạt mát mẻ quanh năm 15-25°C, nên mang áo ấm',
                 '🚗 Nên thuê xe máy để di chuyển linh hoạt (100-150k/ngày)',
                 '📱 Số điện thoại khẩn cấp: 113 (Cảnh sát), 114 (Cứu hỏa), 115 (Cấp cứu)',
