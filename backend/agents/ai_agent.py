@@ -29,7 +29,7 @@ class TravelAgent:
     """AI Travel Planning Agent using Gemini"""
     
     def __init__(self, api_key: str, model_name: str = "gemini-2.0-flash-exp",
-                 temperature: float = 0.7, max_tokens: int = 2048):
+                 temperature: float = 0.7, max_tokens: int = 4096):
         """
         Initialize Travel Agent
         
@@ -68,7 +68,7 @@ class TravelAgent:
     
     def chat(self, user_message: str, conversation_history: Optional[List[Dict]] = None, current_plan: Optional[Dict] = None) -> Dict:
         """
-        Main chat method with mode detection
+        Main chat method with LLM-based intent detection
         
         Args:
             user_message: User's message (can include @plan, @ask, @edit_plan)
@@ -84,44 +84,269 @@ class TravelAgent:
         logger.info(f"History length: {len(conversation_history) if conversation_history else 0}")
         logger.info(f"{'='*80}\n")
         
-        
-        # Detect mode from message
-        mode, clean_message = self._detect_mode(user_message)
-        logger.info(f"🎯 Detected mode: {mode}")
-        logger.info(f"📝 Clean message: '{clean_message}'")
-        
         # Update conversation history
         if conversation_history:
             self.conversation_history = conversation_history
             logger.info(f"📚 Updated conversation history ({len(conversation_history)} messages)")
         
-        # Route to appropriate handler based on mode
-        if mode == 'ask':
-            return self._handle_ask_mode(clean_message)
+        # Use LLM to analyze intent and determine mode
+        intent_analysis = self._analyze_user_intent(user_message, current_plan)
+        logger.info(f"🎯 Intent Analysis:")
+        logger.info(f"   Mode: {intent_analysis['mode']}")
+        logger.info(f"   Confidence: {intent_analysis.get('confidence', 'N/A')}")
+        logger.info(f"   Should respond directly: {intent_analysis.get('direct_response', False)}")
+        
+        # If LLM suggests direct response, return it immediately
+        if intent_analysis.get('direct_response') and intent_analysis.get('response'):
+            logger.info(f"💬 Returning direct response from LLM")
+            return {
+                'success': True,
+                'message': intent_analysis['response'],
+                'has_plan': False,
+                'mode': intent_analysis['mode'],
+                'intent_analysis': intent_analysis
+            }
+        
+        # Otherwise, route to appropriate handler based on detected mode
+        mode = intent_analysis['mode']
+        clean_message = intent_analysis.get('clean_message', user_message)
+        
+        if mode == 'plan':
+            # Pass requirements from intent analysis if available
+            requirements = intent_analysis.get('requirements')
+            return self._handle_plan_mode(clean_message, requirements=requirements)
         elif mode == 'edit_plan':
             return self._handle_edit_plan_mode(clean_message, current_plan)
-        else:  # mode == 'plan' (default)
-            return self._handle_plan_mode(clean_message)
-            
-    def _detect_mode(self, message: str) -> tuple[str, str]:
+        else:  # ask mode
+            return self._handle_ask_mode(clean_message)
+    
+    def _analyze_user_intent(self, message: str, current_plan: Optional[Dict] = None) -> Dict:
         """
-        Detect chat mode from message
+        Use LLM to analyze user intent and determine appropriate mode and response
         
+        Args:
+            message: User's message
+            current_plan: Current plan if exists
+            
         Returns:
-            (mode, clean_message) where mode is 'plan', 'ask', or 'edit_plan'
+            Dict with:
+                - mode: 'plan', 'ask', 'edit_plan', or 'chat'
+                - confidence: confidence level (high/medium/low)
+                - clean_message: message without mode prefix
+                - direct_response: whether to respond directly without further processing
+                - response: direct response if applicable
+                - reasoning: why this mode was chosen
+        """
+        # Format conversation history
+        history_text = "\n".join([
+            f"User: {msg['user']}\nBot: {msg['bot']}"
+            for msg in self.conversation_history[-3:]  # Last 3 exchanges
+        ]) if self.conversation_history else "Chưa có lịch sử hội thoại"
+        
+        # Build intent analysis prompt
+        intent_prompt = f"""Bạn là trợ lý phân tích ý định người dùng cho hệ thống du lịch thông minh.
+
+Hệ thống có 4 chế độ:
+1. **plan** - Tạo kế hoạch du lịch chi tiết (cần: điểm đến, số ngày, ngân sách)
+2. **ask** - Trả lời câu hỏi thông tin về địa điểm, giá cả, kinh nghiệm du lịch
+3. **edit_plan** - Chỉnh sửa kế hoạch đã có (cần có kế hoạch hiện tại)
+4. **chat** - Trò chuyện thông thường, chào hỏi, cảm ơn, không liên quan du lịch
+
+TRẠNG THÁI HIỆN TẠI:
+- Có kế hoạch đang mở: {"Có" if current_plan else "Không"}
+- Lịch sử hội thoại gần đây:
+{history_text}
+
+TIN NHẮN CỦA NGƯỜI DÙNG:
+"{message}"
+
+YÊU CẦU:
+Phân tích ý định và trả về JSON với cấu trúc:
+{{
+  "mode": "plan|ask|edit_plan|chat",
+  "confidence": "high|medium|low",
+  "clean_message": "tin nhắn đã làm sạch (bỏ @plan, @ask...)",
+  "direct_response": true/false,
+  "response": "câu trả lời trực tiếp nếu direct_response=true",
+  "reasoning": "lý do chọn mode này"
+}}
+
+QUY TẮC:
+1. Nếu có tiền tố @plan/@ask/@edit_plan → dùng mode tương ứng, confidence=high
+2. Nếu hỏi về thông tin ("... ở đâu?", "giá bao nhiêu?", "nên đi...") → mode=ask
+3. Nếu yêu cầu tạo kế hoạch ("muốn đi", "lên kế hoạch", "tour") → mode=plan
+4. Nếu yêu cầu sửa kế hoạch ("thay đổi", "bớt", "thêm", "sửa lại") VÀ có kế hoạch → mode=edit_plan
+5. Nếu sửa kế hoạch NHƯNG KHÔNG có kế hoạch → mode=plan, direct_response=true với thông báo lỗi
+6. Nếu chào hỏi/cảm ơn đơn giản → mode=chat, direct_response=true
+7. Nếu không rõ ràng → confidence=low
+
+**QUAN TRỌNG**: Nếu mode=plan, phải extract thêm:
+- requirements: {{
+    "destination": "tên điểm đến" hoặc null,
+    "duration_days": số ngày (int) hoặc null,
+    "budget": ngân sách (số, VD: 5000000) hoặc null,
+    "preferences": "sở thích" hoặc null,
+    "ready_to_plan": true/false (true nếu có đủ destination và duration_days),
+    "missing_fields": ["destination", "duration_days", "budget", "preferences"] - các trường còn thiếu
+  }}
+
+VÍ DỤ:
+- "Tôi muốn đi Đà Lạt 3 ngày" → mode=plan, confidence=high, requirements={{destination:"Đà Lạt", duration_days:3, budget:null, preferences:null, ready_to_plan:true, missing_fields:["budget","preferences"]}}
+- "Hà Nội có gì hay?" → mode=ask, confidence=high
+- "Thêm 1 ngày nữa" (có plan) → mode=edit_plan, confidence=high
+- "Xin chào" → mode=chat, direct_response=true, response="Xin chào! Tôi là trợ lý du lịch..."
+- "Đi du lịch" → mode=plan, confidence=low, requirements={{destination:null, duration_days:null, budget:null, preferences:null, ready_to_plan:false, missing_fields:["destination","duration_days","budget","preferences"]}}
+
+TRẢ VỀ CHỈ JSON, KHÔNG CÓ TEXT KHÁC:"""
+        
+        try:
+            if self.use_gemini and self.model:
+                logger.info("🤖 Calling LLM for intent analysis...")
+                response = self.model.generate_content(intent_prompt)
+                response_text = response.text.strip()
+                
+                # Clean markdown code blocks if present
+                if response_text.startswith('```'):
+                    response_text = response_text.split('```')[1]
+                    if response_text.startswith('json'):
+                        response_text = response_text[4:]
+                    response_text = response_text.strip()
+                
+                logger.debug(f"LLM Response: {response_text}")
+                
+                # Parse JSON response
+                intent_data = json.loads(response_text)
+                
+                # Validate and set defaults
+                intent_data.setdefault('mode', 'chat')
+                intent_data.setdefault('confidence', 'medium')
+                intent_data.setdefault('clean_message', message)
+                intent_data.setdefault('direct_response', False)
+                intent_data.setdefault('reasoning', 'No reasoning provided')
+                
+                logger.info(f"✅ Intent analysis successful: {intent_data['mode']} ({intent_data['confidence']})")
+                return intent_data
+                
+            else:
+                logger.warning("⚠️ Gemini not available, using fallback detection")
+                return self._fallback_intent_detection(message, current_plan)
+                
+        except json.JSONDecodeError as e:
+            logger.error(f"❌ Failed to parse LLM response as JSON: {e}")
+            logger.error(f"Response was: {response_text[:200]}")
+            return self._fallback_intent_detection(message, current_plan)
+        except Exception as e:
+            logger.error(f"❌ Intent analysis error: {str(e)}")
+            return self._fallback_intent_detection(message, current_plan)
+    
+    def _fallback_intent_detection(self, message: str, current_plan: Optional[Dict] = None) -> Dict:
+        """
+        Fallback intent detection using simple pattern matching
         """
         message_lower = message.lower().strip()
         
+        # Check for explicit mode prefixes
         if message_lower.startswith('@ask'):
-            return 'ask', message[4:].strip()  # Remove @ask
+            return {
+                'mode': 'ask',
+                'confidence': 'high',
+                'clean_message': message[4:].strip(),
+                'direct_response': False,
+                'reasoning': 'Explicit @ask prefix'
+            }
         elif message_lower.startswith('@edit_plan') or message_lower.startswith('@edit'):
             prefix_len = 10 if '@edit_plan' in message_lower else 5
-            return 'edit_plan', message[prefix_len:].strip()
+            if not current_plan:
+                return {
+                    'mode': 'plan',
+                    'confidence': 'high',
+                    'clean_message': message[prefix_len:].strip(),
+                    'direct_response': True,
+                    'response': '⚠️ Bạn chưa có kế hoạch nào để chỉnh sửa. Hãy tạo kế hoạch mới trước nhé!',
+                    'reasoning': 'Edit request but no existing plan'
+                }
+            return {
+                'mode': 'edit_plan',
+                'confidence': 'high',
+                'clean_message': message[prefix_len:].strip(),
+                'direct_response': False,
+                'reasoning': 'Explicit @edit_plan prefix'
+            }
         elif message_lower.startswith('@plan'):
-            return 'plan', message[5:].strip()  # Remove @plan
-        else:
-            # Default to plan mode if no prefix
-            return 'plan', message
+            return {
+                'mode': 'plan',
+                'confidence': 'high',
+                'clean_message': message[5:].strip(),
+                'direct_response': False,
+                'reasoning': 'Explicit @plan prefix'
+            }
+        
+        # Pattern-based detection
+        # Greeting patterns
+        greetings = ['xin chào', 'hello', 'hi', 'chào bạn', 'chào bot']
+        if any(greeting in message_lower for greeting in greetings):
+            return {
+                'mode': 'chat',
+                'confidence': 'high',
+                'clean_message': message,
+                'direct_response': True,
+                'response': 'Xin chào! 👋 Tôi là trợ lý du lịch ảo của bạn. Tôi có thể giúp bạn:\n\n🗺️ Tạo kế hoạch du lịch chi tiết\n❓ Trả lời câu hỏi về địa điểm\n✏️ Chỉnh sửa kế hoạch của bạn\n\nBạn muốn đi đâu hôm nay?',
+                'reasoning': 'Greeting detected'
+            }
+        
+        # Thank you patterns
+        thanks = ['cảm ơn', 'thanks', 'cám ơn', 'thank you']
+        if any(thank in message_lower for thank in thanks):
+            return {
+                'mode': 'chat',
+                'confidence': 'high',
+                'clean_message': message,
+                'direct_response': True,
+                'response': 'Rất vui được giúp bạn! 😊 Chúc bạn có chuyến đi thú vị! Nếu cần gì thêm, cứ hỏi nhé!',
+                'reasoning': 'Thank you detected'
+            }
+        
+        # Question patterns (ask mode)
+        question_keywords = ['ở đâu', 'như thế nào', 'bao nhiêu', 'có gì', 'nên đi', 'có nên', 'giá', 'chi phí']
+        if any(keyword in message_lower for keyword in question_keywords) or message.endswith('?'):
+            return {
+                'mode': 'ask',
+                'confidence': 'medium',
+                'clean_message': message,
+                'direct_response': False,
+                'reasoning': 'Question pattern detected'
+            }
+        
+        # Edit patterns (edit_plan mode)
+        edit_keywords = ['thay đổi', 'sửa', 'bớt', 'thêm', 'đổi', 'thay thế', 'cập nhật']
+        if any(keyword in message_lower for keyword in edit_keywords) and current_plan:
+            return {
+                'mode': 'edit_plan',
+                'confidence': 'medium',
+                'clean_message': message,
+                'direct_response': False,
+                'reasoning': 'Edit keywords detected with existing plan'
+            }
+        
+        # Planning patterns (plan mode)
+        plan_keywords = ['muốn đi', 'đi du lịch', 'kế hoạch', 'tour', 'lên kế hoạch', 'tạo kế hoạch']
+        if any(keyword in message_lower for keyword in plan_keywords):
+            return {
+                'mode': 'plan',
+                'confidence': 'medium',
+                'clean_message': message,
+                'direct_response': False,
+                'reasoning': 'Planning keywords detected'
+            }
+        
+        # Default to plan mode
+        return {
+            'mode': 'plan',
+            'confidence': 'low',
+            'clean_message': message,
+            'direct_response': False,
+            'reasoning': 'No clear pattern, defaulting to plan mode'
+        }
     
     def _handle_ask_mode(self, message: str) -> Dict:
         """
@@ -142,7 +367,6 @@ class TravelAgent:
 
 CÂU HỎI: {message}
 
-THÔNG TIN TÌM KIẾM:
 {formatted_results}
 
 HÃY TRẢ LỜI:
@@ -151,7 +375,7 @@ HÃY TRẢ LỜI:
 - Thân thiện, hữu ích
 - Sử dụng emoji phù hợp
 """
-                    
+                    logger.debug(prompt)
                     response = self.model.generate_content(prompt)
                     answer = response.text
                     
@@ -211,76 +435,158 @@ HÃY TRẢ LỜI:
             logger.info(f"✏️ Edit request: '{message}'")
             
             # Use Gemini to modify the plan
-            if self.use_gemini:
+            if self.use_gemini and self.model:
                 try:
-                    prompt = f"""Bạn là trợ lý du lịch. Hãy chỉnh sửa kế hoạch du lịch dựa trên yêu cầu của người dùng.
+                    # Simplified prompt to avoid token limit issues
+                    # Only send relevant parts of the plan
+                    prompt = f"""Bạn là trợ lý du lịch. Phân tích yêu cầu chỉnh sửa và cập nhật kế hoạch.
 
-KẾ HOẠCH HIỆN TẠI:
-{json.dumps(current_plan, ensure_ascii=False, indent=2)}
+TÊN KẾ HOẠCH: {current_plan.get('plan_name', 'Chưa đặt tên')}
+ĐIỂM ĐẾN: {current_plan.get('destination', '')}
+SỐ NGÀY: {current_plan.get('duration_days', 0)}
+NGÂN SÁCH: {current_plan.get('budget', 0)}
+
+LỊCH TRÌNH HIỆN TẠI (rút gọn):
+{json.dumps(current_plan.get('itinerary', [])[:2], ensure_ascii=False, indent=2) if current_plan.get('itinerary') else 'Chưa có'}
+... (còn {len(current_plan.get('itinerary', [])) - 2} ngày nữa)
 
 YÊU CẦU CHỈNH SỬA: {message}
 
 HÃY:
-1. Phân tích yêu cầu chỉnh sửa
-2. Cập nhật kế hoạch phù hợp (thêm/bớt/thay đổi hoạt động, địa điểm, thời gian...)
-3. Giữ nguyên cấu trúc JSON
-4. Đảm bảo kế hoạch mới vẫn hợp lý và chi tiết
+1. Xác định phần nào cần sửa (ngày nào, hoạt động nào)
+2. Mô tả chi tiết sự thay đổi
+3. Trả về JSON ĐƠN GIẢN:
 
-TRẢ VỀ:
-- Kế hoạch đã chỉnh sửa (JSON)
-- Giải thích những gì đã thay đổi
-"""
+{{
+  "success": true,
+  "changes": "Mô tả ngắn gọn những gì đã thay đổi (2-3 câu)",
+  "modified_sections": [
+    {{
+      "day": 1,
+      "activity_index": 0,
+      "new_activity": {{ "time": "07:00", "title": "...", "description": "..." }}
+    }}
+  ]
+}}
+
+CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH."""
                     
+                    logger.info("🤖 Calling Gemini to modify plan...")
                     response = self.model.generate_content(prompt)
-                    result_text = response.text
+                    result_text = response.text.strip()
                     
-                    # Try to parse the modified plan
-                    # This is simplified - in production would use better parsing
-                    modified_plan = current_plan.copy()
+                    logger.debug(f"Gemini response: {result_text[:200]}...")
                     
-                    # Extract explanation
-                    explanation = result_text[:500] if len(result_text) > 500 else result_text
+                    # Clean markdown code blocks if present
+                    if result_text.startswith('```'):
+                        parts = result_text.split('```')
+                        if len(parts) >= 2:
+                            result_text = parts[1]
+                            if result_text.startswith('json'):
+                                result_text = result_text[4:]
+                        result_text = result_text.strip()
                     
-                    logger.info(f"✅ Plan modified")
-                    
-                    return {
-                        'success': True,
-                        'message': f"✅ Đã chỉnh sửa kế hoạch theo yêu cầu của bạn!\n\n{explanation}",
-                        'has_plan': True,
-                        'plan_data': modified_plan,
-                        'mode': 'edit_plan'
-                    }
+                    # Try to parse JSON response
+                    try:
+                        edit_result = json.loads(result_text)
+                        
+                        if edit_result.get('success'):
+                            # Apply modifications to the plan
+                            modified_plan = current_plan.copy()
+                            
+                            # Apply changes from modified_sections
+                            if 'modified_sections' in edit_result:
+                                for modification in edit_result['modified_sections']:
+                                    day_num = modification.get('day', 1)
+                                    activity_idx = modification.get('activity_index', 0)
+                                    new_activity = modification.get('new_activity')
+                                    
+                                    # Update the specific activity
+                                    if (modified_plan.get('itinerary') and 
+                                        day_num <= len(modified_plan['itinerary']) and
+                                        new_activity):
+                                        
+                                        day_data = modified_plan['itinerary'][day_num - 1]
+                                        if activity_idx < len(day_data.get('activities', [])):
+                                            day_data['activities'][activity_idx] = new_activity
+                                            logger.info(f"   Updated Day {day_num}, Activity {activity_idx}")
+                            
+                            # Or use full modified_plan if provided (backward compatible)
+                            elif 'modified_plan' in edit_result:
+                                modified_plan = edit_result['modified_plan']
+                                logger.info(f"   Using full modified plan from response")
+                            
+                            changes_description = edit_result.get('changes', 'Đã cập nhật kế hoạch theo yêu cầu')
+                            
+                            logger.info(f"✅ Plan modified successfully")
+                            logger.info(f"   Changes: {changes_description[:100]}...")
+                            
+                            return {
+                                'success': True,
+                                'message': f"✅ Đã chỉnh sửa kế hoạch!\n\n**Những gì đã thay đổi:**\n{changes_description}\n\n💡 Bạn có thể xem chi tiết kế hoạch đã cập nhật bên dưới.",
+                                'has_plan': True,
+                                'plan_data': modified_plan,
+                                'mode': 'edit_plan'
+                            }
+                        else:
+                            logger.warning("⚠️ JSON response has success=false")
+                            
+                    except json.JSONDecodeError as json_err:
+                        logger.error(f"❌ Failed to parse JSON: {json_err}")
+                        logger.debug(f"Response text: {result_text[:300]}")
+                        
+                        # Fallback: Use Gemini text response as explanation
+                        # But keep original plan since we couldn't parse the modification
+                        return {
+                            'success': True,
+                            'message': f"✅ Tôi đã phân tích yêu cầu của bạn:\n\n{result_text[:800]}\n\n⚠️ Hiện tại bạn có thể tự chỉnh sửa kế hoạch bằng nút 'Chỉnh sửa' trên trang chi tiết.",
+                            'has_plan': False,
+                            'mode': 'edit_plan'
+                        }
                     
                 except Exception as e:
-                    logger.error(f"❌ Gemini error: {str(e)}")
+                    logger.error(f"❌ Gemini error: {type(e).__name__}: {str(e)}")
+                    import traceback
+                    logger.debug(f"Traceback:\n{traceback.format_exc()}")
             
-            # Fallback: Simple message
+            # Fallback: Simple acknowledgment message
+            logger.info("⚠️ Falling back to simple response")
             return {
                 'success': True,
-                'message': f"📝 Tôi đã ghi nhận yêu cầu chỉnh sửa: '{message}'\n\nTính năng này đang được phát triển. Hiện tại bạn có thể tự chỉnh sửa kế hoạch bằng cách nhấn nút 'Chỉnh sửa' trên trang chi tiết kế hoạch.",
+                'message': f"📝 Tôi đã ghi nhận yêu cầu chỉnh sửa: '{message}'\n\n⚙️ Tính năng tự động chỉnh sửa kế hoạch đang được hoàn thiện.\n\nHiện tại bạn có thể:\n• Tự chỉnh sửa bằng nút '✏️ Chỉnh sửa' trên trang chi tiết kế hoạch\n• Hoặc yêu cầu tạo kế hoạch mới với @plan",
                 'has_plan': False,
                 'mode': 'edit_plan'
             }
             
         except Exception as e:
-            logger.error(f"❌ Edit plan mode error: {str(e)}")
+            logger.error(f"❌ Edit plan mode error: {type(e).__name__}: {str(e)}")
+            import traceback
+            logger.error(f"Traceback:\n{traceback.format_exc()}")
             return {
                 'success': False,
-                'message': f"Xin lỗi, có lỗi khi chỉnh sửa kế hoạch: {str(e)}",
+                'message': f"⚠️ Xin lỗi, có lỗi khi xử lý yêu cầu chỉnh sửa.\n\nBạn có thể:\n• Thử lại với yêu cầu cụ thể hơn\n• Tự chỉnh sửa kế hoạch bằng nút 'Chỉnh sửa'\n• Tạo kế hoạch mới với @plan",
                 'mode': 'edit_plan'
             }
     
-    def _handle_plan_mode(self, message: str) -> Dict:
+    def _handle_plan_mode(self, message: str, requirements: Optional[Dict] = None) -> Dict:
         """
         Handle @plan mode (default) - Create travel plan
+        
+        Args:
+            message: User's message
+            requirements: Pre-extracted requirements from intent analysis (optional)
         """
         logger.info("📋 PLAN MODE - Creating travel plan")
         
         try:
-            # Analyze user intent and extract requirements
-            logger.info("🔍 Step 1: Extracting requirements...")
-            requirements = self._extract_requirements(message)
-            logger.info(f"✅ Requirements extracted: {requirements}")
+            # Use requirements from intent analysis if available, otherwise extract
+            if requirements:
+                logger.info("✅ Using requirements from intent analysis")
+                logger.info(f"   Requirements: {requirements}")
+            else:
+                logger.info("🔍 Step 1: Extracting requirements...")
+                requirements = self._extract_requirements(message)
+                logger.info(f"✅ Requirements extracted: {requirements}")
             
             # Check if we have enough info to create plan
             if requirements['ready_to_plan']:

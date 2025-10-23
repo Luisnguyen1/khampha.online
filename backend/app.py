@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, jsonify, session, redirect, u
 from flask_cors import CORS
 import os
 import uuid
+import json
 import logging
 from datetime import datetime
 
@@ -219,6 +220,86 @@ def chat():
         
         # Get current plan from request (for edit mode)
         current_plan = data.get('current_plan')
+        
+        app.logger.info(f"📊 Session info: session_id={session_id}, conversation_session_id={conversation_session_id}")
+        app.logger.info(f"📝 User message: '{user_message}'")
+        app.logger.info(f"📦 Current plan provided: {current_plan is not None}")
+        
+        # If no current_plan provided but message suggests edit mode, 
+        # try to get the latest plan from this conversation session
+        if not current_plan and ('@edit' in user_message.lower() or 'sửa' in user_message.lower() or 'thay đổi' in user_message.lower()):
+            app.logger.info("🔍 No current_plan provided, searching for latest plan in conversation session...")
+            try:
+                # Try to get latest plan from current conversation session
+                if conversation_session_id:
+                    # Get conversations from this session
+                    session_conversations = db.get_conversations_by_session(session_id, conversation_session_id)
+                    app.logger.info(f"   Found {len(session_conversations)} conversations in session {conversation_session_id}")
+                    
+                    # Find the most recent conversation with a plan
+                    for conv in session_conversations:
+                        if conv.plan_id:
+                            app.logger.info(f"   Checking conversation with plan_id: {conv.plan_id}")
+                            # Get the plan data
+                            plan = db.get_plan(conv.plan_id)
+                            if plan:
+                                # Parse itinerary if it's a string
+                                itinerary = plan.itinerary
+                                if isinstance(itinerary, str):
+                                    try:
+                                        itinerary = json.loads(itinerary)
+                                    except:
+                                        itinerary = {}
+                                
+                                current_plan = {
+                                    'id': plan.id,
+                                    'plan_name': plan.plan_name,
+                                    'destination': plan.destination,
+                                    'duration_days': plan.duration_days,
+                                    'budget': plan.budget,
+                                    'preferences': plan.preferences,
+                                    'itinerary': itinerary,
+                                    'status': plan.status
+                                }
+                                app.logger.info(f"✅ Found plan: {plan.plan_name} (ID: {plan.id})")
+                                break
+                
+                # If still no plan found, try to get the most recent draft plan for this session
+                if not current_plan:
+                    app.logger.info("   No plan found in conversation session, checking recent plans...")
+                    recent_plans = db.get_plans(session_id, limit=5)
+                    app.logger.info(f"   Found {len(recent_plans)} recent plans for session")
+                    
+                    if recent_plans:
+                        # Get the most recent plan (first in list)
+                        plan = recent_plans[0]
+                        app.logger.info(f"   Latest plan: {plan.plan_name} (ID: {plan.id}, status: {plan.status})")
+                        
+                        # Parse itinerary if it's a string
+                        itinerary = plan.itinerary
+                        if isinstance(itinerary, str):
+                            try:
+                                itinerary = json.loads(itinerary)
+                            except:
+                                itinerary = {}
+                        
+                        current_plan = {
+                            'id': plan.id,
+                            'plan_name': plan.plan_name,
+                            'destination': plan.destination,
+                            'duration_days': plan.duration_days,
+                            'budget': plan.budget,
+                            'preferences': plan.preferences,
+                            'itinerary': itinerary,
+                            'status': plan.status
+                        }
+                        app.logger.info(f"✅ Using most recent plan: {plan.plan_name} (ID: {plan.id})")
+                    else:
+                        app.logger.warning("⚠️ No plans found for this session")
+            except Exception as e:
+                app.logger.error(f"❌ Error retrieving plan: {str(e)}")
+                import traceback
+                app.logger.error(traceback.format_exc())
         
         # Use AI agent to process message
         agent_response = ai_agent.chat(

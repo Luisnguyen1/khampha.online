@@ -172,20 +172,15 @@ async function handleSendMessage() {
     const message = messageInput?.value.trim();
     if (!message) return;
     
-    // Detect mode from message itself
-    let finalMessage = message;
-    if (!message.startsWith('@')) {
-        // Default to @plan if no prefix
-        finalMessage = '@plan ' + message;
-    }
-    
-    console.log(`Sending message:`, finalMessage);
+    // Send message as-is, let backend LLM decide the mode
+    // No need to add @plan prefix automatically
+    console.log(`Sending message:`, message);
     
     // Disable input and button
     if (messageInput) messageInput.disabled = true;
     if (sendButton) sendButton.disabled = true;
     
-    // Add user message (show as is)
+    // Add user message (show original message without prefix)
     addUserMessage(message);
     
     // Clear input
@@ -202,7 +197,7 @@ async function handleSendMessage() {
     try {
         // Prepare request data
         const requestData = { 
-            message: finalMessage,  // Use finalMessage with mode prefix
+            message: message,  // Send original message, let LLM analyze intent
             conversation_session_id: currentConversationId  // Send current conversation session ID
         };
         
