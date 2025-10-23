@@ -77,27 +77,31 @@ function updateSidebarHeader(plan) {
 
 // Generate day navigation
 function generateDayNavigation(plan) {
-    const navContainer = document.querySelector('aside .flex.flex-col.gap-2');
+    const navContainer = document.getElementById('day-navigation');
     if (!navContainer) return;
-    
-    // Clear existing navigation
-    const existingDays = navContainer.querySelectorAll('a[href="#"]');
-    existingDays.forEach(el => el.remove());
     
     // Get itinerary
     const itinerary = typeof plan.itinerary === 'string' ? JSON.parse(plan.itinerary) : plan.itinerary;
-    if (!Array.isArray(itinerary)) return;
+    if (!Array.isArray(itinerary) || itinerary.length === 0) {
+        navContainer.innerHTML = '<p class="text-sm text-gray-500 px-3">Không có lịch trình</p>';
+        return;
+    }
+    
+    // Clear container
+    navContainer.innerHTML = '';
     
     // Generate day links
-    const firstLink = navContainer.querySelector('a');
     itinerary.forEach((day, index) => {
         const dayNum = day.day || index + 1;
         const link = document.createElement('a');
-        link.className = `flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-[#111618] dark:text-gray-300 cursor-pointer`;
+        link.className = `flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors day-link`;
+        link.dataset.day = dayNum;
         link.innerHTML = `
             <span class="material-symbols-outlined">calendar_month</span>
             <p class="font-medium leading-normal">Ngày ${dayNum}</p>
         `;
+        
+        // Add click handler
         link.onclick = (e) => {
             e.preventDefault();
             currentDay = dayNum;
@@ -105,25 +109,40 @@ function generateDayNavigation(plan) {
             updateActiveNavigation(dayNum);
         };
         
-        if (firstLink) {
-            navContainer.insertBefore(link, firstLink);
-        } else {
-            navContainer.appendChild(link);
-        }
-        
         // Set first day as active
         if (dayNum === 1) {
             link.classList.add('bg-primary/20', 'text-primary');
-            link.classList.remove('hover:bg-gray-100', 'dark:hover:bg-gray-800', 'text-[#111618]', 'dark:text-gray-300');
+        } else {
+            link.classList.add('hover:bg-gray-100', 'dark:hover:bg-gray-800', 'text-[#111618]', 'dark:text-gray-300');
         }
+        
+        navContainer.appendChild(link);
     });
+    
+    // Add divider and summary link
+    const divider = document.createElement('div');
+    divider.className = 'my-2 border-t border-gray-200 dark:border-gray-700';
+    navContainer.appendChild(divider);
+    
+    const summaryLink = document.createElement('a');
+    summaryLink.className = 'flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-[#111618] dark:text-gray-300 cursor-pointer';
+    summaryLink.innerHTML = `
+        <span class="material-symbols-outlined">pie_chart</span>
+        <p class="font-medium leading-normal">Tổng kết & Chi phí</p>
+    `;
+    summaryLink.onclick = (e) => {
+        e.preventDefault();
+        showSummary(plan);
+    };
+    navContainer.appendChild(summaryLink);
 }
 
 // Update active navigation
 function updateActiveNavigation(dayNum) {
-    const navLinks = document.querySelectorAll('aside a[class*="calendar_month"]');
-    navLinks.forEach((link, index) => {
-        if (index + 1 === dayNum) {
+    const navLinks = document.querySelectorAll('.day-link');
+    navLinks.forEach((link) => {
+        const linkDay = parseInt(link.dataset.day);
+        if (linkDay === dayNum) {
             link.classList.add('bg-primary/20', 'text-primary');
             link.classList.remove('hover:bg-gray-100', 'dark:hover:bg-gray-800', 'text-[#111618]', 'dark:text-gray-300');
         } else {
@@ -139,11 +158,14 @@ function displayDay(dayNum, plan) {
     if (!Array.isArray(itinerary)) return;
     
     const dayData = itinerary.find(d => (d.day || itinerary.indexOf(d) + 1) === dayNum);
-    if (!dayData) return;
+    if (!dayData) {
+        showError(`Không tìm thấy dữ liệu cho ngày ${dayNum}`);
+        return;
+    }
     
     // Update page heading
-    const heading = document.querySelector('main .text-3xl.font-black');
-    const subheading = document.querySelector('main .text-base.font-normal.leading-normal');
+    const heading = document.getElementById('page-heading');
+    const subheading = document.getElementById('page-subheading');
     
     if (heading) {
         heading.textContent = `Ngày ${dayNum}: ${dayData.title || 'Chi tiết lịch trình'}`;
@@ -154,60 +176,46 @@ function displayDay(dayNum, plan) {
     }
     
     // Update stats
-    updateDayStats(dayData);
+    updateDayStats(dayData, plan);
     
     // Render timeline
     renderTimeline(dayData);
+    
+    // Update map
+    updateMapImage(plan.destination);
+    
+    // Update notes
+    updateNotes(dayData);
 }
 
 // Update day stats
-function updateDayStats(dayData) {
-    const statsContainer = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-3');
+function updateDayStats(dayData, plan) {
+    const statsContainer = document.getElementById('day-stats');
     if (!statsContainer) return;
     
     const activities = dayData.activities || [];
     const totalCost = activities.reduce((sum, act) => sum + (act.cost || 0), 0);
-    const duration = activities.length;
     
     statsContainer.innerHTML = `
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-            <div class="flex items-center gap-3 mb-2">
-                <span class="material-symbols-outlined text-primary">schedule</span>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Thời gian</p>
-            </div>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white">${duration} hoạt động</p>
+        <div class="flex flex-col gap-2 rounded-xl p-6 border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-gray-800">
+            <p class="text-[#111618] dark:text-gray-300 text-base font-medium leading-normal">Chi phí ngày này</p>
+            <p class="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight">${formatCurrency(totalCost)}</p>
         </div>
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-            <div class="flex items-center gap-3 mb-2">
-                <span class="material-symbols-outlined text-green-600">attach_money</span>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Chi phí</p>
-            </div>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white">${formatCurrency(totalCost)}</p>
+        <div class="flex flex-col gap-2 rounded-xl p-6 border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-gray-800">
+            <p class="text-[#111618] dark:text-gray-300 text-base font-medium leading-normal">Số hoạt động</p>
+            <p class="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight">${activities.length}</p>
         </div>
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-            <div class="flex items-center gap-3 mb-2">
-                <span class="material-symbols-outlined text-blue-600">location_on</span>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Địa điểm</p>
-            </div>
-            <p class="text-2xl font-bold text-gray-900 dark:text-white">${activities.length}</p>
+        <div class="flex flex-col gap-2 rounded-xl p-6 border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-gray-800">
+            <p class="text-[#111618] dark:text-gray-300 text-base font-medium leading-normal">Tổng ngân sách</p>
+            <p class="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight">${formatCurrency(plan.budget || 0)}</p>
         </div>
     `;
 }
 
 // Render timeline
 function renderTimeline(dayData) {
-    const timelineContainer = document.querySelector('main .flex.flex-col.gap-6');
-    if (!timelineContainer) {
-        // Create timeline container if not exists
-        const mainContent = document.querySelector('main .layout-content-container');
-        const timeline = document.createElement('div');
-        timeline.className = 'flex flex-col gap-6 mt-8';
-        mainContent.appendChild(timeline);
-        renderTimeline(dayData);
-        return;
-    }
-    
-    timelineContainer.innerHTML = '';
+    const timelineContainer = document.getElementById('timeline-container');
+    if (!timelineContainer) return;
     
     const activities = dayData.activities || [];
     
@@ -221,39 +229,41 @@ function renderTimeline(dayData) {
         return;
     }
     
+    // Use grid layout like original template
+    let html = '<div class="grid grid-cols-[auto_1fr] gap-x-4">';
+    
     activities.forEach((activity, index) => {
-        const activityCard = document.createElement('div');
-        activityCard.className = 'bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow';
+        const isLast = index === activities.length - 1;
+        const icon = getActivityIcon(activity);
+        const time = activity.time || 'Cả ngày';
+        const title = activity.title || activity.name || 'Hoạt động';
+        const description = activity.description || '';
+        const cost = activity.cost;
+        const location = activity.location || '';
         
-        activityCard.innerHTML = `
-            <div class="flex items-start gap-4">
-                <div class="flex flex-col items-center gap-2">
-                    <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                        <span class="material-symbols-outlined text-primary">${getActivityIcon(activity)}</span>
-                    </div>
-                    ${index < activities.length - 1 ? '<div class="w-0.5 h-full bg-gray-200 dark:bg-gray-700"></div>' : ''}
-                </div>
-                <div class="flex-1">
-                    <div class="flex items-start justify-between mb-2">
-                        <div>
-                            <p class="text-lg font-bold text-gray-900 dark:text-white">${activity.title || activity.name}</p>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">${activity.time || 'Cả ngày'}</p>
-                        </div>
-                        ${activity.cost ? `<p class="text-lg font-bold text-primary">${formatCurrency(activity.cost)}</p>` : ''}
-                    </div>
-                    ${activity.description ? `<p class="text-gray-600 dark:text-gray-300 mb-3">${activity.description}</p>` : ''}
-                    ${activity.location ? `
-                        <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                            <span class="material-symbols-outlined text-sm">location_on</span>
-                            <span>${activity.location}</span>
-                        </div>
-                    ` : ''}
-                </div>
+        // Icon column
+        html += `
+            <div class="flex flex-col items-center gap-1.5 ${index === 0 ? 'pt-3' : ''}">
+                ${index > 0 ? '<div class="w-[2px] bg-[#dbe2e6] dark:bg-gray-700 h-6"></div>' : ''}
+                <span class="material-symbols-outlined text-primary">${icon}</span>
+                ${!isLast ? '<div class="w-[2px] bg-[#dbe2e6] dark:bg-gray-700 h-full"></div>' : ''}
             </div>
         `;
         
-        timelineContainer.appendChild(activityCard);
+        // Content column
+        html += `
+            <div class="flex-1 pb-8">
+                <p class="text-sm font-medium text-[#617c89] dark:text-gray-400">${time}</p>
+                <p class="text-lg font-semibold text-[#111618] dark:text-white">${title}</p>
+                ${description ? `<p class="text-base text-[#617c89] dark:text-gray-400 mt-1">${description}</p>` : ''}
+                ${cost ? `<p class="text-sm font-medium text-green-600 mt-2">Chi phí: ${formatCurrency(cost)}</p>` : ''}
+                ${location ? `<p class="text-sm text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1"><span class="material-symbols-outlined text-sm">location_on</span>${location}</p>` : ''}
+            </div>
+        `;
     });
+    
+    html += '</div>';
+    timelineContainer.innerHTML = html;
 }
 
 // Update budget section
@@ -318,8 +328,115 @@ function showError(message) {
     }
 }
 
+// Update map image
+function updateMapImage(destination) {
+    const mapImage = document.getElementById('map-image');
+    if (mapImage) {
+        mapImage.style.backgroundImage = `url("${getDestinationImage(destination)}")`;
+    }
+}
+
+// Update notes
+function updateNotes(dayData) {
+    const notesContent = document.getElementById('notes-content');
+    if (!notesContent) return;
+    
+    const notes = dayData.notes || [];
+    
+    if (notes.length === 0) {
+        notesContent.innerHTML = '<p class="text-sm">Không có ghi chú đặc biệt cho ngày này.</p>';
+        return;
+    }
+    
+    const html = '<ul class="list-disc list-inside space-y-1 text-sm">' + 
+        notes.map(note => `<li>${note}</li>`).join('') + 
+        '</ul>';
+    notesContent.innerHTML = html;
+}
+
+// Show summary
+function showSummary(plan) {
+    const heading = document.getElementById('page-heading');
+    const subheading = document.getElementById('page-subheading');
+    
+    if (heading) {
+        heading.textContent = 'Tổng kết chuyến đi';
+    }
+    
+    if (subheading) {
+        subheading.textContent = 'Tổng quan chi phí và thông tin chuyến đi';
+    }
+    
+    // Calculate total cost from all days
+    const itinerary = typeof plan.itinerary === 'string' ? JSON.parse(plan.itinerary) : plan.itinerary;
+    let totalCost = 0;
+    let totalActivities = 0;
+    
+    if (Array.isArray(itinerary)) {
+        itinerary.forEach(day => {
+            const activities = day.activities || [];
+            totalActivities += activities.length;
+            activities.forEach(act => {
+                totalCost += (act.cost || 0);
+            });
+        });
+    }
+    
+    // Update stats for summary
+    const statsContainer = document.getElementById('day-stats');
+    if (statsContainer) {
+        statsContainer.innerHTML = `
+            <div class="flex flex-col gap-2 rounded-xl p-6 border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-gray-800">
+                <p class="text-[#111618] dark:text-gray-300 text-base font-medium leading-normal">Tổng chi phí thực tế</p>
+                <p class="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight">${formatCurrency(totalCost)}</p>
+            </div>
+            <div class="flex flex-col gap-2 rounded-xl p-6 border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-gray-800">
+                <p class="text-[#111618] dark:text-gray-300 text-base font-medium leading-normal">Ngân sách dự kiến</p>
+                <p class="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight">${formatCurrency(plan.budget || 0)}</p>
+            </div>
+            <div class="flex flex-col gap-2 rounded-xl p-6 border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-gray-800">
+                <p class="text-[#111618] dark:text-gray-300 text-base font-medium leading-normal">${totalCost > (plan.budget || 0) ? 'Vượt ngân sách' : 'Tiết kiệm'}</p>
+                <p class="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight">${formatCurrency(Math.abs(totalCost - (plan.budget || 0)))}</p>
+            </div>
+        `;
+    }
+    
+    // Show summary timeline
+    const timelineContainer = document.getElementById('timeline-container');
+    if (timelineContainer) {
+        let summaryHtml = '<div class="space-y-4">';
+        
+        if (Array.isArray(itinerary)) {
+            itinerary.forEach((day, index) => {
+                const dayNum = day.day || index + 1;
+                const activities = day.activities || [];
+                const dayCost = activities.reduce((sum, act) => sum + (act.cost || 0), 0);
+                
+                summaryHtml += `
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 border border-[#dbe2e6] dark:border-gray-700">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-lg font-bold text-[#111618] dark:text-white">Ngày ${dayNum}: ${day.title || 'Chi tiết lịch trình'}</h3>
+                            <p class="text-lg font-bold text-primary">${formatCurrency(dayCost)}</p>
+                        </div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">${activities.length} hoạt động</p>
+                    </div>
+                `;
+            });
+        }
+        
+        summaryHtml += '</div>';
+        timelineContainer.innerHTML = summaryHtml;
+    }
+    
+    // Update navigation to remove active state
+    document.querySelectorAll('.day-link').forEach(link => {
+        link.classList.remove('bg-primary/20', 'text-primary');
+        link.classList.add('hover:bg-gray-100', 'dark:hover:bg-gray-800', 'text-[#111618]', 'dark:text-gray-300');
+    });
+}
+
 // Edit plan button
-const editButton = document.querySelector('button:has(.material-symbols-outlined:contains("edit"))');
+const editButton = document.getElementById('edit-button');
 if (editButton) {
     editButton.addEventListener('click', () => {
         const planId = getPlanIdFromUrl();
@@ -330,7 +447,7 @@ if (editButton) {
 }
 
 // Download PDF button
-const downloadButton = document.querySelector('button:has(.material-symbols-outlined:contains("download"))');
+const downloadButton = document.getElementById('download-button');
 if (downloadButton) {
     downloadButton.addEventListener('click', () => {
         alert('Tính năng tải PDF sẽ được cập nhật sớm!');

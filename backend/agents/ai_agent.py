@@ -4,6 +4,7 @@ Handles conversation and travel planning
 """
 import json
 import logging
+import time
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 
@@ -28,8 +29,8 @@ logger = logging.getLogger(__name__)
 class TravelAgent:
     """AI Travel Planning Agent using Gemini"""
     
-    def __init__(self, api_key: str, model_name: str = "gemini-2.0-flash-exp",
-                 temperature: float = 0.7, max_tokens: int = 4096):
+    def __init__(self, api_key: str, model_name: str = "gemini-2.0-flash-lite",
+                 temperature: float = 0.7, max_tokens: int = 10000):
         """
         Initialize Travel Agent
         
@@ -54,6 +55,8 @@ class TravelAgent:
                     'max_output_tokens': max_tokens,
                 }
             )
+            # Set request timeout (in seconds)
+            self.request_timeout = 10000
             self.use_gemini = True
         else:
             logger.warning("google-generativeai not installed, using mock mode")
@@ -202,20 +205,40 @@ TRẢ VỀ CHỈ JSON, KHÔNG CÓ TEXT KHÁC:"""
         try:
             if self.use_gemini and self.model:
                 logger.info("🤖 Calling LLM for intent analysis...")
-                response = self.model.generate_content(intent_prompt)
-                response_text = response.text.strip()
                 
-                # Clean markdown code blocks if present
-                if response_text.startswith('```'):
-                    response_text = response_text.split('```')[1]
-                    if response_text.startswith('json'):
-                        response_text = response_text[4:]
-                    response_text = response_text.strip()
+                # Retry logic with 15s delay
+                max_retries = 3
+                retry_delay = 15
+                last_error = None
                 
-                logger.debug(f"LLM Response: {response_text}")
+                for attempt in range(max_retries):
+                    try:
+                        response = self.model.generate_content(intent_prompt)
+                        response_text = response.text.strip()
+                        
+                        # Clean markdown code blocks if present
+                        if response_text.startswith('```'):
+                            response_text = response_text.split('```')[1]
+                            if response_text.startswith('json'):
+                                response_text = response_text[4:]
+                            response_text = response_text.strip()
+                        
+                        logger.debug(f"LLM Response: {response_text}")
+                        
+                        # Parse JSON response
+                        intent_data = json.loads(response_text)
+                        break  # Success, exit retry loop
+                        
+                    except Exception as e:
+                        last_error = e
+                        if attempt < max_retries - 1:
+                            logger.warning(f"⚠️ Attempt {attempt + 1} failed: {str(e)}. Retrying in {retry_delay}s...")
+                            time.sleep(retry_delay)
+                        else:
+                            logger.error(f"❌ All {max_retries} attempts failed")
+                            raise last_error
                 
-                # Parse JSON response
-                intent_data = json.loads(response_text)
+                intent_data = intent_data
                 
                 # Validate and set defaults
                 intent_data.setdefault('mode', 'chat')
@@ -376,8 +399,23 @@ HÃY TRẢ LỜI:
 - Sử dụng emoji phù hợp
 """
                     logger.debug(prompt)
-                    response = self.model.generate_content(prompt)
-                    answer = response.text
+                    
+                    # Retry logic with 15s delay
+                    max_retries = 3
+                    retry_delay = 15
+                    answer = None
+                    
+                    for attempt in range(max_retries):
+                        try:
+                            response = self.model.generate_content(prompt)
+                            answer = response.text
+                            break  # Success
+                        except Exception as retry_error:
+                            if attempt < max_retries - 1:
+                                logger.warning(f"⚠️ Attempt {attempt + 1} failed: {str(retry_error)}. Retrying in {retry_delay}s...")
+                                time.sleep(retry_delay)
+                            else:
+                                raise
                     
                     logger.info(f"✅ Answer generated: {answer[:100]}...")
                     
@@ -843,103 +881,307 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
         return formatted
     
     def _generate_itinerary(self, requirements: Dict, search_results: str) -> Dict:
-        """Generate detailed itinerary"""
+        """
+        Generate detailed itinerary using progressive API calls to avoid timeout.
         
-        # Create prompt
-        prompt = ITINERARY_PROMPT.format(
-            destination=requirements.get('destination', 'Việt Nam'),
-            duration_days=requirements.get('duration_days', 3),
-            budget=self._format_currency(requirements.get('budget', 5000000)),
-            preferences=requirements.get('preferences', 'khám phá, ẩm thực'),
-            search_results=search_results
-        )
+        Strategy:
+        1. First call: Generate plan outline (name, budget breakdown, general suggestions)
+        2. Subsequent calls: Generate detailed activities for each day individually
         
+        This approach:
+        - Avoids API timeout by keeping each request small
+        - Provides better error handling per day
+        - Cleaner and more maintainable code
+        """
         try:
-            if self.model:
-                # Use Gemini to generate itinerary
-                response = self.model.generate_content(prompt)
-                itinerary_text = response.text
-                
-                # Parse the response into structured data
-                plan_data = self._parse_itinerary(itinerary_text, requirements)
-            else:
-                # Mock itinerary
-                plan_data = self._create_mock_itinerary(requirements)
+            if not self.model:
+                logger.warning("   ⚠️ Gemini model not available, using mock data")
+                return self._create_mock_itinerary(requirements)
             
+            # Step 1: Generate plan outline
+            logger.info("   📋 Step 1: Generating plan outline...")
+            plan_outline = self._generate_plan_outline(requirements, search_results)
+            
+            if not plan_outline:
+                logger.warning("   ⚠️ Failed to generate outline, using mock data")
+                return self._create_mock_itinerary(requirements)
+            
+            # Step 2: Generate detailed itinerary for each day
+            logger.info(f"   📅 Step 2: Generating detailed itinerary for {requirements.get('duration_days', 3)} days...")
+            itinerary = self._generate_daily_itineraries(requirements, plan_outline, search_results)
+            
+            # Step 3: Combine outline and daily itineraries
+            plan_data = {
+                'plan_name': plan_outline.get('plan_name', f"Khám phá {requirements.get('destination', 'Việt Nam')}"),
+                'destination': requirements.get('destination', 'Việt Nam'),
+                'duration_days': requirements.get('duration_days', 3),
+                'budget': requirements.get('budget'),
+                'preferences': requirements.get('preferences'),
+                'itinerary': itinerary,
+                'cost_breakdown': plan_outline.get('cost_breakdown', {}),
+                'total_cost': plan_outline.get('total_cost', requirements.get('budget', 0)),
+                'notes': plan_outline.get('notes', [])
+            }
+            
+            logger.info(f"   ✅ Complete plan generated with {len(itinerary)} days")
             return plan_data
             
         except Exception as e:
-            logger.error(f"Itinerary generation error: {str(e)}")
+            logger.error(f"   ❌ Itinerary generation error: {type(e).__name__}: {str(e)}")
+            import traceback
+            logger.error(f"   Traceback: {traceback.format_exc()}")
+            logger.warning("   ⚠️ Falling back to mock itinerary")
             return self._create_mock_itinerary(requirements)
     
-    def _parse_itinerary(self, text: str, requirements: Dict) -> Dict:
-        """Parse Gemini's itinerary response"""
-        logger.info(f"   📝 Parsing itinerary text ({len(text)} chars)...")
-        logger.debug(f"   Text preview: {text[:200]}...")
+    def _generate_plan_outline(self, requirements: Dict, search_results: str) -> Optional[Dict]:
+        """
+        Generate high-level plan outline (Step 1)
         
-        # Try to extract JSON structure
-        # Fallback to creating structured plan from text
+        Returns:
+            Dict with plan_name, cost_breakdown, total_cost, notes, day_themes
+        """
+        budget_number = requirements.get('budget', 5000000)
+        duration_days = requirements.get('duration_days', 3)
+        destination = requirements.get('destination', 'Việt Nam')
+        preferences = requirements.get('preferences', 'khám phá, ẩm thực')
         
-        plan_data = {
-            'plan_name': f"Khám phá {requirements.get('destination', 'Việt Nam')}",
-            'destination': requirements.get('destination', 'Việt Nam'),
-            'duration_days': requirements.get('duration_days', 3),
-            'budget': requirements.get('budget'),
-            'preferences': requirements.get('preferences'),
-            'itinerary': [],
-            'cost_breakdown': {},
-            'total_cost': requirements.get('budget', 0),
-            'notes': []
-        }
+        # Limit search results to avoid timeout
+        search_summary = search_results[:300] if len(search_results) > 300 else search_results
         
-        # Parse daily activities from text
-        # This is simplified - in production would use better parsing
-        days = []
-        current_day = None
+        prompt = f"""Tạo OUTLINE kế hoạch du lịch {destination} {duration_days} ngày.
+
+THÔNG TIN:
+- Ngân sách: {self._format_currency(budget_number)}
+- Sở thích: {preferences}
+- Tham khảo: {search_summary}
+
+TRẢ VỀ JSON:
+{{
+  "plan_name": "Tên hấp dẫn cho kế hoạch",
+  "cost_breakdown": {{
+    "accommodation": {{"amount": 1500000, "description": "Mô tả ngắn"}},
+    "food": {{"amount": 1200000, "description": "Mô tả ngắn"}},
+    "transportation": {{"amount": 800000, "description": "Mô tả ngắn"}},
+    "activities": {{"amount": 500000, "description": "Mô tả ngắn"}}
+  }},
+  "total_cost": {budget_number},
+  "notes": ["Lưu ý 1", "Lưu ý 2", "Lưu ý 3"],
+  "day_themes": [
+    {{"day": 1, "theme": "Khám phá trung tâm"}},
+    {{"day": 2, "theme": "Vùng ngoại ô"}}
+  ]
+}}
+
+CHỈ TRẢ VỀ JSON, KHÔNG TEXT KHÁC."""
         
-        logger.info("   🔍 Parsing lines for daily activities...")
-        for line_num, line in enumerate(text.split('\n'), 1):
-            if 'ngày' in line.lower() and ':' in line:
-                if current_day:
-                    logger.info(f"      ✅ Day {current_day['day']} completed with {len(current_day['activities'])} activities")
-                    days.append(current_day)
-                current_day = {
-                    'day': len(days) + 1,
-                    'title': line.strip(),
-                    'activities': []
-                }
-                logger.info(f"      📅 Started Day {current_day['day']}: {line.strip()[:50]}...")
-            elif current_day and line.strip() and any(c.isdigit() for c in line[:10]) and ':' in line[:10]:
-                # Activity line with time
+        try:
+            logger.info(f"      🤖 Calling Gemini for outline (prompt: {len(prompt)} chars)...")
+            logger.info(prompt)
+            
+            # Retry logic with 15s delay
+            max_retries = 3
+            retry_delay = 15
+            outline = None
+            
+            for attempt in range(max_retries):
                 try:
-                    time_part = line[:5].strip()
-                    desc_part = line[5:].strip() if len(line) > 5 else line.strip()
-                    current_day['activities'].append({
-                        'time': time_part,
-                        'title': desc_part[:50],
-                        'description': desc_part
-                    })
-                    logger.debug(f"         + Activity: {time_part} - {desc_part[:30]}...")
-                except Exception as e:
-                    logger.warning(f"         ⚠️ Failed to parse activity line {line_num}: {str(e)}")
+                    response = self.model.generate_content(prompt)
+                    response_text = response.text.strip()
+                    
+                    logger.info(f"      ✅ Outline received ({len(response_text)} chars)")
+                    
+                    # Parse JSON
+                    outline = self._parse_json_response(response_text)
+                    break  # Success
+                    
+                except Exception as retry_error:
+                    if attempt < max_retries - 1:
+                        logger.warning(f"      ⚠️ Attempt {attempt + 1} failed: {str(retry_error)}. Retrying in {retry_delay}s...")
+                        time.sleep(retry_delay)
+                    else:
+                        logger.error(f"      ❌ All {max_retries} attempts failed")
+                        return None
+            
+            if outline:
+                logger.info(f"      ✅ Outline parsed: {outline.get('plan_name', 'N/A')}")
+                return outline
+            else:
+                logger.warning("      ⚠️ Failed to parse outline JSON")
+                return None
+                
+        except Exception as e:
+            logger.error(f"      ❌ Outline generation error: {str(e)}")
+            return None
+    
+    def _generate_daily_itineraries(self, requirements: Dict, plan_outline: Dict, 
+                                   search_results: str) -> List[Dict]:
+        """
+        Generate detailed activities for each day (Step 2)
         
-        if current_day:
-            logger.info(f"      ✅ Day {current_day['day']} completed with {len(current_day['activities'])} activities")
-            days.append(current_day)
+        Returns:
+            List of daily itineraries with activities
+        """
+        duration_days = requirements.get('duration_days', 3)
+        destination = requirements.get('destination', 'Việt Nam')
+        day_themes = plan_outline.get('day_themes', [])
         
-        logger.info(f"   📊 Parsed {len(days)} days from text")
+        itinerary = []
         
-        # Use parsed days or fallback to mock
-        if days and len(days) > 0:
-            plan_data['itinerary'] = days
-            logger.info(f"   ✅ Using parsed itinerary with {len(days)} days")
-        else:
-            logger.warning(f"   ⚠️ No days parsed from text, using mock itinerary")
-            mock_plan = self._create_mock_itinerary(requirements)
-            plan_data['itinerary'] = mock_plan.get('itinerary', [])
-            logger.info(f"   🎭 Mock itinerary created with {len(plan_data['itinerary'])} days")
+        for day_num in range(1, duration_days + 1):
+            logger.info(f"      📅 Generating Day {day_num}/{duration_days}...")
+            
+            # Get theme for this day
+            theme = "Khám phá"
+            for dt in day_themes:
+                if dt.get('day') == day_num:
+                    theme = dt.get('theme', 'Khám phá')
+                    break
+            
+            # Generate activities for this specific day
+            day_data = self._generate_single_day(
+                day_num=day_num,
+                destination=destination,
+                theme=theme,
+                search_results=search_results
+            )
+            
+            if day_data:
+                itinerary.append(day_data)
+                logger.info(f"      ✅ Day {day_num} completed: {len(day_data.get('activities', []))} activities")
+            else:
+                logger.warning(f"      ⚠️ Day {day_num} generation failed, using template")
+                # Fallback: use a simple template
+                itinerary.append({
+                    'day': day_num,
+                    'title': f'Ngày {day_num}: {theme}',
+                    'activities': [
+                        {'time': '08:00', 'title': 'Khám phá địa điểm', 'description': f'{theme} tại {destination}', 'cost': 100000}
+                    ]
+                })
         
-        return plan_data
+        return itinerary
+    
+    def _generate_single_day(self, day_num: int, destination: str, 
+                            theme: str, search_results: str) -> Optional[Dict]:
+        """
+        Generate detailed activities for a single day
+        
+        Args:
+            day_num: Day number (1, 2, 3, ...)
+            destination: Destination name
+            theme: Theme for this day (e.g., "Khám phá trung tâm")
+            search_results: Search results for reference
+            
+        Returns:
+            Dict with day, title, activities
+        """
+        # Limit search for each day to avoid long prompts
+        search_snippet = search_results[:200] if len(search_results) > 200 else search_results
+        
+        prompt = f"""Tạo lịch trình CHI TIẾT cho NGÀY {day_num} tại {destination}.
+
+CHỦ ĐỀ NGÀY {day_num}: {theme}
+THAM KHẢO: {search_snippet}
+
+TRẢ VỀ JSON:
+{{
+  "day": {day_num},
+  "title": "Ngày {day_num}: {theme}",
+  "activities": [
+    {{
+      "time": "07:00",
+      "type": "breakfast",
+      "title": "Tên quán/hoạt động",
+      "description": "Mô tả chi tiết, địa chỉ, giá cả",
+      "cost": 50000
+    }},
+    {{
+      "time": "08:30",
+      "type": "sightseeing",
+      "title": "Tên địa điểm",
+      "description": "Mô tả, địa chỉ, giá vé",
+      "cost": 100000
+    }}
+  ]
+}}
+
+YÊU CẦU:
+- Ít nhất 5-7 hoạt động/ngày
+- Bao gồm: ăn sáng, tham quan, ăn trưa, hoạt động chiều, ăn tối
+- Có địa chỉ cụ thể và giá tiền thực tế
+- CHỈ TRẢ VỀ JSON"""
+        
+        try:
+            # Retry logic with 15s delay
+            max_retries = 3
+            retry_delay = 15
+            day_data = None
+            
+            for attempt in range(max_retries):
+                try:
+                    response = self.model.generate_content(prompt)
+                    response_text = response.text.strip()
+                    
+                    # Parse JSON
+                    day_data = self._parse_json_response(response_text)
+                    break  # Success
+                    
+                except Exception as retry_error:
+                    if attempt < max_retries - 1:
+                        logger.warning(f"         ⚠️ Day {day_num} attempt {attempt + 1} failed: {str(retry_error)}. Retrying in {retry_delay}s...")
+                        time.sleep(retry_delay)
+                    else:
+                        logger.error(f"         ❌ Day {day_num} all {max_retries} attempts failed")
+                        return None
+            
+            if day_data and 'activities' in day_data:
+                return day_data
+            else:
+                logger.warning(f"         ⚠️ Failed to parse day {day_num} JSON")
+                return None
+                
+        except Exception as e:
+            logger.error(f"         ❌ Day {day_num} generation error: {str(e)}")
+            return None
+    
+    def _parse_json_response(self, text: str) -> Optional[Dict]:
+        """
+        Clean and parse JSON response from Gemini
+        
+        Handles:
+        - Markdown code blocks (```json ... ```)
+        - Extra whitespace
+        - Text before/after JSON
+        """
+        try:
+            # Clean markdown code blocks
+            cleaned_text = text.strip()
+            if cleaned_text.startswith('```'):
+                parts = cleaned_text.split('```')
+                if len(parts) >= 2:
+                    cleaned_text = parts[1]
+                    if cleaned_text.startswith('json'):
+                        cleaned_text = cleaned_text[4:]
+                cleaned_text = cleaned_text.strip()
+            
+            # Try to find JSON object
+            if '{' in cleaned_text and '}' in cleaned_text:
+                start = cleaned_text.index('{')
+                end = cleaned_text.rindex('}') + 1
+                json_str = cleaned_text[start:end]
+                
+                # Parse
+                data = json.loads(json_str)
+                return data
+            else:
+                return None
+                
+        except json.JSONDecodeError as e:
+            logger.debug(f"         JSON parse error: {str(e)}")
+            return None
+        except Exception as e:
+            logger.debug(f"         Parse error: {str(e)}")
+            return None
     
     def _create_mock_itinerary(self, requirements: Dict) -> Dict:
         """Create detailed mock itinerary with specific addresses and prices"""

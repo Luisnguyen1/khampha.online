@@ -5,7 +5,8 @@
 const plansGrid = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3');
 const emptyState = document.querySelector('.hidden.flex-col.items-center');
 const searchInput = document.querySelector('input[placeholder*="Tìm"]');
-const filterButtons = document.querySelectorAll('button:has(.material-symbols-outlined:contains("expand_more"))');
+// Get filter buttons by finding all buttons with expand_more icon in the filter container
+const filterButtons = Array.from(document.querySelectorAll('.flex.gap-3.overflow-x-auto button'));
 const createPlanButton = document.querySelector('a[href="/chat"]');
 let allPlans = [];
 let currentFilter = 'all'; // 'all', 'upcoming', 'completed'

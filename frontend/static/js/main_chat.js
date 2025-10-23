@@ -236,6 +236,9 @@ async function handleSendMessage() {
                 updatePlanView(data.plan_data);
             }
             
+            // Update header buttons based on whether we have a plan
+            updateHeaderButtons();
+            
             // Update session list after sending message
             loadChatSessions();
             
@@ -615,17 +618,40 @@ async function loadChatSession(sessionId) {
                 chatMessagesContainer.innerHTML = '';
             }
             
-            // Add messages
+            // Clear current plan first
+            currentPlan = null;
+            
+            // Add messages and track the latest plan
+            let latestPlan = null;
             data.messages.forEach(msg => {
                 addUserMessage(msg.user_message);
                 addBotMessage(msg.bot_response);
                 
-                // If message has a plan, show it
+                // Track the latest plan in this session
                 if (msg.plan_id && msg.plan_data) {
-                    currentPlan = msg.plan_data;
-                    updatePlanView(msg.plan_data);
+                    latestPlan = msg.plan_data;
                 }
             });
+            
+            // Display the latest plan if found
+            if (latestPlan) {
+                currentPlan = latestPlan;
+                updatePlanView(latestPlan);
+                updateHeaderButtons();  // Enable save/share/edit buttons
+                console.log('✅ Loaded plan from session:', latestPlan.plan_name || latestPlan.destination);
+            } else {
+                // Clear plan display if no plan found
+                if (planDisplay) {
+                    planDisplay.innerHTML = `
+                        <div class="text-center py-12">
+                            <span class="material-symbols-outlined text-gray-300 dark:text-gray-600" style="font-size: 64px;">event_note</span>
+                            <p class="text-gray-500 dark:text-gray-400 mt-4">Kế hoạch của bạn sẽ xuất hiện ở đây</p>
+                            <p class="text-sm text-gray-400 dark:text-gray-500">Bắt đầu chat để tạo kế hoạch du lịch!</p>
+                        </div>
+                    `;
+                }
+                updateHeaderButtons();  // Disable save/share/edit buttons
+            }
             
             // Update UI
             renderChatSessions();
@@ -669,6 +695,9 @@ async function createNewChatSession() {
                     </div>
                 `;
             }
+            
+            // Disable header buttons (no plan yet)
+            updateHeaderButtons();
             
             // Reload sessions list
             await loadChatSessions();
@@ -748,5 +777,145 @@ function formatSessionTime(timestamp) {
     if (diffDays < 7) return `${diffDays} ngày trước`;
     
     return date.toLocaleDateString('vi-VN');
+}
+
+// ===== HEADER BUTTONS (Save, Share, Edit) =====
+
+// Save Plan button (in header)
+const savePlanBtn = document.getElementById('savePlanBtn');
+if (savePlanBtn) {
+    savePlanBtn.addEventListener('click', async () => {
+        if (!currentPlan) {
+            showNotification('error', 'Lỗi', 'Chưa có kế hoạch để lưu');
+            return;
+        }
+        
+        // Show loading
+        const originalContent = savePlanBtn.innerHTML;
+        savePlanBtn.disabled = true;
+        savePlanBtn.innerHTML = `
+            <span class="material-symbols-outlined animate-spin">progress_activity</span>
+            <span>Đang lưu...</span>
+        `;
+        
+        try {
+            // Create plan data with explicit status override
+            const planToSave = {
+                ...currentPlan,
+                status: 'active'  // Mark as active when user explicitly saves
+            };
+            
+            // Ensure status is 'active' (double-check)
+            planToSave.status = 'active';
+            
+            console.log('💾 Saving plan with status:', planToSave.status);
+            
+            const response = await fetch('/api/save-plan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(planToSave)
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                showNotification('success', 'Thành công', 'Kế hoạch đã được lưu!');
+                
+                // Update currentPlan with saved data
+                if (data.plan_id) {
+                    currentPlan.id = data.plan_id;
+                }
+                // Update status to active since we just saved it as active
+                currentPlan.status = 'active';
+                
+                console.log('✅ Plan saved successfully, status updated to:', currentPlan.status);
+                
+                // Re-enable with checkmark
+                savePlanBtn.innerHTML = `
+                    <span class="material-symbols-outlined">check_circle</span>
+                    <span>Đã lưu</span>
+                `;
+                
+                // Reset after 2 seconds
+                setTimeout(() => {
+                    savePlanBtn.innerHTML = originalContent;
+                    savePlanBtn.disabled = false;
+                }, 2000);
+            } else {
+                savePlanBtn.disabled = false;
+                savePlanBtn.innerHTML = originalContent;
+                showNotification('error', 'Lỗi', data.error || 'Không thể lưu kế hoạch');
+            }
+        } catch (error) {
+            console.error('Save plan error:', error);
+            savePlanBtn.disabled = false;
+            savePlanBtn.innerHTML = originalContent;
+            showNotification('error', 'Lỗi', 'Không thể kết nối với server');
+        }
+    });
+}
+
+// Share Plan button (in header)
+const sharePlanBtn = document.getElementById('sharePlanBtn');
+if (sharePlanBtn) {
+    sharePlanBtn.addEventListener('click', () => {
+        if (!currentPlan) {
+            showNotification('error', 'Lỗi', 'Chưa có kế hoạch để chia sẻ');
+            return;
+        }
+        
+        // Generate shareable link
+        const shareUrl = window.location.origin + '/plans/' + (currentPlan.id || 'draft');
+        
+        // Copy to clipboard
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                showNotification('success', 'Đã sao chép', 'Link chia sẻ đã được sao chép vào clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                showNotification('info', 'Link chia sẻ', shareUrl);
+            });
+        } else {
+            // Fallback for browsers that don't support clipboard API
+            prompt('Sao chép link này để chia sẻ:', shareUrl);
+        }
+    });
+}
+
+// Edit Plan button (in header)
+const editPlanBtn = document.getElementById('editPlanBtn');
+if (editPlanBtn) {
+    editPlanBtn.addEventListener('click', () => {
+        if (!currentPlan) {
+            showNotification('error', 'Lỗi', 'Chưa có kế hoạch để chỉnh sửa');
+            return;
+        }
+        
+        if (currentPlan.id) {
+            // If plan has ID, redirect to edit page
+            window.location.href = `/plans/${currentPlan.id}/edit`;
+        } else {
+            // If no ID, prompt user to use chat to edit
+            showNotification('info', 'Mẹo', 'Bạn có thể sử dụng @edit_plan trong chat để chỉnh sửa kế hoạch!');
+            
+            // Focus on message input
+            const messageInput = document.getElementById('messageInput');
+            if (messageInput) {
+                messageInput.focus();
+                messageInput.value = '@edit_plan ';
+            }
+        }
+    });
+}
+
+// Function to enable/disable header buttons based on plan availability
+function updateHeaderButtons() {
+    const hasPlan = currentPlan !== null;
+    
+    if (savePlanBtn) savePlanBtn.disabled = !hasPlan;
+    if (sharePlanBtn) sharePlanBtn.disabled = !hasPlan;
+    if (editPlanBtn) editPlanBtn.disabled = !hasPlan;
 }
 

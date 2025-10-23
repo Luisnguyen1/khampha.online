@@ -393,27 +393,33 @@ def save_plan():
     """Save travel plan endpoint"""
     try:
         data = request.get_json()
+        app.logger.info(f"💾 Saving plan - received data keys: {list(data.keys())}")
         
         # Validate required fields
         required_fields = ['destination', 'duration_days', 'itinerary']
         for field in required_fields:
             if field not in data:
+                app.logger.error(f"❌ Missing required field: {field}")
                 return jsonify({
                     'success': False,
                     'error': f'Missing required field: {field}'
                 }), 400
         
         session_id = get_or_create_session()
+        app.logger.info(f"📝 Session ID: {session_id}")
         
         # Get current user if authenticated
         current_user = get_current_user()
         user_id = current_user.id if current_user else None
+        app.logger.info(f"👤 User ID: {user_id}")
         
         # Get status (default to 'active' when user explicitly saves)
         status = data.get('status', 'active')
         
         # Get conversation_id if provided (for linking)
         conversation_id = data.get('conversation_id')
+        
+        app.logger.info(f"💾 Attempting to save: {data.get('plan_name')} - {data['destination']} - {data['duration_days']} days - Status: {status}")
         
         # Save plan
         plan_id = db.save_plan(
@@ -429,6 +435,8 @@ def save_plan():
             conversation_id=conversation_id,
             status=status
         )
+        
+        app.logger.info(f"✅ Plan saved successfully with ID: {plan_id}")
         
         return jsonify({
             'success': True,
@@ -463,6 +471,8 @@ def get_plans():
         if status == 'all':
             status = None  # Get all statuses
         
+        app.logger.info(f"📋 Getting plans - Session: {session_id}, User: {user_id}, Status filter: {status}, Limit: {limit}")
+        
         plans = db.get_plans(
             session_id=session_id if not user_id else None,
             user_id=user_id,
@@ -470,6 +480,8 @@ def get_plans():
             offset=offset, 
             status=status
         )
+        
+        app.logger.info(f"✅ Found {len(plans)} plans")
         
         return jsonify({
             'success': True,

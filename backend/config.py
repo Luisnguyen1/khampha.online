@@ -40,8 +40,8 @@ class Config:
     # AI Configuration
     GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-flash-2.0')
     GEMINI_TEMPERATURE = float(os.getenv('GEMINI_TEMPERATURE', 0.7))
-    GEMINI_MAX_TOKENS = int(os.getenv('GEMINI_MAX_TOKENS', 2048))
-    GEMINI_TIMEOUT = int(os.getenv('GEMINI_TIMEOUT', 30))
+    GEMINI_MAX_TOKENS = int(os.getenv('GEMINI_MAX_TOKENS', 8192))
+    GEMINI_TIMEOUT = int(os.getenv('GEMINI_TIMEOUT', 240))
     
     # Search Configuration
     SEARCH_MAX_RESULTS = int(os.getenv('SEARCH_MAX_RESULTS', 10))
