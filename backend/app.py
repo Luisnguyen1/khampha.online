@@ -144,6 +144,20 @@ def plan_detail(plan_id):
     return render_template('chi_tiet_ke_hoach.html', app_name=Config.APP_NAME, plan=plan, user=user)
 
 
+@app.route('/discover')
+@require_login
+def discover_page():
+    """Discovery page - Tinder-style destination explorer"""
+    user = get_current_user()
+    return render_template('discover.html', app_name=Config.APP_NAME, user=user)
+
+
+@app.route('/discover-debug')
+def discover_debug():
+    """Debug page for testing discovery feature without auth"""
+    return render_template('discover-debug.html')
+
+
 @app.route('/plans/<int:plan_id>/edit')
 @require_login
 def edit_plan(plan_id):

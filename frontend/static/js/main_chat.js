@@ -43,6 +43,9 @@ window.addEventListener('DOMContentLoaded', () => {
     addWelcomeMessage();
     attachEventListeners();
     initializeMarkdown();
+    
+    // Check for auto-send message from URL parameter (from Discover page)
+    checkAutoSendMessage();
 });
 
 // Initialize Markdown renderer
@@ -917,5 +920,32 @@ function updateHeaderButtons() {
     if (savePlanBtn) savePlanBtn.disabled = !hasPlan;
     if (sharePlanBtn) sharePlanBtn.disabled = !hasPlan;
     if (editPlanBtn) editPlanBtn.disabled = !hasPlan;
+}
+
+// Check for auto-send message from URL parameter (from Discover page)
+function checkAutoSendMessage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const autoMessage = urlParams.get('message');
+    
+    if (autoMessage && messageInput) {
+        // Decode and set message
+        messageInput.value = decodeURIComponent(autoMessage);
+        
+        // Show notification
+        if (typeof showNotification === 'function') {
+            showNotification('Đã tự động điền tin nhắn từ Discovery! 🗺️', 'info');
+        }
+        
+        // Auto-send after a short delay (allow user to see the message first)
+        setTimeout(() => {
+            if (messageInput && messageInput.value.trim()) {
+                handleSendMessage();
+            }
+        }, 500);
+        
+        // Clean URL (remove query parameter)
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+    }
 }
 
