@@ -16,6 +16,12 @@ class User:
     username: Optional[str] = None
     password_hash: Optional[str] = None
     full_name: Optional[str] = None
+    bio: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    avatar_url: Optional[str] = None
+    date_of_birth: Optional[str] = None
+    travel_preferences: Optional[str] = None  # JSON string
     is_authenticated: bool = False
     created_at: Optional[datetime] = None
     last_active: Optional[datetime] = None
@@ -23,12 +29,25 @@ class User:
     
     def to_dict(self) -> dict:
         """Convert to dictionary (exclude password)"""
+        travel_prefs = None
+        if self.travel_preferences:
+            try:
+                travel_prefs = json.loads(self.travel_preferences)
+            except:
+                pass
+        
         return {
             'id': self.id,
             'session_id': self.session_id,
             'email': self.email,
             'username': self.username,
             'full_name': self.full_name,
+            'bio': self.bio,
+            'phone': self.phone,
+            'address': self.address,
+            'avatar_url': self.avatar_url,
+            'date_of_birth': self.date_of_birth,
+            'travel_preferences': travel_prefs,
             'is_authenticated': self.is_authenticated,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'last_active': self.last_active.isoformat() if self.last_active else None,
@@ -138,6 +157,12 @@ CREATE TABLE IF NOT EXISTS users (
     username TEXT UNIQUE,
     password_hash TEXT,
     full_name TEXT,
+    bio TEXT,
+    phone TEXT,
+    address TEXT,
+    avatar_url TEXT,
+    date_of_birth TEXT,
+    travel_preferences TEXT,
     is_authenticated INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

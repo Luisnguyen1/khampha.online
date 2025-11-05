@@ -43,6 +43,7 @@ window.addEventListener('DOMContentLoaded', () => {
     addWelcomeMessage();
     attachEventListeners();
     initializeMarkdown();
+    applyViewportHeightFix();
     
     // Check for auto-send message from URL parameter (from Discover page)
     checkAutoSendMessage();
@@ -65,6 +66,31 @@ function initializeMarkdown() {
             }
         });
     }
+}
+
+// Handle dynamic viewport height for iOS Safari and PWAs
+function applyViewportHeightFix() {
+    const root = document.documentElement;
+    if (!root) return;
+
+    const setAppHeight = () => {
+        const viewport = window.visualViewport;
+        const height = viewport ? viewport.height : window.innerHeight;
+        root.style.setProperty('--app-height', `${Math.round(height)}px`);
+    };
+
+    setAppHeight();
+
+    const viewport = window.visualViewport;
+    if (viewport) {
+        viewport.addEventListener('resize', setAppHeight);
+        viewport.addEventListener('scroll', setAppHeight);
+    } else {
+        window.addEventListener('resize', setAppHeight);
+    }
+
+    window.addEventListener('orientationchange', setAppHeight);
+    window.addEventListener('pageshow', setAppHeight);
 }
 
 // Show/hide mode dropdown

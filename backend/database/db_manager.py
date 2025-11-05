@@ -183,6 +183,12 @@ class DatabaseManager:
             username=row['username'] if 'username' in row.keys() else None,
             password_hash=row['password_hash'] if 'password_hash' in row.keys() else None,
             full_name=row['full_name'] if 'full_name' in row.keys() else None,
+            bio=row['bio'] if 'bio' in row.keys() else None,
+            phone=row['phone'] if 'phone' in row.keys() else None,
+            address=row['address'] if 'address' in row.keys() else None,
+            avatar_url=row['avatar_url'] if 'avatar_url' in row.keys() else None,
+            date_of_birth=row['date_of_birth'] if 'date_of_birth' in row.keys() else None,
+            travel_preferences=row['travel_preferences'] if 'travel_preferences' in row.keys() else None,
             is_authenticated=bool(row['is_authenticated']) if 'is_authenticated' in row.keys() else False,
             created_at=datetime.fromisoformat(row['created_at']),
             last_active=datetime.fromisoformat(row['last_active']),
@@ -196,6 +202,151 @@ class DatabaseManager:
                 "UPDATE users SET last_active = CURRENT_TIMESTAMP WHERE session_id = ?",
                 (session_id,)
             )
+    
+    def update_user_profile(self, user_id: int, profile_data: Dict[str, Any]) -> bool:
+        """Update user profile information
+        
+        Args:
+            user_id: User ID
+            profile_data: Dictionary with profile fields (full_name, bio, phone, address, date_of_birth, travel_preferences)
+        
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            allowed_fields = ['full_name', 'bio', 'phone', 'address', 'date_of_birth', 'travel_preferences', 'username']
+            update_fields = []
+            values = []
+            
+            for field in allowed_fields:
+                if field in profile_data:
+                    update_fields.append(f"{field} = ?")
+                    # Convert travel_preferences dict to JSON string if needed
+                    if field == 'travel_preferences' and isinstance(profile_data[field], dict):
+                        values.append(json.dumps(profile_data[field]))
+                    else:
+                        values.append(profile_data[field])
+            
+            if not update_fields:
+                return False
+            
+            values.append(user_id)
+            query = f"UPDATE users SET {', '.join(update_fields)} WHERE id = ?"
+            
+            with self.get_connection() as conn:
+                conn.execute(query, tuple(values))
+                return True
+        except Exception as e:
+            print(f"Error updating profile: {str(e)}")
+            return False
+    
+    def update_user_avatar(self, user_id: int, avatar_url: str) -> bool:
+        """Update user avatar URL"""
+        try:
+            with self.get_connection() as conn:
+                conn.execute(
+                    "UPDATE users SET avatar_url = ? WHERE id = ?",
+                    (avatar_url, user_id)
+                )
+                return True
+        except Exception as e:
+            print(f"Error updating avatar: {str(e)}")
+            return False
+    
+    def change_user_password(self, user_id: int, current_password: str, new_password: str) -> tuple[bool, Optional[str]]:
+        """Change user password
+        
+        Returns:
+            (success, error_message)
+        """
+        try:
+            user = self.get_user_by_id(user_id)
+            if not user or not user.password_hash:
+                return False, "Người dùng không tồn tại"
+            
+            # Verify current password
+            try:
+                hashed_password, salt = user.password_hash.split(':')
+                if not verify_password(current_password, hashed_password, salt):
+                    return False, "Mật khẩu hiện tại không đúng"
+            except ValueError:
+                return False, "Lỗi xác thực mật khẩu"
+            
+            # Hash new password
+            new_hashed, new_salt = hash_password(new_password)
+            new_password_hash = f"{new_hashed}:{new_salt}"
+            
+            with self.get_connection() as conn:
+                conn.execute(
+                    "UPDATE users SET password_hash = ? WHERE id = ?",
+                    (new_password_hash, user_id)
+                )
+                return True, None
+        except Exception as e:
+            return False, f"Lỗi đổi mật khẩu: {str(e)}"
+    
+    def delete_user_account(self, user_id: int, password: str) -> tuple[bool, Optional[str]]:
+        """Delete user account (requires password confirmation)
+        
+        Returns:
+            (success, error_message)
+        """
+        try:
+            user = self.get_user_by_id(user_id)
+            if not user or not user.password_hash:
+                return False, "Người dùng không tồn tại"
+            
+            # Verify password
+            try:
+                hashed_password, salt = user.password_hash.split(':')
+                if not verify_password(password, hashed_password, salt):
+                    return False, "Mật khẩu không đúng"
+            except ValueError:
+                return False, "Lỗi xác thực mật khẩu"
+            
+            # Delete user (CASCADE will handle related data)
+            with self.get_connection() as conn:
+                conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+                return True, None
+        except Exception as e:
+            return False, f"Lỗi xóa tài khoản: {str(e)}"
+    
+    def get_user_stats(self, user_id: int) -> Dict[str, int]:
+        """Get user statistics for profile"""
+        with self.get_connection() as conn:
+            stats = {}
+            
+            # Get user's session_id
+            user = self.get_user_by_id(user_id)
+            if not user:
+                return stats
+            
+            # Total plans
+            stats['total_plans'] = conn.execute(
+                "SELECT COUNT(*) FROM travel_plans WHERE user_id = ? OR session_id = ?",
+                (user_id, user.session_id)
+            ).fetchone()[0]
+            
+            # Completed plans
+            stats['completed_plans'] = conn.execute(
+                "SELECT COUNT(*) FROM travel_plans WHERE (user_id = ? OR session_id = ?) AND status = 'completed'",
+                (user_id, user.session_id)
+            ).fetchone()[0]
+            
+            # Unique destinations
+            stats['destinations'] = conn.execute(
+                "SELECT COUNT(DISTINCT destination) FROM travel_plans WHERE user_id = ? OR session_id = ?",
+                (user_id, user.session_id)
+            ).fetchone()[0]
+            
+            # Total days traveled
+            result = conn.execute(
+                "SELECT SUM(duration_days) FROM travel_plans WHERE (user_id = ? OR session_id = ?) AND status = 'completed'",
+                (user_id, user.session_id)
+            ).fetchone()
+            stats['total_days'] = result[0] if result[0] else 0
+            
+            return stats
     
     # ===== CONVERSATION OPERATIONS =====
     

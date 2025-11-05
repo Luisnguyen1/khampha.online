@@ -158,6 +158,16 @@ def discover_debug():
     return render_template('discover-debug.html')
 
 
+@app.route('/profile')
+@require_login
+def profile_page():
+    """User profile page - requires authentication"""
+    user = get_current_user()
+    # Get user statistics
+    stats = db.get_user_stats(user.id)
+    return render_template('profile.html', app_name=Config.APP_NAME, user=user, stats=stats)
+
+
 @app.route('/plans/<int:plan_id>/edit')
 @require_login
 def edit_plan(plan_id):
@@ -989,7 +999,7 @@ def get_current_user_info():
         })
         
     except Exception as e:
-        app.logger.error(f"Error getting current user: {str(e)}")
+        app.logger.error(f"Error getting current user info: {str(e)}")
         return jsonify({
             'success': False,
             'error': 'Lỗi hệ thống'
@@ -1047,6 +1057,245 @@ def upload_file():
         return jsonify({
             'success': False,
             'error': str(e)
+        }), 500
+
+
+# ===== PROFILE API ROUTES =====
+
+@app.route('/api/profile', methods=['GET'])
+@require_auth
+def get_profile():
+    """Get current user profile"""
+    try:
+        user = get_current_user()
+        stats = db.get_user_stats(user.id)
+        
+        return jsonify({
+            'success': True,
+            'user': user.to_dict(),
+            'stats': stats
+        })
+    except Exception as e:
+        app.logger.error(f"Error getting profile: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Lỗi hệ thống'
+        }), 500
+
+
+@app.route('/api/profile', methods=['PUT'])
+@require_auth
+def update_profile():
+    """Update user profile"""
+    try:
+        user = get_current_user()
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'Dữ liệu không hợp lệ'
+            }), 400
+        
+        # Sanitize inputs
+        profile_data = {}
+        if 'full_name' in data:
+            profile_data['full_name'] = sanitize_input(data['full_name'], max_length=100)
+        if 'username' in data:
+            username = sanitize_input(data['username'], max_length=20)
+            if not validate_username(username):
+                return jsonify({
+                    'success': False,
+                    'error': 'Username không hợp lệ'
+                }), 400
+            profile_data['username'] = username
+        if 'bio' in data:
+            profile_data['bio'] = sanitize_input(data['bio'], max_length=500)
+        if 'phone' in data:
+            profile_data['phone'] = sanitize_input(data['phone'], max_length=20)
+        if 'address' in data:
+            profile_data['address'] = sanitize_input(data['address'], max_length=200)
+        if 'date_of_birth' in data:
+            profile_data['date_of_birth'] = data['date_of_birth']
+        if 'travel_preferences' in data:
+            profile_data['travel_preferences'] = data['travel_preferences']
+        
+        success = db.update_user_profile(user.id, profile_data)
+        
+        if not success:
+            return jsonify({
+                'success': False,
+                'error': 'Không thể cập nhật thông tin'
+            }), 500
+        
+        # Get updated user
+        updated_user = db.get_user_by_id(user.id)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Cập nhật thông tin thành công',
+            'user': updated_user.to_dict()
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error updating profile: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Lỗi hệ thống'
+        }), 500
+
+
+@app.route('/api/profile/avatar', methods=['POST'])
+@require_auth
+def upload_avatar():
+    """Upload user avatar"""
+    try:
+        user = get_current_user()
+        
+        if 'file' not in request.files:
+            return jsonify({
+                'success': False,
+                'error': 'Không có file được chọn'
+            }), 400
+        
+        file = request.files['file']
+        
+        if file.filename == '':
+            return jsonify({
+                'success': False,
+                'error': 'Vui lòng chọn file'
+            }), 400
+        
+        # Check if image
+        if '.' not in file.filename:
+            return jsonify({
+                'success': False,
+                'error': 'File không hợp lệ'
+            }), 400
+        
+        ext = file.filename.rsplit('.', 1)[1].lower()
+        allowed_image_exts = {'jpg', 'jpeg', 'png', 'gif', 'webp'}
+        
+        if ext not in allowed_image_exts:
+            return jsonify({
+                'success': False,
+                'error': f'Chỉ hỗ trợ: {", ".join(allowed_image_exts)}'
+            }), 400
+        
+        # Generate unique filename
+        filename = f"avatar_{user.id}_{uuid.uuid4()}.{ext}"
+        filepath = Config.UPLOAD_FOLDER / filename
+        
+        # Save file
+        file.save(str(filepath))
+        avatar_url = f'/static/uploads/{filename}'
+        
+        # Update user avatar in database
+        success = db.update_user_avatar(user.id, avatar_url)
+        
+        if not success:
+            return jsonify({
+                'success': False,
+                'error': 'Không thể cập nhật ảnh đại diện'
+            }), 500
+        
+        return jsonify({
+            'success': True,
+            'message': 'Cập nhật ảnh đại diện thành công',
+            'avatar_url': avatar_url
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error uploading avatar: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Lỗi hệ thống'
+        }), 500
+
+
+@app.route('/api/profile/password', methods=['PUT'])
+@require_auth
+def change_password():
+    """Change user password"""
+    try:
+        user = get_current_user()
+        data = request.get_json()
+        
+        if not data or 'current_password' not in data or 'new_password' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Vui lòng nhập đầy đủ thông tin'
+            }), 400
+        
+        current_password = data['current_password']
+        new_password = data['new_password']
+        
+        # Validate new password
+        is_valid, error_msg = validate_password(new_password)
+        if not is_valid:
+            return jsonify({
+                'success': False,
+                'error': error_msg
+            }), 400
+        
+        success, error = db.change_user_password(user.id, current_password, new_password)
+        
+        if not success:
+            return jsonify({
+                'success': False,
+                'error': error
+            }), 400
+        
+        return jsonify({
+            'success': True,
+            'message': 'Đổi mật khẩu thành công'
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error changing password: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Lỗi hệ thống'
+        }), 500
+
+
+@app.route('/api/profile', methods=['DELETE'])
+@require_auth
+def delete_account():
+    """Delete user account"""
+    try:
+        user = get_current_user()
+        data = request.get_json()
+        
+        if not data or 'password' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Vui lòng xác nhận mật khẩu'
+            }), 400
+        
+        password = data['password']
+        
+        success, error = db.delete_user_account(user.id, password)
+        
+        if not success:
+            return jsonify({
+                'success': False,
+                'error': error
+            }), 400
+        
+        # Clear session
+        session.clear()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Xóa tài khoản thành công'
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error deleting account: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Lỗi hệ thống'
         }), 500
 
 

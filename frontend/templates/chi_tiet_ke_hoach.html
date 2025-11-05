@@ -32,6 +32,82 @@
     </script>
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display">
+<!-- Header -->
+<header class="bg-white shadow-sm border-b relative z-50">
+    <div class="container mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+            <!-- Logo -->
+            <a href="/" class="flex items-center space-x-2">
+                <span class="text-2xl">🧭</span>
+                <h1 class="text-xl md:text-2xl font-bold text-blue-600">{{ app_name }}</h1>
+            </a>
+            
+            <!-- Desktop Navigation -->
+            <nav class="hidden md:flex items-center space-x-4">
+                <a href="/chat" class="text-gray-600 hover:text-blue-600 transition">
+                    💬 Chat
+                </a>
+                <a href="/plans" class="text-blue-600 font-semibold">
+                    📋 Kế hoạch
+                </a>
+                <a href="/discover" class="text-gray-600 hover:text-blue-600 transition">
+                    🔍 Khám phá
+                </a>
+                {% if user %}
+                <a href="/profile" class="text-gray-600 hover:text-blue-600 transition">
+                    👤 Hồ sơ
+                </a>
+                {% endif %}
+            </nav>
+            
+            <!-- Mobile Hamburger Button -->
+            <button id="mobileMenuBtn" class="md:hidden p-2 text-gray-600 hover:text-blue-600 transition" aria-label="Menu">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- Mobile Navigation Drawer -->
+<div id="mobileDrawer" class="mobile-drawer">
+    <div class="mobile-drawer-header">
+        <a href="/" class="flex items-center space-x-2">
+            <span class="text-2xl">🧭</span>
+            <h2 class="text-xl font-bold text-blue-600">{{ app_name }}</h2>
+        </a>
+        <button id="closeDrawerBtn" class="p-2 text-gray-600 hover:text-blue-600" aria-label="Close menu">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+    <nav class="mobile-drawer-nav">
+        <a href="/chat" class="mobile-nav-item">
+            <span class="text-xl">💬</span>
+            <span>Chat</span>
+        </a>
+        <a href="/plans" class="mobile-nav-item">
+            <span class="text-xl">📋</span>
+            <span>Kế hoạch</span>
+        </a>
+        <a href="/discover" class="mobile-nav-item">
+            <span class="text-xl">🔍</span>
+            <span>Khám phá</span>
+        </a>
+        {% if user %}
+        <a href="/profile" class="mobile-nav-item">
+            <span class="text-xl">👤</span>
+            <span>Hồ sơ</span>
+        </a>
+        {% endif %}
+    </nav>
+</div>
+
+<!-- Drawer Overlay -->
+<div id="drawerOverlay" class="drawer-overlay"></div>
+
 <div class="relative flex min-h-screen w-full flex-col group/design-root overflow-x-hidden">
 <div class="flex flex-grow">
 <!-- SideNavBar -->
@@ -112,5 +188,53 @@
 </main>
 </div>
 </div>
+
+<!-- Mobile Navigation JS -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+        const mobileDrawer = document.getElementById('mobileDrawer');
+        const drawerOverlay = document.getElementById('drawerOverlay');
+        
+        function openDrawer() {
+            mobileDrawer.classList.add('drawer-open');
+            drawerOverlay.classList.add('overlay-visible');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeDrawer() {
+            mobileDrawer.classList.remove('drawer-open');
+            drawerOverlay.classList.remove('overlay-visible');
+            document.body.style.overflow = '';
+        }
+        
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', openDrawer);
+        }
+        
+        if (closeDrawerBtn) {
+            closeDrawerBtn.addEventListener('click', closeDrawer);
+        }
+        
+        if (drawerOverlay) {
+            drawerOverlay.addEventListener('click', closeDrawer);
+        }
+        
+        // Close on navigation
+        const navItems = document.querySelectorAll('.mobile-nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', closeDrawer);
+        });
+        
+        // Close on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeDrawer();
+            }
+        });
+    });
+</script>
+
 <script src="{{ url_for('static', filename='js/chi_tiet_ke_hoach.js') }}"></script>
 </body></html>

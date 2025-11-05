@@ -3,56 +3,57 @@
 {% block title %}Chat - {{ app_name }}{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8 max-w-4xl">
+<div class="container mx-auto px-4 py-4 md:py-8 max-w-4xl h-[calc(var(--app-height)-180px)] md:h-auto flex flex-col">
     
     <!-- Welcome Message -->
-    <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-6 mb-6 shadow-lg">
-        <h2 class="text-3xl font-bold mb-2">Xin chào! 👋</h2>
-        <p class="text-lg">Tôi là trợ lý du lịch AI. Hãy cho tôi biết bạn muốn đi đâu nhé!</p>
+    <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg p-4 md:p-6 mb-4 md:mb-6 shadow-lg flex-shrink-0">
+        <h2 class="text-xl md:text-3xl font-bold mb-2">Xin chào! 👋</h2>
+        <p class="text-sm md:text-lg">Tôi là trợ lý du lịch AI. Hãy cho tôi biết bạn muốn đi đâu nhé!</p>
     </div>
     
     <!-- Sample Prompts -->
-    <div class="bg-white rounded-lg p-6 mb-6 shadow">
-        <h3 class="font-semibold text-gray-700 mb-3">💡 Gợi ý câu hỏi:</h3>
-        <div class="flex flex-wrap gap-2">
+    <div class="bg-white rounded-lg p-4 md:p-6 mb-4 md:mb-6 shadow flex-shrink-0">
+        <h3 class="font-semibold text-gray-700 mb-3 text-sm md:text-base">💡 Gợi ý câu hỏi:</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <button onclick="sendSample('Tôi muốn đi Đà Lạt 3 ngày 2 đêm')" 
-                    class="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-sm transition">
+                    class="px-3 md:px-4 py-2.5 md:py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-xs md:text-sm transition btn-touch">
                 🏔️ Đà Lạt 3 ngày
             </button>
             <button onclick="sendSample('Du lịch Vũng Tàu cuối tuần, ngân sách 2 triệu')" 
-                    class="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-sm transition">
+                    class="px-3 md:px-4 py-2.5 md:py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-xs md:text-sm transition btn-touch">
                 🏖️ Vũng Tàu 2 ngày
             </button>
             <button onclick="sendSample('Đi Nha Trang 4 ngày 3 đêm, thích tắm biển')" 
-                    class="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-sm transition">
+                    class="px-3 md:px-4 py-2.5 md:py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-xs md:text-sm transition btn-touch">
                 🌊 Nha Trang 4 ngày
             </button>
         </div>
     </div>
     
     <!-- Chat Container -->
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col flex-1 min-h-0">
         
         <!-- Chat Messages -->
-        <div id="chatMessages" class="h-96 overflow-y-auto p-6 space-y-4">
+        <div id="chatMessages" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
             <!-- Messages will be added here dynamically -->
         </div>
         
         <!-- Chat Input -->
-        <div class="border-t p-4 bg-gray-50">
+        <div class="border-t p-3 md:p-4 bg-gray-50 flex-shrink-0 safe-area-scroll">
             <form id="chatForm" class="flex gap-2">
                 <input 
                     type="text" 
                     id="messageInput" 
                     placeholder="Nhập tin nhắn của bạn..."
-                    class="flex-1 px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    class="flex-1 px-3 md:px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
                     required
                 >
                 <button 
                     type="submit" 
                     id="sendButton"
-                    class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed">
-                    Gửi 📤
+                    class="px-4 md:px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed btn-touch-lg">
+                    <span class="hidden sm:inline">Gửi 📤</span>
+                    <span class="sm:hidden">📤</span>
                 </button>
             </form>
         </div>
@@ -69,5 +70,18 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<script>
+// Viewport height fix for mobile
+function setViewportHeight() {
+    const vh = window.innerHeight;
+    document.documentElement.style.setProperty('--app-height', `${vh}px`);
+}
+
+window.addEventListener('DOMContentLoaded', setViewportHeight);
+window.addEventListener('resize', setViewportHeight);
+window.addEventListener('orientationchange', () => {
+    setTimeout(setViewportHeight, 100);
+});
+</script>
 <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 {% endblock %}

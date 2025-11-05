@@ -282,10 +282,10 @@ class DiscoveryApp {
                 <img src="${image.src.portrait}" alt="${image.alt || destination.name}" class="card-image">
                 <div class="card-overlay"></div>
                 <div class="swipe-indicator swipe-left">
-                    <span class="text-6xl">❌</span>
+                    <span>❌</span>
                 </div>
                 <div class="swipe-indicator swipe-right">
-                    <span class="text-6xl">💚</span>
+                    <span>💚</span>
                 </div>
             </div>
             <div class="card-content">
@@ -474,14 +474,14 @@ class DiscoveryApp {
 
         container.innerHTML = `
             <div class="empty-state">
-                <span class="material-symbols-outlined" style="font-size: 80px; color: #13a4ec;">explore_off</span>
-                <h2 class="text-2xl font-bold mt-4 mb-2">Bạn đã xem hết!</h2>
-                <p class="text-gray-600 mb-6">Đã duyệt qua tất cả các địa điểm</p>
+                <span class="material-symbols-outlined" style="color: #13a4ec;">explore_off</span>
+                <h2>Bạn đã xem hết!</h2>
+                <p>Đã duyệt qua tất cả các địa điểm</p>
                 <button onclick="discoveryApp.resetProgress()" class="btn-primary">
                     <span class="material-symbols-outlined">refresh</span>
                     Khám phá lại
                 </button>
-                <a href="/chat" class="btn-secondary mt-4">
+                <a href="/chat" class="btn-secondary" style="display: inline-flex; margin-top: 0.75rem;">
                     <span class="material-symbols-outlined">chat</span>
                     Lên kế hoạch ngay
                 </a>
@@ -502,10 +502,23 @@ class DiscoveryApp {
     }
 }
 
+// Fix viewport height for mobile devices
+function setViewportHeight() {
+    const vh = window.innerHeight;
+    document.documentElement.style.setProperty('--viewport-height', `${vh}px`);
+}
+
 // Initialize app when DOM is ready
 let discoveryApp;
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Set viewport height
+    setViewportHeight();
+    window.addEventListener('resize', setViewportHeight);
+    window.addEventListener('orientationchange', () => {
+        setTimeout(setViewportHeight, 100);
+    });
+    
     // Check if required dependencies are loaded
     if (typeof Hammer === 'undefined') {
         console.error('Hammer.js is not loaded! Please check the CDN link.');

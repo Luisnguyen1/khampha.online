@@ -41,31 +41,86 @@
     </style>
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display">
+<!-- Header -->
+<header class="bg-white shadow-sm border-b relative z-50">
+    <div class="container mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+            <!-- Logo -->
+            <a href="/" class="flex items-center space-x-2">
+                <span class="text-2xl">🧭</span>
+                <h1 class="text-xl md:text-2xl font-bold text-blue-600">{{ app_name }}</h1>
+            </a>
+            
+            <!-- Desktop Navigation -->
+            <nav class="hidden md:flex items-center space-x-4">
+                <a href="/chat" class="text-gray-600 hover:text-blue-600 transition">
+                    💬 Chat
+                </a>
+                <a href="/plans" class="text-blue-600 font-semibold">
+                    📋 Kế hoạch
+                </a>
+                <a href="/discover" class="text-gray-600 hover:text-blue-600 transition">
+                    🔍 Khám phá
+                </a>
+                {% if user %}
+                <a href="/profile" class="text-gray-600 hover:text-blue-600 transition">
+                    👤 Hồ sơ
+                </a>
+                {% endif %}
+            </nav>
+            
+            <!-- Mobile Hamburger Button -->
+            <button id="mobileMenuBtn" class="md:hidden p-2 text-gray-600 hover:text-blue-600 transition" aria-label="Menu">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- Mobile Navigation Drawer -->
+<div id="mobileDrawer" class="mobile-drawer">
+    <div class="mobile-drawer-header">
+        <a href="/" class="flex items-center space-x-2">
+            <span class="text-2xl">🧭</span>
+            <h2 class="text-xl font-bold text-blue-600">{{ app_name }}</h2>
+        </a>
+        <button id="closeDrawerBtn" class="p-2 text-gray-600 hover:text-blue-600" aria-label="Close menu">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+    <nav class="mobile-drawer-nav">
+        <a href="/chat" class="mobile-nav-item">
+            <span class="text-xl">💬</span>
+            <span>Chat</span>
+        </a>
+        <a href="/plans" class="mobile-nav-item">
+            <span class="text-xl">📋</span>
+            <span>Kế hoạch</span>
+        </a>
+        <a href="/discover" class="mobile-nav-item">
+            <span class="text-xl">🔍</span>
+            <span>Khám phá</span>
+        </a>
+        {% if user %}
+        <a href="/profile" class="mobile-nav-item">
+            <span class="text-xl">👤</span>
+            <span>Hồ sơ</span>
+        </a>
+        {% endif %}
+    </nav>
+</div>
+
+<!-- Drawer Overlay -->
+<div id="drawerOverlay" class="drawer-overlay"></div>
+
 <div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
 <div class="layout-container flex h-full grow flex-col">
 <div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-5">
 <div class="layout-content-container flex flex-col max-w-[960px] flex-1">
-<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f0f3f4] dark:border-b-gray-700 px-4 sm:px-10 py-3">
-<div class="flex items-center gap-4 text-[#111618] dark:text-white">
-<div class="size-6 text-primary">
-<svg fill="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-<path d="M21.93,3.63a1,1,0,0,0-1-1.25,1,1,0,0,0-.69.22L17.8,4.89a9.85,9.85,0,0,0-11.6,0L3.76,2.6A1,1,0,0,0,2.07,3.63L3.89,6.24A10,10,0,0,0,3.89,17.76L2.07,20.37a1,1,0,0,0,1.69,1l2.44-2.29h.1a10,10,0,0,0,11.52,0h.1l2.44,2.29a1,1,0,0,0,.84.37,1,1,0,0,0,.85-.37,1,1,0,0,0,0-1.41l-1.82-2.61a10,10,0,0,0,0-11.52ZM12,18a8,8,0,1,1,8-8A8,8,0,0,1,12,18Zm1-3.5-3,2a.48.48,0,0,1-.5-.5V8a.5.5,0,0,1,.75-.43l5,3a.5.5,0,0,1,0,.86Z"></path>
-</svg>
-</div>
-<h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">Travel Chatbot</h2>
-</div>
-<div class="flex items-center gap-4">
-<nav class="hidden md:flex items-center gap-9">
-<a class="text-[#111618] dark:text-white text-sm font-medium leading-normal" href="#">Trang chủ</a>
-<a class="text-primary text-sm font-bold leading-normal" href="#">Kế hoạch mới</a>
-<a class="text-[#111618] dark:text-white text-sm font-medium leading-normal" href="#">Tài khoản</a>
-</nav>
-<button class="flex items-center justify-center rounded-full size-10 bg-[#f0f3f4] dark:bg-gray-700 text-[#111618] dark:text-white">
-<span class="material-symbols-outlined">notifications</span>
-</button>
-<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="User avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDJENWa_NVIcBZSxgPi4zjbuA1_mm-fHB2t14Fgb3FIwiu2uX4Y7eh0WMtqC5CfBou9deDahRQd6yJIo4du7i5G_c72KfJgVibM8RqIn1yTAUAy7dVgL4OTDm-3dkmhbjNIVxvFWbZGAwQ5A9h_zSi_wCOfDw8Paa--OCI7mQjohHooLa_nv1WRJwwoEQbocvF3BMZLNZt96OdcTiaevt8YX-AQU06HsXgmmmYClWANr8VJ7uXbVnpAULZTGLMBU8DIXIkN0p87eLM");'></div>
-</div>
-</header>
 <main class="flex flex-col flex-1 p-4">
 <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
 <p class="text-[#111618] dark:text-white text-4xl font-black leading-tight tracking-[-0.033em] min-w-72">Kế hoạch của tôi</p>
@@ -125,5 +180,53 @@
 </div>
 </div>
 </div>
-<script src="{{ url_for('static', filename='js/danh_sach_ke_hoach.js') }}"></script>
+
+<!-- Mobile Navigation JS -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const closeDrawerBtn = document.getElementById('closeDrawerBtn');
+        const mobileDrawer = document.getElementById('mobileDrawer');
+        const drawerOverlay = document.getElementById('drawerOverlay');
+        
+        function openDrawer() {
+            mobileDrawer.classList.add('drawer-open');
+            drawerOverlay.classList.add('overlay-visible');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeDrawer() {
+            mobileDrawer.classList.remove('drawer-open');
+            drawerOverlay.classList.remove('overlay-visible');
+            document.body.style.overflow = '';
+        }
+        
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', openDrawer);
+        }
+        
+        if (closeDrawerBtn) {
+            closeDrawerBtn.addEventListener('click', closeDrawer);
+        }
+        
+        if (drawerOverlay) {
+            drawerOverlay.addEventListener('click', closeDrawer);
+        }
+        
+        // Close on navigation
+        const navItems = document.querySelectorAll('.mobile-nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', closeDrawer);
+        });
+        
+        // Close on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeDrawer();
+            }
+        });
+    });
+</script>
+
+<script src="{{ url_for('static', filename='js/plans.js') }}"></script>
 </body></html>
