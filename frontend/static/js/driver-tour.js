@@ -87,7 +87,16 @@ function initializeDriverTour() {
                 element: '#savePlanBtn',
                 popover: {
                     title: 'Lưu kế hoạch',
-                    description: 'Lưu kế hoạch hiện tại vào danh sách kế hoạch của bạn để truy cập sau này.',
+                    description: 'Lưu kế hoạch hiện tại vào danh sách kế hoạch của bạn để truy cập sau này. Kế hoạch đã lưu sẽ có sẵn trong trang "Kế hoạch".',
+                    side: "bottom",
+                    align: 'start'
+                }
+            },
+            {
+                element: '#sharePlanBtn',
+                popover: {
+                    title: 'Chia sẻ kế hoạch',
+                    description: 'Chia sẻ kế hoạch du lịch của bạn với bạn bè và gia đình. Bạn có thể sao chép link hoặc chia sẻ trực tiếp qua mạng xã hội.',
                     side: "bottom",
                     align: 'start'
                 }
@@ -96,7 +105,7 @@ function initializeDriverTour() {
                 element: '#editPlanBtn',
                 popover: {
                     title: 'Chỉnh sửa kế hoạch',
-                    description: 'Chỉnh sửa kế hoạch hiện tại. Bạn có thể thay đổi địa điểm, thời gian, hoạt động, v.v.',
+                    description: 'Chỉnh sửa kế hoạch hiện tại. Bạn có thể thay đổi địa điểm, thời gian, hoạt động hoặc yêu cầu AI điều chỉnh theo ý muốn.',
                     side: "bottom",
                     align: 'start'
                 }
@@ -105,7 +114,7 @@ function initializeDriverTour() {
                 element: '#referencesBtn',
                 popover: {
                     title: 'Tài liệu tham khảo',
-                    description: 'Xem các nguồn tham khảo và thông tin chi tiết được sử dụng để tạo kế hoạch của bạn.',
+                    description: 'Xem các nguồn thông tin, bài viết và dữ liệu du lịch được sử dụng để tạo kế hoạch của bạn. Giúp bạn kiểm tra độ tin cậy của thông tin.',
                     side: "bottom",
                     align: 'end'
                 }
