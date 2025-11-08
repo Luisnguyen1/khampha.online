@@ -238,6 +238,8 @@ def chat_stream():
     
     def generate():
         """Generator function for streaming responses"""
+        import json as json_module
+        
         try:
             # Send thinking event
             yield f"event: thinking\ndata: {{\"status\": \"analyzing\"}}\n\n"
@@ -269,7 +271,6 @@ def chat_stream():
                 if chunk.get('type') == 'text':
                     text = chunk.get('content', '')
                     full_response += text
-                    import json as json_module
                     yield f"event: message\ndata: {json_module.dumps({'text': text}, ensure_ascii=False)}\n\n"
                 
                 elif chunk.get('type') == 'plan':

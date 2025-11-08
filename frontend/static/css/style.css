@@ -94,8 +94,8 @@ html {
     }
 }
 
-/* Streaming content cursor effect */
-.streaming-content::after {
+/* Streaming content cursor effect - only show when actively streaming */
+.streaming-content.streaming-active::after {
     content: '▊';
     animation: blink 1s step-end infinite;
     margin-left: 2px;

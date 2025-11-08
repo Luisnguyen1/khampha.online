@@ -310,6 +310,14 @@ async function handleSendMessage() {
                             // Stream completed
                             conversationSessionId = data.conversation_session_id;
                             
+                            // Remove streaming cursor effect
+                            if (streamingMsg) {
+                                const contentDiv = streamingMsg.querySelector('.streaming-content');
+                                if (contentDiv) {
+                                    contentDiv.classList.remove('streaming-active');
+                                }
+                            }
+                            
                             // Update conversation ID
                             if (conversationSessionId) {
                                 currentConversationId = conversationSessionId;
@@ -584,7 +592,7 @@ function createStreamingBotMessage() {
              style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuASndgVA3RbX1H4yCbbqk8hsJujYw-P6pZI-uQr7cNE6Fya18CrfnQF3Q6u5lkHGOdbnxRhwJZDcIr3QYn2d9_fHpzc12fDYZTMAQJ7TptH7Pyu-rlqSErcQwCOM7T7182tN0XX_l_KuPUmWhBcT3Qsf6Y1drq5VInxput-tgaNfjrS50WHYfdtTuf2Ofxb432HdB0uwEupfdrgBaK8ptf5_sLoNoRi-VRHoMj3O_yZSs2pThNsHrNSU7onQN-hig4FR913Omzgito");'></div>
         <div class="flex flex-1 flex-col gap-1 items-start">
             <p class="text-xs text-gray-500">TravelBot</p>
-            <div class="markdown-content text-base font-normal leading-normal max-w-[480px] rounded-xl px-4 py-3 bg-gray-100 dark:bg-gray-700 streaming-content"></div>
+            <div class="markdown-content text-base font-normal leading-normal max-w-[480px] rounded-xl px-4 py-3 bg-gray-100 dark:bg-gray-700 streaming-content streaming-active"></div>
         </div>
     `;
     chatMessagesContainer?.appendChild(msgDiv);
