@@ -276,6 +276,8 @@ CREATE TABLE IF NOT EXISTS travel_plans (
     budget REAL,
     budget_currency TEXT DEFAULT 'VND',
     preferences TEXT,
+    start_date TEXT,
+    end_date TEXT,
     itinerary TEXT NOT NULL,
     total_cost REAL,
     status TEXT DEFAULT 'draft',

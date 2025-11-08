@@ -739,15 +739,22 @@ async function loadChatSession(sessionId) {
             
             // Add messages and track the latest plan
             let latestPlan = null;
-            data.messages.forEach(msg => {
+            let latestPlanId = null;
+            data.messages.forEach((msg, index) => {
                 addUserMessage(msg.user_message);
                 addBotMessage(msg.bot_response);
                 
                 // Track the latest plan in this session
                 if (msg.plan_id && msg.plan_data) {
                     latestPlan = msg.plan_data;
+                    latestPlanId = msg.plan_id;
                 }
             });
+            
+            // Add action buttons for the latest plan (if exists)
+            if (latestPlanId) {
+                addPlanActionButtons(latestPlanId);
+            }
             
             // Display the latest plan if found
             if (latestPlan) {
@@ -1113,7 +1120,26 @@ async function saveUserLocation(latitude, longitude) {
 function checkAutoSendMessage() {
     const urlParams = new URLSearchParams(window.location.search);
     const autoMessage = urlParams.get('message');
+    const command = urlParams.get('command');
+    const planId = urlParams.get('plan_id');
     
+    // Handle edit plan command
+    if (command === '@edit_plan' && planId && messageInput) {
+        messageInput.value = `@edit_plan`;
+        messageInput.focus();
+        
+        // Show notification
+        if (typeof showNotification === 'function') {
+            showNotification('Nhập yêu cầu chỉnh sửa kế hoạch của bạn! ✏️', 'info');
+        }
+        
+        // Clean URL (remove query parameters)
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+        return;
+    }
+    
+    // Handle auto-send message from Discovery page
     if (autoMessage && messageInput) {
         // Decode and set message
         messageInput.value = decodeURIComponent(autoMessage);

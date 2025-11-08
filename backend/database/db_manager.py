@@ -521,20 +521,23 @@ class DatabaseManager:
                   itinerary: Dict, budget: Optional[float] = None,
                   plan_name: Optional[str] = None, preferences: Optional[List[str]] = None,
                   total_cost: Optional[float] = None, user_id: Optional[int] = None,
-                  conversation_id: Optional[int] = None, status: str = 'draft') -> int:
+                  conversation_id: Optional[int] = None, status: str = 'draft',
+                  start_date: Optional[str] = None, end_date: Optional[str] = None) -> int:
         """Save travel plan to database
         
         Args:
             status: Plan status (draft, active, archived, completed) - defaults to 'draft'
             user_id: User ID for authenticated users
             conversation_id: ID of conversation that created this plan
+            start_date: ISO format YYYY-MM-DD
+            end_date: ISO format YYYY-MM-DD
         """
         with self.get_connection() as conn:
             cursor = conn.execute(
                 """INSERT INTO travel_plans 
                 (session_id, user_id, conversation_id, plan_name, destination, duration_days, budget, 
-                preferences, itinerary, total_cost, status) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                preferences, start_date, end_date, itinerary, total_cost, status) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     session_id,
                     user_id,
@@ -544,6 +547,8 @@ class DatabaseManager:
                     duration_days,
                     budget,
                     json.dumps(preferences) if preferences else None,
+                    start_date,
+                    end_date,
                     json.dumps(itinerary),
                     total_cost,
                     status

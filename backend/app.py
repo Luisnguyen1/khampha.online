@@ -364,6 +364,8 @@ def chat():
                     duration_days=plan_data.get('duration_days', 0),
                     budget=plan_data.get('budget'),
                     preferences=plan_data.get('preferences'),
+                    start_date=plan_data.get('start_date'),
+                    end_date=plan_data.get('end_date'),
                     itinerary=plan_data.get('itinerary', {}),
                     status='draft'  # Auto-saved plans start as draft
                 )
@@ -457,6 +459,8 @@ def save_plan():
             duration_days=data['duration_days'],
             budget=data.get('budget'),
             preferences=data.get('preferences'),
+            start_date=data.get('start_date'),
+            end_date=data.get('end_date'),
             itinerary=data['itinerary'],
             total_cost=data.get('total_cost'),
             user_id=user_id,

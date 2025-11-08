@@ -10,18 +10,21 @@
 }
 
 .app-viewport {
-    min-height: var(--app-height, 100vh);
+    height: var(--app-height, 100vh);
+    max-height: var(--app-height, 100vh);
 }
 
-@supports (min-height: 100svh) {
+@supports (height: 100svh) {
     .app-viewport {
-        min-height: 100svh;
+        height: 100svh;
+        max-height: 100svh;
     }
 }
 
-@supports (min-height: 100dvh) {
+@supports (height: 100dvh) {
     .app-viewport {
-        min-height: 100dvh;
+        height: 100dvh;
+        max-height: 100dvh;
     }
 }
 
@@ -65,6 +68,20 @@ html {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #555;
+}
+
+/* Hide scrollbar for chat messages, plan display, and navigation */
+#chatMessages::-webkit-scrollbar,
+#planDisplay::-webkit-scrollbar,
+nav::-webkit-scrollbar {
+    display: none;
+}
+
+#chatMessages,
+#planDisplay,
+nav {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
 }
 
 /* Chat message animations */

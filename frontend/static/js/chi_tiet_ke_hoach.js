@@ -54,7 +54,82 @@ function switchTab(tabName) {
     if (tabName === 'summary' && currentPlan) {
         renderSummaryTab(currentPlan);
     } else if (tabName === 'hotel' && currentPlan) {
-        loadSelectedHotel();
+        initializeHotelTab();
+    }
+}
+
+// Initialize hotel tab with auto-search
+async function initializeHotelTab() {
+    console.log('=== initializeHotelTab called ===');
+    console.log('currentPlan:', currentPlan);
+    
+    // Load selected hotel first
+    await loadSelectedHotel();
+    
+    // Fill in dates from plan
+    if (currentPlan) {
+        const checkinInput = document.getElementById('hotel-checkin');
+        const checkoutInput = document.getElementById('hotel-checkout');
+        
+        console.log('Plan dates:', {
+            start_date: currentPlan.start_date,
+            end_date: currentPlan.end_date
+        });
+        
+        let checkinDate = '';
+        let checkoutDate = '';
+        
+        // If plan has explicit start/end dates, use them
+        if (currentPlan.start_date && currentPlan.end_date) {
+            if (checkinInput) {
+                checkinDate = formatDateForInput(currentPlan.start_date);
+                checkinInput.value = checkinDate;
+                console.log('Set checkin input value:', checkinDate);
+            }
+            
+            if (checkoutInput) {
+                checkoutDate = formatDateForInput(currentPlan.end_date);
+                checkoutInput.value = checkoutDate;
+                console.log('Set checkout input value:', checkoutDate);
+            }
+        } 
+        // Otherwise, calculate from created_at and duration_days
+        else if (currentPlan.created_at && currentPlan.duration_days) {
+            console.log('Calculating dates from created_at and duration_days');
+            
+            // Use today as check-in date (or a few days from now)
+            const today = new Date();
+            const checkinDateObj = new Date(today.getTime() + (2 * 24 * 60 * 60 * 1000)); // 2 days from now
+            
+            // Calculate checkout date based on duration
+            const checkoutDateObj = new Date(checkinDateObj.getTime() + (currentPlan.duration_days * 24 * 60 * 60 * 1000));
+            
+            checkinDate = checkinDateObj.toISOString().split('T')[0]; // YYYY-MM-DD
+            checkoutDate = checkoutDateObj.toISOString().split('T')[0];
+            
+            if (checkinInput) {
+                checkinInput.value = checkinDate;
+                console.log('Set calculated checkin input value:', checkinDate);
+            }
+            
+            if (checkoutInput) {
+                checkoutInput.value = checkoutDate;
+                console.log('Set calculated checkout input value:', checkoutDate);
+            }
+        }
+        
+        // Auto-search if dates are available and valid
+        if (checkinDate && checkoutDate) {
+            console.log('Auto-searching hotels with dates:', checkinDate, checkoutDate);
+            // Use setTimeout to ensure DOM is updated
+            setTimeout(() => {
+                searchHotels();
+            }, 100);
+        } else {
+            console.log('Missing dates for hotel search:', { checkinDate, checkoutDate });
+        }
+    } else {
+        console.log('No currentPlan available');
     }
 }
 
@@ -76,19 +151,46 @@ function initializeHotelDates() {
 
 // Format date string to YYYY-MM-DD for input[type="date"]
 function formatDateForInput(dateStr) {
-    if (!dateStr) return '';
+    if (!dateStr) {
+        console.log('formatDateForInput: empty dateStr');
+        return '';
+    }
+    
+    console.log('formatDateForInput input:', dateStr, 'type:', typeof dateStr);
+    
+    // Convert to string if not already
+    const dateString = String(dateStr).trim();
     
     // If already in YYYY-MM-DD format
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-        return dateStr;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        console.log('formatDateForInput output (YYYY-MM-DD):', dateString);
+        return dateString;
     }
     
     // If in DD/MM/YYYY format
-    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
-        const [day, month, year] = dateStr.split('/');
-        return `${year}-${month}-${day}`;
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+        const [day, month, year] = dateString.split('/');
+        const formatted = `${year}-${month}-${day}`;
+        console.log('formatDateForInput output (from DD/MM/YYYY):', formatted);
+        return formatted;
     }
     
+    // Try to parse as Date object
+    try {
+        const date = new Date(dateString);
+        if (!isNaN(date.getTime())) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const formatted = `${year}-${month}-${day}`;
+            console.log('formatDateForInput output (from Date parsing):', formatted);
+            return formatted;
+        }
+    } catch (e) {
+        console.error('formatDateForInput: Failed to parse date:', e);
+    }
+    
+    console.log('formatDateForInput: Could not format date:', dateString);
     return '';
 }
 
@@ -944,7 +1046,8 @@ if (editButton) {
     editButton.addEventListener('click', () => {
         const planId = getPlanIdFromUrl();
         if (planId) {
-            window.location.href = `/plans/${planId}/edit`;
+            // Redirect to chat page with @edit_plan command pre-filled
+            window.location.href = `/chat?plan_id=${planId}&command=@edit_plan`;
         }
     });
 }
