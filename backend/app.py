@@ -639,6 +639,217 @@ def update_plan_status(plan_id):
         }), 500
 
 
+@app.route('/api/plans/<int:plan_id>/search-hotels', methods=['POST'])
+def search_hotels(plan_id):
+    """Search hotels for a plan"""
+    try:
+        # Get plan to extract destination
+        plan = db.get_plan(plan_id)
+        if not plan:
+            return jsonify({
+                'success': False,
+                'error': 'Plan not found'
+            }), 404
+        
+        # Get request data
+        data = request.get_json()
+        checkin_date = data.get('checkin_date')
+        checkout_date = data.get('checkout_date')
+        
+        if not checkin_date or not checkout_date:
+            return jsonify({
+                'success': False,
+                'error': 'Check-in and check-out dates are required'
+            }), 400
+        
+        # Import HotelSearcher
+        from utils.hotel_search import HotelSearcher
+        from config import Config
+        
+        # Initialize hotel searcher
+        searcher = HotelSearcher(api_key=Config.RAPIDAPI_KEY)
+        
+        # Search hotels - plan is TravelPlan object, use .destination not ['destination']
+        hotels = searcher.search_and_display(
+            city_name=plan.destination,
+            checkin_date=checkin_date,
+            checkout_date=checkout_date,
+            rooms=1,
+            adults=2,
+            max_results=10
+        )
+        
+        # Format hotels for frontend
+        formatted_hotels = []
+        for hotel in hotels:
+            formatted_hotels.append({
+                'hotel_id': hotel.get('hotel_id'),
+                'name': hotel.get('name'),
+                'address': hotel.get('address'),
+                'star_rating': hotel.get('star_rating'),
+                'review_score': hotel.get('rating'),
+                'review_count': hotel.get('review_count'),
+                'price': hotel.get('price_per_night'),
+                'price_total': hotel.get('price_total'),
+                'currency': hotel.get('currency'),
+                'image_url': hotel.get('images', [''])[0] if hotel.get('images') else None,
+                'latitude': hotel.get('latitude'),
+                'longitude': hotel.get('longitude')
+            })
+        
+        return jsonify({
+            'success': True,
+            'hotels': formatted_hotels
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error searching hotels: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/plans/<int:plan_id>/hotel', methods=['POST'])
+def save_plan_hotel(plan_id):
+    """Save selected hotel for a plan"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'Hotel data is required'
+            }), 400
+        
+        # Calculate number of nights
+        from datetime import datetime
+        checkin = datetime.strptime(data.get('checkin_date'), '%Y-%m-%d')
+        checkout = datetime.strptime(data.get('checkout_date'), '%Y-%m-%d')
+        nights = (checkout - checkin).days
+        
+        # Calculate total price
+        price_per_night = data.get('price', 0)
+        total_price = price_per_night * nights if price_per_night else data.get('price_total', 0)
+        
+        # Debug log
+        app.logger.info(f"Hotel data received: price={price_per_night}, price_total={data.get('price_total')}, nights={nights}, calculated_total={total_price}")
+        
+        # Prepare hotel data
+        hotel_data = {
+            'hotel_id': data.get('hotel_id'),
+            'name': data.get('name'),
+            'address': data.get('address'),
+            'city': data.get('city'),
+            'country': data.get('country', 'Việt Nam'),
+            'star_rating': data.get('star_rating'),
+            'review_score': data.get('review_score'),
+            'review_count': data.get('review_count'),
+            'latitude': data.get('latitude'),
+            'longitude': data.get('longitude'),
+            'image_url': data.get('image_url'),
+            'images': [data.get('image_url')] if data.get('image_url') else data.get('images', []),
+            'price_per_night': price_per_night,
+            'total_price': total_price,
+            'currency': data.get('currency', 'VND'),
+            'checkin_date': data.get('checkin_date'),
+            'checkout_date': data.get('checkout_date'),
+            'number_of_nights': nights,
+            'number_of_rooms': data.get('number_of_rooms', 1),
+            'number_of_guests': data.get('number_of_guests', 2)
+        }
+        
+        # Save to database
+        success = db.save_plan_hotel(plan_id, hotel_data)
+        
+        if not success:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to save hotel'
+            }), 500
+        
+        return jsonify({
+            'success': True,
+            'message': 'Hotel saved successfully'
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error saving hotel: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/plans/<int:plan_id>/hotel', methods=['GET'])
+def get_plan_hotel(plan_id):
+    """Get selected hotel for a plan"""
+    try:
+        hotel = db.get_plan_hotel(plan_id)
+        
+        return jsonify({
+            'success': True,
+            'hotel': hotel
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error getting hotel: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/plans/<int:plan_id>/hotel', methods=['DELETE'])
+def delete_plan_hotel(plan_id):
+    """Delete selected hotel from a plan"""
+    try:
+        success = db.delete_plan_hotel(plan_id)
+        
+        if not success:
+            return jsonify({
+                'success': False,
+                'error': 'No hotel found for this plan'
+            }), 404
+        
+        return jsonify({
+            'success': True,
+            'message': 'Hotel deleted successfully'
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error deleting hotel: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/plans/<int:plan_id>/confirm', methods=['POST'])
+def confirm_plan(plan_id):
+    """Confirm a plan and update its status to confirmed"""
+    try:
+        success = db.update_plan_status(plan_id, 'confirmed')
+        
+        if not success:
+            return jsonify({
+                'success': False,
+                'error': 'Plan not found'
+            }), 404
+        
+        return jsonify({
+            'success': True,
+            'message': 'Plan confirmed successfully'
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error confirming plan: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
 @app.route('/api/conversations', methods=['GET'])
 def get_conversations():
     """Get conversation history"""

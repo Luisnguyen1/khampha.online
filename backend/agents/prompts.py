@@ -47,8 +47,9 @@ HÃY PHÂN TÍCH:
 1. Điểm đến: [tên địa điểm hoặc "chưa rõ"]
 2. Số ngày: [số ngày hoặc "chưa rõ"]
 3. Ngân sách: [số tiền hoặc "chưa rõ"]
-4. Sở thích: [danh sách hoặc "chưa rõ"]
-5. Thông tin đã đủ để tạo kế hoạch: [có/không]
+4. Ngày bắt đầu: [YYYY-MM-DD hoặc "chưa rõ"] - Parse từ "ngày 20/12", "20-12-2025", "từ ngày 20 tháng 12" thành format YYYY-MM-DD
+5. Sở thích: [danh sách hoặc "chưa rõ"]
+6. Thông tin đã đủ để tạo kế hoạch: [có/không]
 
 Nếu thông tin chưa đủ, hãy đặt câu hỏi tiếp theo một cách tự nhiên.
 Nếu đã đủ, hãy xác nhận và bắt đầu tạo kế hoạch.
@@ -230,16 +231,19 @@ RESPONSE_TEMPLATES = {
 Tôi sẽ giúp bạn lên kế hoạch cho chuyến đi hoàn hảo! 
 
 Để bắt đầu, hãy cho tôi biết:
-🗺️ Bạn muốn đi đâu?
-📅 Bao nhiêu ngày?
-💰 Ngân sách dự kiến?
-❤️ Bạn thích gì? (ẩm thực, thiên nhiên, văn hóa...)""",
+📍 **Điểm đến**: Bạn muốn đi đâu?
+📅 **Số ngày**: Bạn dự định đi bao nhiêu ngày?
+📅 **Ngày bắt đầu**: Bạn muốn đi vào ngày nào? (VD: 20/12/2025)
+💰 **Ngân sách**: Bạn có ngân sách khoảng bao nhiêu?
+❤️ **Sở thích** (tùy chọn): Bạn thích gì? (ẩm thực, thiên nhiên, văn hóa...)
+
+💡 *Ví dụ: "Tôi muốn đi Đà Lạt 3 ngày, ngày 20/12/2025, ngân sách 5 triệu, thích thiên nhiên"*""",
 
     'missing_info': """Cảm ơn bạn! Để tạo kế hoạch du lịch hoàn chỉnh, tôi cần thêm thông tin:
 
 {missing_fields}
 
-💡 *Lưu ý: Điểm đến, Số ngày và Ngân sách là BẮT BUỘC. Sở thích là tùy chọn nhưng sẽ giúp tôi tạo kế hoạch phù hợp hơn.*
+💡 *Lưu ý: Điểm đến, Số ngày, Ngày bắt đầu và Ngân sách là **BẮT BUỘC**. Sở thích là tùy chọn nhưng sẽ giúp tôi tạo kế hoạch phù hợp hơn.*
 
 Bạn có thể cung cấp thêm được không? 😊""",
 
@@ -286,6 +290,7 @@ def format_missing_fields(missing):
         'destination': '📍 **Điểm đến**',
         'duration_days': '📅 **Số ngày**',
         'budget': '💰 **Ngân sách**',
+        'start_date': '📅 **Ngày bắt đầu** (VD: 20/12/2025)',
         'preferences': '❤️ **Sở thích**'
     }
     

@@ -187,19 +187,26 @@ QUY TẮC:
 - requirements: {{
     "destination": "tên điểm đến" hoặc null,
     "duration_days": số ngày (int) hoặc null,
-    "budget": ngân sách (số, VD: 5000000) hoặc null,
+    "budget": ngân sách (số VND, VD: 5000000 cho "5 triệu") hoặc null,
+    "start_date": "YYYY-MM-DD" (VD: "2025-12-20" cho "ngày 20/12/2025") hoặc null,
     "preferences": "sở thích" hoặc null,
-    "ready_to_plan": true/false (true CHỈ KHI có đủ: destination, duration_days VÀ budget),
-    "missing_fields": ["destination", "duration_days", "budget", "preferences"] - các trường còn thiếu
+    "ready_to_plan": true/false (true CHỈ KHI có đủ: destination, duration_days, budget VÀ start_date),
+    "missing_fields": ["destination", "duration_days", "budget", "start_date", "preferences"] - các trường còn thiếu
   }}
 
+HƯỚNG DẪN EXTRACT:
+- duration_days: Tìm "X ngày" → lấy X (VD: "3 ngày 2 đêm" → 3)
+- budget: "5 triệu" → 5000000, "5tr" → 5000000, "500k" → 500000
+- start_date: "20/12/2025" → "2025-12-20", "ngày 11 tháng 11" → "2025-11-11"
+- destination: Tìm tên địa điểm (Đà Lạt, Nha Trang, Hà Nội, Sài Gòn, Phú Quốc, Đà Nẵng, Hội An, Sapa, Hạ Long, Vũng Tàu, Huế...)
+
 VÍ DỤ:
-- "Tôi muốn đi Đà Lạt 3 ngày ngân sách 5 triệu" → mode=plan, confidence=high, requirements={{destination:"Đà Lạt", duration_days:3, budget:5000000, preferences:null, ready_to_plan:true, missing_fields:["preferences"]}}
-- "Tôi muốn đi Đà Lạt 3 ngày" → mode=plan, confidence=high, requirements={{destination:"Đà Lạt", duration_days:3, budget:null, preferences:null, ready_to_plan:false, missing_fields:["budget","preferences"]}}
+- "Tôi muốn đi Đà Lạt 3 ngày ngày 20/12/2025 ngân sách 5 triệu" → mode=plan, requirements={{destination:"Đà Lạt", duration_days:3, budget:5000000, start_date:"2025-12-20", preferences:null, ready_to_plan:true, missing_fields:["preferences"]}}
+- "Tôi muốn đi Đà Lạt 3 ngày 2 đêm, ngày 11/11/2025, ngân sách 5 triệu" → mode=plan, requirements={{destination:"Đà Lạt", duration_days:3, budget:5000000, start_date:"2025-11-11", preferences:null, ready_to_plan:true, missing_fields:["preferences"]}}
+- "Đi 3 ngày, ngày 11/11/2025, 5tr" → mode=plan, requirements={{destination:null, duration_days:3, budget:5000000, start_date:"2025-11-11", preferences:null, ready_to_plan:false, missing_fields:["destination","preferences"]}}
 - "Hà Nội có gì hay?" → mode=ask, confidence=high
 - "Thêm 1 ngày nữa" (có plan) → mode=edit_plan, confidence=high
 - "Xin chào" → mode=chat, direct_response=true, response="Xin chào! Tôi là trợ lý du lịch..."
-- "Đi du lịch" → mode=plan, confidence=low, requirements={{destination:null, duration_days:null, budget:null, preferences:null, ready_to_plan:false, missing_fields:["destination","duration_days","budget","preferences"]}}
 
 TRẢ VỀ CHỈ JSON, KHÔNG CÓ TEXT KHÁC:"""
         
@@ -248,7 +255,15 @@ TRẢ VỀ CHỈ JSON, KHÔNG CÓ TEXT KHÁC:"""
                 intent_data.setdefault('direct_response', False)
                 intent_data.setdefault('reasoning', 'No reasoning provided')
                 
+                # If mode is plan and no requirements extracted by LLM, use fallback
+                if intent_data.get('mode') == 'plan' and 'requirements' not in intent_data:
+                    logger.warning("⚠️ LLM didn't extract requirements, using fallback")
+                    intent_data['requirements'] = self._simple_extract_requirements(message)
+                
                 logger.info(f"✅ Intent analysis successful: {intent_data['mode']} ({intent_data['confidence']})")
+                if intent_data.get('mode') == 'plan' and 'requirements' in intent_data:
+                    reqs = intent_data['requirements']
+                    logger.info(f"   Requirements: dest={reqs.get('destination')}, days={reqs.get('duration_days')}, budget={reqs.get('budget')}, start_date={reqs.get('start_date')}, ready={reqs.get('ready_to_plan')}")
                 return intent_data
                 
             else:
@@ -628,18 +643,19 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
                 logger.info(f"✅ Requirements extracted: {requirements}")
             
             # Check if we have MINIMUM required info to create plan
-            # CHANGED: Now requires destination, duration_days AND budget (not just destination + duration)
+            # CHANGED: Now requires destination, duration_days, budget AND start_date
             has_destination = requirements.get('destination') is not None
             has_duration = requirements.get('duration_days') is not None
             has_budget = requirements.get('budget') is not None
+            has_start_date = requirements.get('start_date') is not None
             
-            ready_to_plan = has_destination and has_duration and has_budget
+            ready_to_plan = has_destination and has_duration and has_budget and has_start_date
             
             # Update requirements with corrected ready_to_plan status
             requirements['ready_to_plan'] = ready_to_plan
             
             # Recalculate missing_fields to ensure accuracy
-            required_core_fields = ['destination', 'duration_days', 'budget']
+            required_core_fields = ['destination', 'duration_days', 'budget', 'start_date']
             optional_fields = ['preferences']
             
             missing_fields = []
@@ -658,6 +674,7 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
             logger.info(f"      - Duration: {has_duration} ({requirements.get('duration_days')} days)")
             budget_display = self._format_currency(requirements.get('budget')) if requirements.get('budget') else "None"
             logger.info(f"      - Budget: {has_budget} ({budget_display})")
+            logger.info(f"      - Start date: {has_start_date} ({requirements.get('start_date')})")
             logger.info(f"      - Ready to plan: {ready_to_plan}")
             logger.info(f"      - Missing fields: {missing_fields}")
             
@@ -714,13 +731,14 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
                 logger.info(f"   Missing fields: {missing}")
                 
                 # Create a more specific message based on what's missing
-                if not has_destination and not has_duration and not has_budget:
+                if not has_destination and not has_duration and not has_budget and not has_start_date:
                     response_text = "Để tạo kế hoạch du lịch hoàn chỉnh, tôi cần bạn cho biết:\n\n"
                     response_text += "📍 **Điểm đến**: Bạn muốn đi đâu?\n"
                     response_text += "📅 **Số ngày**: Bạn dự định đi bao nhiêu ngày?\n"
+                    response_text += "📅 **Ngày bắt đầu**: Bạn muốn đi vào ngày nào? (VD: 20/12/2025)\n"
                     response_text += "💰 **Ngân sách**: Bạn có ngân sách khoảng bao nhiêu?\n"
                     response_text += "🎯 **Sở thích** (tùy chọn): Bạn thích hoạt động gì? (VD: tham quan, ẩm thực, mạo hiểm...)\n\n"
-                    response_text += "Ví dụ: *'Tôi muốn đi Đà Lạt 3 ngày, ngân sách 5 triệu, thích thiên nhiên và ẩm thực'*"
+                    response_text += "💡 Ví dụ: *'Tôi muốn đi Đà Lạt 3 ngày, ngày 20/12/2025, ngân sách 5 triệu, thích thiên nhiên và ẩm thực'*"
                 else:
                     response_text = get_response_template(
                         'missing_info',
@@ -793,20 +811,98 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
                 destination = dest.title()
                 break
         
-        # Extract days
+        # Extract days - improved to handle "3 ngày 2 đêm"
         duration_days = None
-        for word in text.split():
-            if word.isdigit() and int(word) <= 30:
-                duration_days = int(word)
+        
+        # Pattern 1: "X ngày" or "X ngay"
+        import re
+        day_patterns = [
+            r'(\d+)\s*ngày',  # "3 ngày"
+            r'(\d+)\s*ngay',  # "3 ngay" (typo)
+            r'(\d+)\s*days?',  # "3 day" or "3 days"
+        ]
+        
+        for pattern in day_patterns:
+            match = re.search(pattern, text_lower)
+            if match:
+                days = int(match.group(1))
+                if days <= 30:
+                    duration_days = days
+                    break
+        
+        # Fallback: simple number extraction if no pattern matched
+        if duration_days is None:
+            for word in text.split():
+                if word.isdigit() and int(word) <= 30:
+                    duration_days = int(word)
+                    break
+        
+        # Extract budget (millions) - improved patterns
+        budget = None
+        
+        # Pattern 1: "X triệu" or "X tr" or "X trieu"
+        budget_patterns = [
+            r'(\d+(?:[.,]\d+)?)\s*triệu',  # "5 triệu" or "5.5 triệu"
+            r'(\d+(?:[.,]\d+)?)\s*trieu',  # "5 trieu"
+            r'(\d+(?:[.,]\d+)?)\s*tr\b',   # "5 tr"
+            r'(\d+(?:[.,]\d+)?)\s*million', # "5 million"
+        ]
+        
+        for pattern in budget_patterns:
+            match = re.search(pattern, text_lower)
+            if match:
+                amount = float(match.group(1).replace(',', '.'))
+                budget = amount * 1000000  # Convert to VND
                 break
         
-        # Extract budget (millions)
-        budget = None
-        if 'triệu' in text_lower or 'tr' in text_lower:
-            for i, word in enumerate(text.split()):
-                if word.replace(',', '').replace('.', '').isdigit():
-                    budget = float(word.replace(',', '')) * 1000000
+        # Pattern 2: "X nghìn" or "X nghin" or "X k"
+        if budget is None:
+            thousand_patterns = [
+                r'(\d+(?:[.,]\d+)?)\s*nghìn',  # "500 nghìn"
+                r'(\d+(?:[.,]\d+)?)\s*nghin',  # "500 nghin"
+                r'(\d+(?:[.,]\d+)?)\s*k\b',    # "500k"
+            ]
+            
+            for pattern in thousand_patterns:
+                match = re.search(pattern, text_lower)
+                if match:
+                    amount = float(match.group(1).replace(',', '.'))
+                    budget = amount * 1000  # Convert to VND
                     break
+        
+        # Extract start_date - parse various formats
+        start_date = None
+        import re
+        from datetime import datetime, timedelta
+        
+        # Try to find date patterns: 20/12/2025, 20-12-2025, "ngày 20 tháng 12"
+        date_patterns = [
+            r'(\d{1,2})/(\d{1,2})/(\d{4})',  # 20/12/2025
+            r'(\d{1,2})-(\d{1,2})-(\d{4})',  # 20-12-2025
+            r'ngày\s+(\d{1,2})\s+tháng\s+(\d{1,2})',  # ngày 20 tháng 12
+        ]
+        
+        for pattern in date_patterns:
+            match = re.search(pattern, text_lower)
+            if match:
+                try:
+                    if len(match.groups()) == 3:
+                        day, month, year = match.groups()
+                        start_date = f"{year}-{int(month):02d}-{int(day):02d}"
+                        # Validate date
+                        datetime.strptime(start_date, '%Y-%m-%d')
+                    elif len(match.groups()) == 2:  # No year provided
+                        day, month = match.groups()
+                        # Use current year or next year if month has passed
+                        now = datetime.now()
+                        year = now.year
+                        if int(month) < now.month or (int(month) == now.month and int(day) < now.day):
+                            year += 1
+                        start_date = f"{year}-{int(month):02d}-{int(day):02d}"
+                        datetime.strptime(start_date, '%Y-%m-%d')
+                    break
+                except (ValueError, IndexError):
+                    continue
         
         # Extract preferences
         preferences = []
@@ -818,8 +914,8 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
             if keyword in text_lower:
                 preferences.append(pref)
         
-        # Check if ready - NOW requires destination, duration_days AND budget
-        ready = destination is not None and duration_days is not None and budget is not None
+        # Check if ready - NOW requires destination, duration_days, budget AND start_date
+        ready = destination is not None and duration_days is not None and budget is not None and start_date is not None
         
         missing = []
         if not destination:
@@ -828,6 +924,8 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
             missing.append('duration_days')
         if not budget:
             missing.append('budget')
+        if not start_date:
+            missing.append('start_date')
         if not preferences:
             missing.append('preferences')
         
@@ -835,6 +933,7 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
             'destination': destination,
             'duration_days': duration_days,
             'budget': budget,
+            'start_date': start_date,
             'preferences': ', '.join(preferences) if preferences else None,
             'ready_to_plan': ready,
             'missing_fields': missing
@@ -958,12 +1057,27 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
             itinerary = self._generate_daily_itineraries(requirements, plan_outline, search_results)
             
             # Step 3: Combine outline and daily itineraries
+            # Calculate end_date from start_date and duration
+            from datetime import datetime, timedelta
+            start_date = requirements.get('start_date')
+            duration_days = requirements.get('duration_days', 3)
+            
+            if start_date:
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = start_dt + timedelta(days=duration_days - 1)
+                end_date = end_dt.strftime('%Y-%m-%d')
+            else:
+                start_date = None
+                end_date = None
+            
             plan_data = {
                 'plan_name': plan_outline.get('plan_name', f"Khám phá {requirements.get('destination', 'Việt Nam')}"),
                 'destination': requirements.get('destination', 'Việt Nam'),
                 'duration_days': requirements.get('duration_days', 3),
                 'budget': requirements.get('budget'),
                 'preferences': requirements.get('preferences'),
+                'start_date': start_date,
+                'end_date': end_date,
                 'itinerary': itinerary,
                 'cost_breakdown': plan_outline.get('cost_breakdown', {}),
                 'total_cost': plan_outline.get('total_cost', requirements.get('budget', 0)),
@@ -1250,15 +1364,25 @@ YÊU CẦU:
     
     def _create_mock_itinerary(self, requirements: Dict) -> Dict:
         """Create detailed mock itinerary with specific addresses and prices"""
+        from datetime import datetime, timedelta
+        
         destination = requirements.get('destination', 'Đà Lạt')
         days = requirements.get('duration_days', 3)
         budget = requirements.get('budget', 5000000)
+        start_date = requirements.get('start_date')
+        
+        # Calculate dates for each day
+        if start_date:
+            start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+        else:
+            start_dt = None
         
         # Detailed mock data for Đà Lạt (can be expanded for other destinations)
         itinerary = []
         
         if days >= 1:
-            itinerary.append({
+            day_1_date = start_dt.strftime('%Y-%m-%d') if start_dt else None
+            day_1_data = {
                 'day': 1,
                 'title': f'Ngày 1: Khám phá trung tâm {destination}',
                 'description': 'Ngày đầu tiên khám phá các điểm tham quan trung tâm thành phố',
@@ -1378,10 +1502,14 @@ YÊU CẦU:
                     'Đặt bàn trước tại các nhà hàng nổi tiếng, đặc biệt vào cuối tuần',
                     'Mang theo kem chống nắng và mũ vì ban ngày nắng gắt'
                 ]
-            })
+            }
+            if day_1_date:
+                day_1_data['date'] = day_1_date
+            itinerary.append(day_1_data)
         
         if days >= 2:
-            itinerary.append({
+            day_2_date = (start_dt + timedelta(days=1)).strftime('%Y-%m-%d') if start_dt else None
+            day_2_data = {
                 'day': 2,
                 'title': f'Ngày 2: Khám phá ngoại thành {destination}',
                 'description': 'Tham quan các điểm du lịch ngoại thành và làng hoa',
@@ -1471,10 +1599,14 @@ YÊU CẦU:
                     'Nên thuê xe máy hoặc xe ô tô riêng để thuận tiện di chuyển',
                     'Kiểm tra thời tiết trước khi đi, tránh ngày mưa'
                 ]
-            })
+            }
+            if day_2_date:
+                day_2_data['date'] = day_2_date
+            itinerary.append(day_2_data)
         
         if days >= 3:
-            itinerary.append({
+            day_3_date = (start_dt + timedelta(days=2)).strftime('%Y-%m-%d') if start_dt else None
+            day_3_data = {
                 'day': 3,
                 'title': f'Ngày 3: Mua sắm và trở về',
                 'description': 'Mua sắm đặc sản và chuẩn bị về',
@@ -1549,7 +1681,18 @@ YÊU CẦU:
                     'Đặt xe về trước để có giá tốt, tránh kẹt xe giờ cao điểm',
                     'Nhớ mang theo thuốc say xe nếu đi đường đèo dốc'
                 ]
-            })
+            }
+            if day_3_date:
+                day_3_data['date'] = day_3_date
+            itinerary.append(day_3_data)
+        
+        # Calculate start_date and end_date
+        if start_dt:
+            calculated_start_date = start_dt.strftime('%Y-%m-%d')
+            calculated_end_date = (start_dt + timedelta(days=days - 1)).strftime('%Y-%m-%d')
+        else:
+            calculated_start_date = None
+            calculated_end_date = None
         
         return {
             'plan_name': f'Khám phá {destination} {days} ngày chi tiết',
@@ -1557,6 +1700,8 @@ YÊU CẦU:
             'duration_days': days,
             'budget': budget,
             'preferences': requirements.get('preferences', 'khám phá, ẩm thực, thiên nhiên'),
+            'start_date': calculated_start_date,
+            'end_date': calculated_end_date,
             'itinerary': itinerary,
             'cost_breakdown': {
                 'accommodation': {

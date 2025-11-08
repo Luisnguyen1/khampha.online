@@ -266,6 +266,11 @@ async function handleSendMessage() {
             if (data.has_plan && data.plan_data) {
                 currentPlan = data.plan_data;  // Store for edit mode
                 updatePlanView(data.plan_data);
+                
+                // Add action buttons after bot message if plan_id exists
+                if (data.plan_id) {
+                    addPlanActionButtons(data.plan_id);
+                }
             }
             
             // Update header buttons based on whether we have a plan
@@ -331,6 +336,85 @@ function addBotMessage(text) {
     const msg = createBotMessage(text);
     chatMessagesContainer?.appendChild(msg);
     scrollToBottom();
+}
+
+// Add plan action buttons after plan creation
+function addPlanActionButtons(planId) {
+    // Create button container
+    const buttonDiv = document.createElement('div');
+    buttonDiv.className = 'flex items-center gap-3 ml-14 mb-4';
+    buttonDiv.innerHTML = `
+        <button 
+            onclick="editPlan()" 
+            class="px-4 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 font-medium transition-colors duration-200 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            Chỉnh sửa plan
+        </button>
+        <button 
+            onclick="continueToPlanDetail(${planId})" 
+            class="px-4 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white font-medium transition-colors duration-200 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+            </svg>
+            Tiếp tục đặt chỗ
+        </button>
+    `;
+    
+    // Append to chat messages
+    chatMessagesContainer?.appendChild(buttonDiv);
+    scrollToBottom();
+}
+
+// Handle edit plan button click
+function editPlan() {
+    // Set mode to edit_plan
+    currentMode = 'edit_plan';
+    
+    // Update mode dropdown UI
+    if (modeDropdown) {
+        const modeText = modeDropdown.querySelector('.mode-text');
+        if (modeText) modeText.textContent = '@edit_plan';
+    }
+    
+    // Focus on input
+    if (messageInput) {
+        messageInput.focus();
+        messageInput.placeholder = 'Nhập yêu cầu chỉnh sửa kế hoạch...';
+    }
+    
+    // Show notification
+    showNotification('Chế độ chỉnh sửa kế hoạch đã được kích hoạt', 'info');
+}
+
+// Handle continue to plan detail button click
+function continueToPlanDetail(planId) {
+    if (planId) {
+        window.location.href = `/plans/${planId}`;
+    } else {
+        showNotification('Không tìm thấy ID kế hoạch', 'error');
+    }
+}
+
+// Show notification (simple version)
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-300 ${
+        type === 'error' ? 'bg-red-500 text-white' : 
+        type === 'success' ? 'bg-green-500 text-white' : 
+        'bg-blue-500 text-white'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
 }
 
 // Add user message

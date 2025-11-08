@@ -67,6 +67,7 @@ class Config:
     # Development Settings
     DEBUG_MODE = os.getenv('DEBUG_MODE', 'True').lower() == 'true'
     VERBOSE_LOGGING = os.getenv('VERBOSE_LOGGING', 'True').lower() == 'true'
+    RAPIDAPI_KEY = os.getenv('RAPIDAPI_KEY', 'fe30b4f590msh6817e6a304fb995p1382dejsn50ae5d7c997d')
     
     @staticmethod
     def init_app(app):

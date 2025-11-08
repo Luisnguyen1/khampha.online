@@ -724,6 +724,257 @@ class DatabaseManager:
             )
             return cursor.rowcount
     
+    # ===== HOTEL OPERATIONS =====
+    
+    def save_plan_hotel(self, plan_id: int, hotel_data: Dict[str, Any]) -> bool:
+        """Save or update hotel for a plan (UPSERT based on UNIQUE constraint)"""
+        try:
+            with self.get_connection() as conn:
+                # Check if plan exists
+                plan = conn.execute("SELECT id FROM travel_plans WHERE id = ?", (plan_id,)).fetchone()
+                if not plan:
+                    return False
+                
+                # Process address - convert dict to string if needed
+                address = hotel_data.get('address')
+                if isinstance(address, dict):
+                    # Extract readable address from dict structure
+                    parts = []
+                    if address.get('area', {}).get('name'):
+                        parts.append(address['area']['name'])
+                    if address.get('city', {}).get('name'):
+                        parts.append(address['city']['name'])
+                    if address.get('country', {}).get('name'):
+                        parts.append(address['country']['name'])
+                    address = ', '.join(parts) if parts else None
+                
+                # Extract city from address dict or use provided city
+                city = hotel_data.get('city')
+                if not city and isinstance(hotel_data.get('address'), dict):
+                    city = hotel_data.get('address', {}).get('city', {}).get('name')
+                
+                # Extract hotel data and save to database
+                conn.execute("""
+                    INSERT INTO plan_hotels (
+                        plan_id, hotel_id, hotel_name, address, city,
+                        latitude, longitude, star_rating, guest_rating, review_count,
+                        checkin_date, checkout_date, nights, rooms, guests,
+                        room_type, price_per_night, total_price, currency,
+                        discount_percent, original_price, amenities, images,
+                        cancellation_policy, is_refundable, hotel_data
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(plan_id) DO UPDATE SET
+                        hotel_id = excluded.hotel_id,
+                        hotel_name = excluded.hotel_name,
+                        address = excluded.address,
+                        city = excluded.city,
+                        latitude = excluded.latitude,
+                        longitude = excluded.longitude,
+                        star_rating = excluded.star_rating,
+                        guest_rating = excluded.guest_rating,
+                        review_count = excluded.review_count,
+                        checkin_date = excluded.checkin_date,
+                        checkout_date = excluded.checkout_date,
+                        nights = excluded.nights,
+                        rooms = excluded.rooms,
+                        guests = excluded.guests,
+                        room_type = excluded.room_type,
+                        price_per_night = excluded.price_per_night,
+                        total_price = excluded.total_price,
+                        currency = excluded.currency,
+                        discount_percent = excluded.discount_percent,
+                        original_price = excluded.original_price,
+                        amenities = excluded.amenities,
+                        images = excluded.images,
+                        cancellation_policy = excluded.cancellation_policy,
+                        is_refundable = excluded.is_refundable,
+                        hotel_data = excluded.hotel_data,
+                        updated_at = CURRENT_TIMESTAMP
+                """, (
+                    plan_id,
+                    hotel_data.get('hotel_id'),
+                    hotel_data.get('name'),
+                    address,  # Use processed address string
+                    city,  # Use extracted city
+                    hotel_data.get('latitude'),
+                    hotel_data.get('longitude'),
+                    hotel_data.get('star_rating'),
+                    hotel_data.get('review_score'),  # guest_rating in DB
+                    hotel_data.get('review_count'),
+                    hotel_data.get('checkin_date'),
+                    hotel_data.get('checkout_date'),
+                    hotel_data.get('number_of_nights'),  # nights in DB
+                    hotel_data.get('number_of_rooms', 1),  # rooms in DB
+                    hotel_data.get('number_of_guests', 2),  # guests in DB
+                    hotel_data.get('room_type'),
+                    hotel_data.get('price_per_night') or hotel_data.get('price'),
+                    hotel_data.get('total_price'),
+                    hotel_data.get('currency', 'VND'),
+                    hotel_data.get('discount_percent'),
+                    hotel_data.get('original_price'),
+                    json.dumps(hotel_data.get('amenities')) if hotel_data.get('amenities') else None,
+                    json.dumps(hotel_data.get('images')) if hotel_data.get('images') else None,
+                    hotel_data.get('cancellation_policy'),
+                    1 if hotel_data.get('is_refundable') else 0,
+                    json.dumps(hotel_data)  # Store full hotel data as JSON
+                ))
+                return True
+        except Exception as e:
+            print(f"Error saving hotel: {e}")
+            return False
+    
+    def get_plan_hotel(self, plan_id: int) -> Optional[Dict[str, Any]]:
+        """Get hotel data for a plan"""
+        with self.get_connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM plan_hotels WHERE plan_id = ?",
+                (plan_id,)
+            ).fetchone()
+            
+            if row:
+                images = json.loads(row['images']) if row['images'] else []
+                return {
+                    'id': row['id'],
+                    'plan_id': row['plan_id'],
+                    'hotel_id': row['hotel_id'],
+                    'name': row['hotel_name'],
+                    'address': row['address'],
+                    'city': row['city'],
+                    'star_rating': row['star_rating'],
+                    'review_score': row['guest_rating'],
+                    'review_count': row['review_count'],
+                    'latitude': row['latitude'],
+                    'longitude': row['longitude'],
+                    'amenities': json.loads(row['amenities']) if row['amenities'] else [],
+                    'images': images,
+                    'image_url': images[0] if images else None,
+                    'room_type': row['room_type'],
+                    'price_per_night': row['price_per_night'],
+                    'currency': row['currency'],
+                    'total_price': row['total_price'],
+                    'discount_percent': row['discount_percent'],
+                    'original_price': row['original_price'],
+                    'checkin_date': row['checkin_date'],
+                    'checkout_date': row['checkout_date'],
+                    'number_of_nights': row['nights'],
+                    'number_of_rooms': row['rooms'],
+                    'number_of_guests': row['guests'],
+                    'cancellation_policy': row['cancellation_policy'],
+                    'is_refundable': bool(row['is_refundable']),
+                    'selected_at': row['selected_at'],
+                    'updated_at': row['updated_at']
+                }
+            return None
+    
+    def delete_plan_hotel(self, plan_id: int) -> bool:
+        """Delete hotel from a plan"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.execute(
+                    "DELETE FROM plan_hotels WHERE plan_id = ?",
+                    (plan_id,)
+                )
+                return cursor.rowcount > 0
+        except Exception as e:
+            print(f"Error deleting hotel: {e}")
+            return False
+    
+    def update_plan_dates(self, plan_id: int, new_start_date: str, new_duration_days: int) -> bool:
+        """Update plan dates and auto-adjust hotel dates
+        
+        Args:
+            plan_id: ID of the plan
+            new_start_date: New start date (YYYY-MM-DD or DD/MM/YYYY)
+            new_duration_days: New duration in days
+            
+        Returns:
+            bool: Success status
+        """
+        try:
+            from datetime import datetime, timedelta
+            
+            # Parse start date (handle both formats)
+            if '/' in new_start_date:
+                # DD/MM/YYYY format
+                day, month, year = new_start_date.split('/')
+                start_date = datetime(int(year), int(month), int(day))
+            else:
+                # YYYY-MM-DD format
+                start_date = datetime.strptime(new_start_date, '%Y-%m-%d')
+            
+            # Calculate end date
+            end_date = start_date + timedelta(days=new_duration_days)
+            
+            # Format dates
+            start_date_str = start_date.strftime('%d/%m/%Y')
+            end_date_str = end_date.strftime('%d/%m/%Y')
+            
+            with self.get_connection() as conn:
+                # Update travel_plans
+                conn.execute("""
+                    UPDATE travel_plans 
+                    SET start_date = ?, 
+                        end_date = ?, 
+                        duration_days = ?,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = ?
+                """, (start_date_str, end_date_str, new_duration_days, plan_id))
+                
+                # Update plan_hotels if exists
+                hotel = conn.execute(
+                    "SELECT id FROM plan_hotels WHERE plan_id = ?",
+                    (plan_id,)
+                ).fetchone()
+                
+                if hotel:
+                    # Update hotel dates to match plan dates
+                    checkout = start_date + timedelta(days=new_duration_days)
+                    nights = new_duration_days
+                    
+                    # Recalculate total price
+                    price_row = conn.execute(
+                        "SELECT price_per_night FROM plan_hotels WHERE plan_id = ?",
+                        (plan_id,)
+                    ).fetchone()
+                    
+                    if price_row and price_row['price_per_night']:
+                        new_total_price = price_row['price_per_night'] * nights
+                        
+                        conn.execute("""
+                            UPDATE plan_hotels 
+                            SET checkin_date = ?,
+                                checkout_date = ?,
+                                nights = ?,
+                                total_price = ?,
+                                updated_at = CURRENT_TIMESTAMP
+                            WHERE plan_id = ?
+                        """, (
+                            start_date.strftime('%Y-%m-%d'),
+                            checkout.strftime('%Y-%m-%d'),
+                            nights,
+                            new_total_price,
+                            plan_id
+                        ))
+                    else:
+                        conn.execute("""
+                            UPDATE plan_hotels 
+                            SET checkin_date = ?,
+                                checkout_date = ?,
+                                nights = ?,
+                                updated_at = CURRENT_TIMESTAMP
+                            WHERE plan_id = ?
+                        """, (
+                            start_date.strftime('%Y-%m-%d'),
+                            checkout.strftime('%Y-%m-%d'),
+                            nights,
+                            plan_id
+                        ))
+                
+                return True
+        except Exception as e:
+            print(f"Error updating plan dates: {e}")
+            return False
+    
     # ===== STATISTICS =====
     
     def get_stats(self) -> Dict[str, int]:

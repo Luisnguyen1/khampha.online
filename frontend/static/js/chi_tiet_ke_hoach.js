@@ -5,6 +5,7 @@
 
 let currentPlan = null;
 let currentDay = 1;
+let currentTab = 'itinerary'; // Track active tab
 
 // Get plan ID from URL
 function getPlanIdFromUrl() {
@@ -18,10 +19,486 @@ window.addEventListener('DOMContentLoaded', () => {
     const planId = getPlanIdFromUrl();
     if (planId) {
         loadPlanDetail(planId);
+        // Initialize hotel dates if plan has start/end dates
+        initializeHotelDates();
     } else {
         showError('Không tìm thấy ID kế hoạch');
     }
 });
+
+// Switch tab function
+function switchTab(tabName) {
+    // Update tab state
+    currentTab = tabName;
+    
+    // Update tab buttons
+    const tabs = ['itinerary', 'hotel', 'summary'];
+    tabs.forEach(tab => {
+        const btn = document.getElementById(`tab-${tab}`);
+        const content = document.getElementById(`content-${tab}`);
+        
+        if (tab === tabName) {
+            // Active tab
+            btn?.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+            btn?.classList.add('border-primary', 'text-primary');
+            content?.classList.remove('hidden');
+        } else {
+            // Inactive tab
+            btn?.classList.remove('border-primary', 'text-primary');
+            btn?.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+            content?.classList.add('hidden');
+        }
+    });
+    
+    // Load tab-specific content
+    if (tabName === 'summary' && currentPlan) {
+        renderSummaryTab(currentPlan);
+    } else if (tabName === 'hotel' && currentPlan) {
+        loadSelectedHotel();
+    }
+}
+
+// Initialize hotel dates from plan
+function initializeHotelDates() {
+    if (!currentPlan) return;
+    
+    const checkinInput = document.getElementById('hotel-checkin');
+    const checkoutInput = document.getElementById('hotel-checkout');
+    
+    if (currentPlan.start_date && checkinInput) {
+        checkinInput.value = formatDateForInput(currentPlan.start_date);
+    }
+    
+    if (currentPlan.end_date && checkoutInput) {
+        checkoutInput.value = formatDateForInput(currentPlan.end_date);
+    }
+}
+
+// Format date string to YYYY-MM-DD for input[type="date"]
+function formatDateForInput(dateStr) {
+    if (!dateStr) return '';
+    
+    // If already in YYYY-MM-DD format
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        return dateStr;
+    }
+    
+    // If in DD/MM/YYYY format
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+        const [day, month, year] = dateStr.split('/');
+        return `${year}-${month}-${day}`;
+    }
+    
+    return '';
+}
+
+// Search hotels
+async function searchHotels() {
+    const planId = getPlanIdFromUrl();
+    if (!planId) {
+        showError('Không tìm thấy ID kế hoạch');
+        return;
+    }
+    
+    const checkin = document.getElementById('hotel-checkin')?.value;
+    const checkout = document.getElementById('hotel-checkout')?.value;
+    
+    if (!checkin || !checkout) {
+        showError('Vui lòng chọn ngày nhận phòng và trả phòng');
+        return;
+    }
+    
+    // Show loading
+    const resultsContainer = document.getElementById('hotel-results');
+    if (resultsContainer) {
+        resultsContainer.innerHTML = `
+            <div class="text-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                <p class="text-gray-500 dark:text-gray-400 mt-4">Đang tìm kiếm khách sạn...</p>
+            </div>
+        `;
+    }
+    
+    try {
+        const response = await fetch(`/api/plans/${planId}/search-hotels`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                checkin_date: checkin,
+                checkout_date: checkout
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.hotels) {
+            renderHotelResults(data.hotels);
+        } else {
+            showError(data.error || 'Không tìm thấy khách sạn');
+        }
+    } catch (error) {
+        console.error('Error searching hotels:', error);
+        showError('Không thể tìm kiếm khách sạn');
+    }
+}
+
+// Render hotel search results
+function renderHotelResults(hotels) {
+    const resultsContainer = document.getElementById('hotel-results');
+    if (!resultsContainer) return;
+    
+    if (!hotels || hotels.length === 0) {
+        resultsContainer.innerHTML = `
+            <div class="text-center py-12">
+                <span class="material-symbols-outlined text-6xl text-gray-400">hotel</span>
+                <p class="text-gray-500 dark:text-gray-400 mt-4">Không tìm thấy khách sạn phù hợp</p>
+            </div>
+        `;
+        return;
+    }
+    
+    resultsContainer.innerHTML = hotels.map(hotel => `
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+            <div class="md:flex">
+                <div class="md:w-48 h-48 md:h-auto">
+                    <img src="${hotel.image_url || '/static/images/hotel-placeholder.jpg'}" 
+                         alt="${hotel.name}" 
+                         class="w-full h-full object-cover" />
+                </div>
+                <div class="p-6 flex-1">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">${hotel.name}</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                <span class="material-symbols-outlined text-sm align-middle">location_on</span>
+                                ${hotel.address || 'Địa chỉ không có'}
+                            </p>
+                            <div class="flex items-center gap-2 mt-2">
+                                <div class="flex text-yellow-400">
+                                    ${renderStars(hotel.star_rating || 0)}
+                                </div>
+                                <span class="text-sm text-gray-600 dark:text-gray-400">
+                                    ${hotel.review_score ? `${hotel.review_score}/10` : 'Chưa có đánh giá'}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-right ml-4">
+                            <p class="text-2xl font-bold text-primary">${formatPrice(hotel.price)}</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">/đêm</p>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex justify-end">
+                        <button onclick='selectHotel(${JSON.stringify(hotel)})' 
+                                class="px-6 py-2 bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg transition-colors">
+                            Chọn khách sạn này
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Render star rating
+function renderStars(rating) {
+    const fullStars = Math.floor(rating);
+    const stars = [];
+    for (let i = 0; i < 5; i++) {
+        if (i < fullStars) {
+            stars.push('<span class="material-symbols-outlined text-sm">star</span>');
+        } else {
+            stars.push('<span class="material-symbols-outlined text-sm text-gray-300">star</span>');
+        }
+    }
+    return stars.join('');
+}
+
+// Format price to VND
+function formatPrice(price) {
+    if (!price) return '0 ₫';
+    return parseInt(price).toLocaleString('vi-VN') + ' ₫';
+}
+
+// Calculate number of nights between two dates
+function calculateNights(checkin, checkout) {
+    if (!checkin || !checkout) return 0;
+    const start = new Date(checkin);
+    const end = new Date(checkout);
+    const diffTime = Math.abs(end - start);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+}
+
+// Select hotel
+async function selectHotel(hotel) {
+    const planId = getPlanIdFromUrl();
+    if (!planId) {
+        showError('Không tìm thấy ID kế hoạch');
+        return;
+    }
+    
+    const checkin = document.getElementById('hotel-checkin')?.value;
+    const checkout = document.getElementById('hotel-checkout')?.value;
+    
+    try {
+        const response = await fetch(`/api/plans/${planId}/hotel`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                ...hotel,
+                checkin_date: checkin,
+                checkout_date: checkout
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Reload hotel data from database to get calculated total_price
+            const hotelResponse = await fetch(`/api/plans/${planId}/hotel`);
+            const hotelData = await hotelResponse.json();
+            
+            if (hotelData.success && hotelData.hotel) {
+                showSelectedHotel(hotelData.hotel);
+            } else {
+                // Fallback: calculate and show with original hotel data
+                const nights = calculateNights(checkin, checkout);
+                showSelectedHotel({
+                    ...hotel,
+                    checkin_date: checkin,
+                    checkout_date: checkout,
+                    number_of_nights: nights,
+                    total_price: (hotel.price || 0) * nights
+                });
+            }
+            
+            showSuccess('Đã chọn khách sạn thành công!');
+            // Summary tab will auto-update when user switches to it
+        } else {
+            showError(data.error || 'Không thể chọn khách sạn');
+        }
+    } catch (error) {
+        console.error('Error selecting hotel:', error);
+        showError('Không thể chọn khách sạn');
+    }
+}
+
+// Show selected hotel card - render full hotel card at top of hotel tab
+function showSelectedHotel(hotel) {
+    const selectedContainer = document.getElementById('selected-hotel-container');
+    
+    if (!selectedContainer) return;
+    
+    // Build full hotel card HTML (similar to search results)
+    selectedContainer.innerHTML = `
+        <div class="bg-green-50 dark:bg-green-900/20 border-2 border-green-500 rounded-xl overflow-hidden shadow-lg mb-6">
+            <div class="bg-green-500 text-white px-4 py-2 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined">check_circle</span>
+                    <span class="font-bold">Khách sạn đã chọn</span>
+                </div>
+                <button onclick="clearSelectedHotel()" 
+                        class="text-white hover:text-green-100 transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="bg-white dark:bg-gray-800">
+                <div class="md:flex">
+                    <div class="md:w-48 h-48 md:h-auto">
+                        <img src="${hotel.image_url || hotel.images?.[0] || '/static/images/hotel-placeholder.jpg'}" 
+                             alt="${hotel.name}" 
+                             class="w-full h-full object-cover" />
+                    </div>
+                    <div class="p-6 flex-1">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white">${hotel.name}</h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                    <span class="material-symbols-outlined text-sm align-middle">location_on</span>
+                                    ${hotel.address || 'Địa chỉ không có'}
+                                </p>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <div class="flex text-yellow-400">
+                                        ${renderStars(hotel.star_rating || 0)}
+                                    </div>
+                                    <span class="text-sm text-gray-600 dark:text-gray-400">
+                                        ${hotel.review_score ? `${hotel.review_score}/10` : 'Chưa có đánh giá'}
+                                    </span>
+                                </div>
+                                <div class="mt-3 flex items-center gap-4 text-sm">
+                                    <span class="text-gray-600 dark:text-gray-400">
+                                        <span class="material-symbols-outlined text-sm align-middle">calendar_today</span>
+                                        ${hotel.checkin_date || ''} → ${hotel.checkout_date || ''}
+                                    </span>
+                                    <span class="text-gray-600 dark:text-gray-400">
+                                        <span class="material-symbols-outlined text-sm align-middle">hotel</span>
+                                        ${hotel.number_of_nights || 0} đêm
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="text-right ml-4">
+                                <p class="text-2xl font-bold text-green-600">${formatPrice(hotel.total_price)}</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Tổng cộng</p>
+                                ${hotel.price_per_night ? `<p class="text-sm text-gray-600 dark:text-gray-400 mt-1">${formatPrice(hotel.price_per_night)}/đêm</p>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    selectedContainer.classList.remove('hidden');
+}
+
+// Load selected hotel on page load
+async function loadSelectedHotel() {
+    const planId = getPlanIdFromUrl();
+    if (!planId) return;
+    
+    try {
+        const response = await fetch(`/api/plans/${planId}/hotel`);
+        const data = await response.json();
+        
+        if (data.success && data.hotel) {
+            showSelectedHotel(data.hotel);
+        }
+    } catch (error) {
+        console.error('Error loading selected hotel:', error);
+    }
+}
+
+// Clear selected hotel
+async function clearSelectedHotel() {
+    const planId = getPlanIdFromUrl();
+    if (!planId) return;
+    
+    try {
+        const response = await fetch(`/api/plans/${planId}/hotel`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            const selectedContainer = document.getElementById('selected-hotel-container');
+            if (selectedContainer) {
+                selectedContainer.innerHTML = '';
+                selectedContainer.classList.add('hidden');
+            }
+            showSuccess('Đã xóa khách sạn đã chọn');
+        }
+    } catch (error) {
+        console.error('Error clearing hotel:', error);
+        showError('Không thể xóa khách sạn');
+    }
+}
+
+// Render summary tab
+function renderSummaryTab(plan) {
+    // Update destination and duration
+    const destEl = document.getElementById('summary-destination');
+    const durationEl = document.getElementById('summary-duration');
+    const startDateEl = document.getElementById('summary-start-date');
+    const groupEl = document.getElementById('summary-group');
+    
+    if (destEl) destEl.textContent = plan.destination || '-';
+    if (durationEl) durationEl.textContent = `${plan.duration_days || 0} ngày`;
+    if (startDateEl) startDateEl.textContent = plan.start_date || '-';
+    if (groupEl) groupEl.textContent = plan.group_type || '-';
+    
+    // Calculate ACTUAL cost from itinerary activities
+    const itinerary = Array.isArray(plan.itinerary) ? plan.itinerary : [];
+    let actualCost = 0;
+    
+    itinerary.forEach(day => {
+        const activities = day.activities || [];
+        activities.forEach(activity => {
+            actualCost += (activity.cost || 0);
+        });
+    });
+    
+    console.log('Calculated actual cost from itinerary:', actualCost);
+    console.log('Plan budget:', plan.budget);
+    console.log('Plan total_cost (from DB):', plan.total_cost);
+    
+    // Use calculated actual cost instead of plan.total_cost
+    loadHotelCost(actualCost);
+}
+
+// Load hotel cost and update total
+async function loadHotelCost(activitiesCost) {
+    const planId = getPlanIdFromUrl();
+    if (!planId) return;
+    
+    try {
+        const response = await fetch(`/api/plans/${planId}/hotel`);
+        const data = await response.json();
+        
+        let hotelCost = 0;
+        if (data.success && data.hotel && data.hotel.total_price) {
+            hotelCost = data.hotel.total_price;
+        }
+        
+        // Update UI
+        const activitiesEl = document.getElementById('cost-activities');
+        const hotelEl = document.getElementById('cost-hotel');
+        const totalEl = document.getElementById('cost-total');
+        
+        if (activitiesEl) activitiesEl.textContent = formatPrice(activitiesCost);
+        if (hotelEl) hotelEl.textContent = formatPrice(hotelCost);
+        if (totalEl) totalEl.textContent = formatPrice(activitiesCost + hotelCost);
+    } catch (error) {
+        console.error('Error loading hotel cost:', error);
+    }
+}
+
+// Confirm plan
+async function confirmPlan() {
+    const planId = getPlanIdFromUrl();
+    if (!planId) return;
+    
+    try {
+        const response = await fetch(`/api/plans/${planId}/confirm`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess('Đã xác nhận kế hoạch thành công!');
+            // Reload page to update status
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showError(data.error || 'Không thể xác nhận kế hoạch');
+        }
+    } catch (error) {
+        console.error('Error confirming plan:', error);
+        showError('Không thể xác nhận kế hoạch');
+    }
+}
+
+// Show success notification
+function showSuccess(message) {
+    // Reuse the notification function from main_chat.js pattern
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-300 bg-green-500 text-white';
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
 
 // Load plan detail from API
 async function loadPlanDetail(planId) {
@@ -54,6 +531,9 @@ function renderPlanDetail(plan) {
     
     // Update budget section
     updateBudgetSection(plan);
+    
+    // Initialize hotel dates
+    initializeHotelDates();
 }
 
 // Update sidebar header

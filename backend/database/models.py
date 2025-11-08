@@ -100,6 +100,8 @@ class TravelPlan:
     budget: Optional[float] = None
     budget_currency: str = "VND"
     preferences: Optional[str] = None  # JSON array string
+    start_date: Optional[str] = None  # ISO format: YYYY-MM-DD
+    end_date: Optional[str] = None  # ISO format: YYYY-MM-DD
     itinerary: Dict[str, Any] = None  # JSON object
     total_cost: Optional[float] = None
     status: str = "draft"  # draft, active, archived, completed
@@ -120,6 +122,8 @@ class TravelPlan:
             'budget': self.budget,
             'budget_currency': self.budget_currency,
             'preferences': json.loads(self.preferences) if self.preferences else None,
+            'start_date': self.start_date,
+            'end_date': self.end_date,
             'itinerary': self.itinerary,
             'total_cost': self.total_cost,
             'status': self.status,
@@ -150,6 +154,74 @@ class SearchCache:
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'expires_at': self.expires_at.isoformat() if self.expires_at else None,
             'hit_count': self.hit_count
+        }
+
+
+@dataclass
+class PlanHotel:
+    """Plan hotel model - Selected hotel for a travel plan"""
+    id: Optional[int] = None
+    plan_id: int = 0
+    hotel_id: str = ""
+    hotel_name: str = ""
+    address: Optional[str] = None
+    city: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    star_rating: Optional[int] = None
+    guest_rating: Optional[float] = None
+    review_count: Optional[int] = None
+    checkin_date: str = ""  # ISO format: YYYY-MM-DD
+    checkout_date: str = ""  # ISO format: YYYY-MM-DD
+    nights: int = 0
+    rooms: int = 1
+    guests: int = 2
+    room_type: Optional[str] = None
+    price_per_night: Optional[float] = None
+    total_price: float = 0
+    currency: str = "VND"
+    discount_percent: Optional[float] = None
+    original_price: Optional[float] = None
+    amenities: Optional[str] = None  # JSON array string
+    images: Optional[str] = None  # JSON array string
+    cancellation_policy: Optional[str] = None
+    is_refundable: bool = False
+    hotel_data: Optional[str] = None  # Full JSON data from API
+    selected_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    
+    def to_dict(self) -> dict:
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'plan_id': self.plan_id,
+            'hotel_id': self.hotel_id,
+            'hotel_name': self.hotel_name,
+            'address': self.address,
+            'city': self.city,
+            'latitude': self.latitude,
+            'longitude': self.longitude,
+            'star_rating': self.star_rating,
+            'guest_rating': self.guest_rating,
+            'review_count': self.review_count,
+            'checkin_date': self.checkin_date,
+            'checkout_date': self.checkout_date,
+            'nights': self.nights,
+            'rooms': self.rooms,
+            'guests': self.guests,
+            'room_type': self.room_type,
+            'price_per_night': self.price_per_night,
+            'total_price': self.total_price,
+            'currency': self.currency,
+            'discount_percent': self.discount_percent,
+            'original_price': self.original_price,
+            'amenities': json.loads(self.amenities) if self.amenities else None,
+            'images': json.loads(self.images) if self.images else None,
+            'cancellation_policy': self.cancellation_policy,
+            'is_refundable': self.is_refundable,
+            'hotel_data': json.loads(self.hotel_data) if self.hotel_data else None,
+            'selected_at': self.selected_at.isoformat() if self.selected_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
 
