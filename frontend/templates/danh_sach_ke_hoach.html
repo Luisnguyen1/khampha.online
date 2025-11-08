@@ -30,13 +30,77 @@
             },
         }
     </script>
-<style>
+    <style>
         .material-symbols-outlined {
             font-variation-settings:
             'FILL' 0,
             'wght' 400,
             'GRAD' 0,
             'opsz' 24
+        }
+        
+        /* Mobile Navigation Drawer Styles */
+        .mobile-drawer {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 280px;
+            height: 100vh;
+            background: white;
+            z-index: 9999;
+            transition: left 0.3s ease;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+        
+        .mobile-drawer.drawer-open {
+            left: 0;
+        }
+        
+        .mobile-drawer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .mobile-drawer-nav {
+            display: flex;
+            flex-direction: column;
+            padding: 1rem 0;
+        }
+        
+        .mobile-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #4b5563;
+            transition: background-color 0.2s;
+        }
+        
+        .mobile-nav-item:hover {
+            background-color: #f3f4f6;
+            color: #2563eb;
+        }
+        
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9998;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        
+        .drawer-overlay.overlay-visible {
+            opacity: 1;
+            visibility: visible;
         }
     </style>
 </head>
@@ -155,18 +219,20 @@
 </button>
 </div>
 </div>
-<!-- Plans Grid - Will be populated by JavaScript -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <!-- Loading State -->
-    <div class="col-span-full flex items-center justify-center py-12">
-        <div class="text-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p class="text-[#617c89] dark:text-gray-400">Đang tải kế hoạch...</p>
-        </div>
+<!-- Loading State -->
+<div id="loadingPlans" class="flex items-center justify-center py-12">
+    <div class="text-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+        <p class="text-[#617c89] dark:text-gray-400">Đang tải kế hoạch...</p>
     </div>
 </div>
+
+<!-- Plans Grid - Will be populated by JavaScript -->
+<div id="plansContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+</div>
+
 <!-- Empty State -->
-<div class="hidden flex-col items-center justify-center text-center p-10 mt-10 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl">
+<div id="emptyState" class="hidden flex-col items-center justify-center text-center p-10 mt-10 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl">
 <img alt="Illustration of a suitcase and a map" class="w-48 h-48 mb-6" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBl4yfGCvMNncCqvEmgITcJeF7fh2BDC4gN06d2CnWngdCY1bkqXMsGRXfxWKYz1-aQErPpR9owyY4qXIfQVemgGDRKAFvziyWh7G6913ayP-zYXamHW3uNBmFCr_o_qT_jvGsDwpFjYnGopf-8-CwtI8N_IdDTuu4AwZ6A14h_zChPUwv47EK5N-7cIT3u3HPew7uiUex6BqTDvM6eps_E3oLo1YM79zuRQ_9VwPA4ok3UDw1v6MynDPZ5zKM2CKdxFC-BBAkPDjw"/>
 <h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2">Bạn chưa có kế hoạch nào.</h3>
 <p class="text-[#617c89] dark:text-gray-400 mb-6 max-w-sm">Hãy bắt đầu hành trình mơ ước của bạn bằng cách trò chuyện với chatbot để tạo một kế hoạch chi tiết!</p>
@@ -228,5 +294,5 @@
     });
 </script>
 
-<script src="{{ url_for('static', filename='js/plans.js') }}"></script>
+<script src="{{ url_for('static', filename='js/danh_sach_ke_hoach.js') }}"></script>
 </body></html>

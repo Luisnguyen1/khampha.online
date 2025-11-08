@@ -253,6 +253,30 @@ class DatabaseManager:
             print(f"Error updating avatar: {str(e)}")
             return False
     
+    def update_user_location(self, session_id: str, latitude: float, longitude: float) -> bool:
+        """Update user's geolocation
+        
+        Args:
+            session_id: User session ID
+            latitude: Latitude coordinate
+            longitude: Longitude coordinate
+        
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            with self.get_connection() as conn:
+                conn.execute(
+                    """UPDATE users 
+                    SET latitude = ?, longitude = ?, location_updated_at = CURRENT_TIMESTAMP 
+                    WHERE session_id = ?""",
+                    (latitude, longitude, session_id)
+                )
+                return True
+        except Exception as e:
+            print(f"Error updating user location: {str(e)}")
+            return False
+    
     def change_user_password(self, user_id: int, current_password: str, new_password: str) -> tuple[bool, Optional[str]]:
         """Change user password
         

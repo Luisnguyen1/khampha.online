@@ -189,12 +189,13 @@ QUY TẮC:
     "duration_days": số ngày (int) hoặc null,
     "budget": ngân sách (số, VD: 5000000) hoặc null,
     "preferences": "sở thích" hoặc null,
-    "ready_to_plan": true/false (true nếu có đủ destination và duration_days),
+    "ready_to_plan": true/false (true CHỈ KHI có đủ: destination, duration_days VÀ budget),
     "missing_fields": ["destination", "duration_days", "budget", "preferences"] - các trường còn thiếu
   }}
 
 VÍ DỤ:
-- "Tôi muốn đi Đà Lạt 3 ngày" → mode=plan, confidence=high, requirements={{destination:"Đà Lạt", duration_days:3, budget:null, preferences:null, ready_to_plan:true, missing_fields:["budget","preferences"]}}
+- "Tôi muốn đi Đà Lạt 3 ngày ngân sách 5 triệu" → mode=plan, confidence=high, requirements={{destination:"Đà Lạt", duration_days:3, budget:5000000, preferences:null, ready_to_plan:true, missing_fields:["preferences"]}}
+- "Tôi muốn đi Đà Lạt 3 ngày" → mode=plan, confidence=high, requirements={{destination:"Đà Lạt", duration_days:3, budget:null, preferences:null, ready_to_plan:false, missing_fields:["budget","preferences"]}}
 - "Hà Nội có gì hay?" → mode=ask, confidence=high
 - "Thêm 1 ngày nữa" (có plan) → mode=edit_plan, confidence=high
 - "Xin chào" → mode=chat, direct_response=true, response="Xin chào! Tôi là trợ lý du lịch..."
@@ -626,8 +627,42 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
                 requirements = self._extract_requirements(message)
                 logger.info(f"✅ Requirements extracted: {requirements}")
             
+            # Check if we have MINIMUM required info to create plan
+            # CHANGED: Now requires destination, duration_days AND budget (not just destination + duration)
+            has_destination = requirements.get('destination') is not None
+            has_duration = requirements.get('duration_days') is not None
+            has_budget = requirements.get('budget') is not None
+            
+            ready_to_plan = has_destination and has_duration and has_budget
+            
+            # Update requirements with corrected ready_to_plan status
+            requirements['ready_to_plan'] = ready_to_plan
+            
+            # Recalculate missing_fields to ensure accuracy
+            required_core_fields = ['destination', 'duration_days', 'budget']
+            optional_fields = ['preferences']
+            
+            missing_fields = []
+            for field in required_core_fields:
+                if not requirements.get(field):
+                    missing_fields.append(field)
+            
+            # Preferences is optional, but we still track it
+            if not requirements.get('preferences'):
+                missing_fields.append('preferences')
+            
+            requirements['missing_fields'] = missing_fields
+            
+            logger.info(f"   📊 Readiness check:")
+            logger.info(f"      - Destination: {has_destination} ({requirements.get('destination')})")
+            logger.info(f"      - Duration: {has_duration} ({requirements.get('duration_days')} days)")
+            budget_display = self._format_currency(requirements.get('budget')) if requirements.get('budget') else "None"
+            logger.info(f"      - Budget: {has_budget} ({budget_display})")
+            logger.info(f"      - Ready to plan: {ready_to_plan}")
+            logger.info(f"      - Missing fields: {missing_fields}")
+            
             # Check if we have enough info to create plan
-            if requirements['ready_to_plan']:
+            if ready_to_plan:
                 logger.info("✅ Ready to plan! Proceeding with itinerary generation...")
                 
                 # Search for information
@@ -674,13 +709,24 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
             
             else:
                 # Ask for missing information
-                logger.info("⚠️ Not ready to plan yet. Missing information.")
+                logger.info("⚠️ Not ready to plan yet. Missing REQUIRED information.")
                 missing = requirements.get('missing_fields', [])
                 logger.info(f"   Missing fields: {missing}")
-                response_text = get_response_template(
-                    'missing_info',
-                    missing_fields=format_missing_fields(missing)
-                )
+                
+                # Create a more specific message based on what's missing
+                if not has_destination and not has_duration and not has_budget:
+                    response_text = "Để tạo kế hoạch du lịch hoàn chỉnh, tôi cần bạn cho biết:\n\n"
+                    response_text += "📍 **Điểm đến**: Bạn muốn đi đâu?\n"
+                    response_text += "📅 **Số ngày**: Bạn dự định đi bao nhiêu ngày?\n"
+                    response_text += "💰 **Ngân sách**: Bạn có ngân sách khoảng bao nhiêu?\n"
+                    response_text += "🎯 **Sở thích** (tùy chọn): Bạn thích hoạt động gì? (VD: tham quan, ẩm thực, mạo hiểm...)\n\n"
+                    response_text += "Ví dụ: *'Tôi muốn đi Đà Lạt 3 ngày, ngân sách 5 triệu, thích thiên nhiên và ẩm thực'*"
+                else:
+                    response_text = get_response_template(
+                        'missing_info',
+                        missing_fields=format_missing_fields(missing)
+                    )
+                
                 logger.info(f"💬 Response prepared: Asking for missing info")
                 
                 return {
@@ -772,8 +818,8 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
             if keyword in text_lower:
                 preferences.append(pref)
         
-        # Check if ready
-        ready = destination is not None and duration_days is not None
+        # Check if ready - NOW requires destination, duration_days AND budget
+        ready = destination is not None and duration_days is not None and budget is not None
         
         missing = []
         if not destination:
@@ -835,7 +881,8 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
             # Check readiness
             requirements['ready_to_plan'] = (
                 'destination' in requirements and 
-                'duration_days' in requirements
+                'duration_days' in requirements and
+                'budget' in requirements
             )
             
             # Determine missing fields

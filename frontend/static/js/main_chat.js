@@ -45,6 +45,9 @@ window.addEventListener('DOMContentLoaded', () => {
     initializeMarkdown();
     applyViewportHeightFix();
     
+    // Request user's location
+    requestUserLocation();
+    
     // Check for auto-send message from URL parameter (from Discover page)
     checkAutoSendMessage();
 });
@@ -946,6 +949,80 @@ function updateHeaderButtons() {
     if (savePlanBtn) savePlanBtn.disabled = !hasPlan;
     if (sharePlanBtn) sharePlanBtn.disabled = !hasPlan;
     if (editPlanBtn) editPlanBtn.disabled = !hasPlan;
+}
+
+// Request user's geolocation
+function requestUserLocation() {
+    // Check if geolocation is supported
+    if (!navigator.geolocation) {
+        console.log('❌ Geolocation is not supported by this browser');
+        return;
+    }
+    
+    // Request permission and get location
+    navigator.geolocation.getCurrentPosition(
+        // Success callback
+        function(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
+            
+            console.log('📍 Location obtained:', {
+                latitude,
+                longitude,
+                accuracy: accuracy + 'm'
+            });
+            
+            // Send to server
+            saveUserLocation(latitude, longitude);
+        },
+        // Error callback
+        function(error) {
+            console.log('⚠️ Location request denied or failed:', error.message);
+            
+            // Show friendly notification (optional)
+            const errorMessages = {
+                1: 'Bạn đã từ chối chia sẻ vị trí',
+                2: 'Không thể xác định vị trí',
+                3: 'Yêu cầu vị trí hết thời gian'
+            };
+            
+            const message = errorMessages[error.code] || 'Không thể lấy vị trí';
+            console.log('ℹ️', message);
+        },
+        // Options
+        {
+            enableHighAccuracy: true,  // Request best accuracy
+            timeout: 10000,            // 10 second timeout
+            maximumAge: 300000         // Accept cached position up to 5 minutes old
+        }
+    );
+}
+
+// Save user location to server
+async function saveUserLocation(latitude, longitude) {
+    try {
+        const response = await fetch('/api/user/location', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                latitude,
+                longitude
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log('✅ Location saved to server');
+        } else {
+            console.error('❌ Failed to save location:', data.error);
+        }
+    } catch (error) {
+        console.error('❌ Error saving location:', error);
+    }
 }
 
 // Check for auto-send message from URL parameter (from Discover page)

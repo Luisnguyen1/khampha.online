@@ -2,8 +2,9 @@
  * Plans list page logic for khappha.online
  */
 
-const plansGrid = document.querySelector('.grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-3');
-const emptyState = document.querySelector('.hidden.flex-col.items-center');
+const plansGrid = document.getElementById('plansContainer');
+const emptyState = document.getElementById('emptyState');
+const loadingPlans = document.getElementById('loadingPlans');
 const searchInput = document.querySelector('input[placeholder*="Tìm"]');
 // Get filter buttons by finding all buttons with expand_more icon in the filter container
 const filterButtons = Array.from(document.querySelectorAll('.flex.gap-3.overflow-x-auto button'));
@@ -38,8 +39,13 @@ function initializeFilters() {
 // Load plans from API
 async function loadPlans() {
     try {
+        // Hide loading, show empty initially
+        if (loadingPlans) loadingPlans.classList.add('hidden');
+        
         const response = await fetch('/api/plans?limit=50');
         const data = await response.json();
+        
+        console.log('Plans API response:', data);
         
         if (data.success && data.plans.length > 0) {
             allPlans = data.plans;

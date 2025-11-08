@@ -235,9 +235,11 @@ Tôi sẽ giúp bạn lên kế hoạch cho chuyến đi hoàn hảo!
 💰 Ngân sách dự kiến?
 ❤️ Bạn thích gì? (ẩm thực, thiên nhiên, văn hóa...)""",
 
-    'missing_info': """Cảm ơn bạn! Để tạo kế hoạch tốt nhất, tôi cần thêm thông tin:
+    'missing_info': """Cảm ơn bạn! Để tạo kế hoạch du lịch hoàn chỉnh, tôi cần thêm thông tin:
 
 {missing_fields}
+
+💡 *Lưu ý: Điểm đến, Số ngày và Ngân sách là BẮT BUỘC. Sở thích là tùy chọn nhưng sẽ giúp tôi tạo kế hoạch phù hợp hơn.*
 
 Bạn có thể cung cấp thêm được không? 😊""",
 
@@ -279,12 +281,12 @@ def get_response_template(template_name, **kwargs):
     return template.format(**kwargs)
 
 def format_missing_fields(missing):
-    """Format missing fields message"""
+    """Format missing fields message with required/optional indicators"""
     field_names = {
-        'destination': '📍 Điểm đến',
-        'duration_days': '📅 Số ngày',
-        'budget': '💰 Ngân sách',
-        'preferences': '❤️ Sở thích'
+        'destination': '📍 **Điểm đến**',
+        'duration_days': '📅 **Số ngày**',
+        'budget': '💰 **Ngân sách**',
+        'preferences': '❤️ **Sở thích**'
     }
     
     return '\n'.join([f"- {field_names.get(field, field)}" for field in missing])

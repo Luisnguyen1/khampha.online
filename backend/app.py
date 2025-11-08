@@ -3,6 +3,7 @@ Main Flask application for khappha.online
 """
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_cors import CORS
+from flask_session import Session
 import os
 import uuid
 import json
@@ -37,6 +38,9 @@ app = Flask(__name__,
 env = os.getenv('FLASK_ENV', 'development')
 app.config.from_object(config[env])
 Config.init_app(app)
+
+# Initialize Flask-Session
+Session(app)
 
 # Set Flask app logger level
 app.logger.setLevel(logging.INFO)
@@ -884,6 +888,7 @@ def register():
             }), 400
         
         # Store user_id in session
+        session.permanent = True  # Make session permanent
         session['user_id'] = user_id
         session['session_id'] = session_id
         session['is_authenticated'] = True
@@ -942,6 +947,7 @@ def login():
         db.update_user_session(user.id, new_session_id)
         
         # Store in session
+        session.permanent = True  # Make session permanent
         session['user_id'] = user.id
         session['session_id'] = new_session_id
         session['is_authenticated'] = True
@@ -1207,6 +1213,60 @@ def upload_avatar():
         
     except Exception as e:
         app.logger.error(f"Error uploading avatar: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Lỗi hệ thống'
+        }), 500
+
+
+@app.route('/api/user/location', methods=['POST'])
+def save_user_location():
+    """Save user's geolocation"""
+    try:
+        data = request.get_json()
+        
+        if not data or 'latitude' not in data or 'longitude' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Thiếu thông tin vị trí'
+            }), 400
+        
+        latitude = data['latitude']
+        longitude = data['longitude']
+        
+        # Validate coordinates
+        try:
+            latitude = float(latitude)
+            longitude = float(longitude)
+            
+            if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
+                raise ValueError('Invalid coordinates')
+        except (ValueError, TypeError):
+            return jsonify({
+                'success': False,
+                'error': 'Tọa độ không hợp lệ'
+            }), 400
+        
+        # Get or create session
+        session_id = get_or_create_session()
+        
+        # Update location in database
+        success = db.update_user_location(session_id, latitude, longitude)
+        
+        if success:
+            app.logger.info(f"📍 Location saved for session {session_id}: ({latitude}, {longitude})")
+            return jsonify({
+                'success': True,
+                'message': 'Đã lưu vị trí thành công'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Không thể lưu vị trí'
+            }), 500
+        
+    except Exception as e:
+        app.logger.error(f"Error saving location: {str(e)}")
         return jsonify({
             'success': False,
             'error': 'Lỗi hệ thống'

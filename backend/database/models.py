@@ -22,6 +22,9 @@ class User:
     avatar_url: Optional[str] = None
     date_of_birth: Optional[str] = None
     travel_preferences: Optional[str] = None  # JSON string
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    location_updated_at: Optional[datetime] = None
     is_authenticated: bool = False
     created_at: Optional[datetime] = None
     last_active: Optional[datetime] = None
@@ -48,6 +51,9 @@ class User:
             'avatar_url': self.avatar_url,
             'date_of_birth': self.date_of_birth,
             'travel_preferences': travel_prefs,
+            'latitude': self.latitude,
+            'longitude': self.longitude,
+            'location_updated_at': self.location_updated_at.isoformat() if self.location_updated_at else None,
             'is_authenticated': self.is_authenticated,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'last_active': self.last_active.isoformat() if self.last_active else None,
@@ -163,6 +169,9 @@ CREATE TABLE IF NOT EXISTS users (
     avatar_url TEXT,
     date_of_birth TEXT,
     travel_preferences TEXT,
+    latitude REAL,
+    longitude REAL,
+    location_updated_at TIMESTAMP,
     is_authenticated INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

@@ -18,6 +18,16 @@ class Config:
     FLASK_ENV = os.getenv('FLASK_ENV', 'development')
     DEBUG = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
     
+    # Session Configuration
+    SESSION_TYPE = 'filesystem'  # Use filesystem-based sessions
+    SESSION_PERMANENT = True
+    SESSION_USE_SIGNER = True
+    SESSION_FILE_DIR = Path(__file__).parent / 'flask_session'
+    PERMANENT_SESSION_LIFETIME = 86400 * 7  # 7 days in seconds
+    SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    
     # API Keys
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
     if not GEMINI_API_KEY:
@@ -65,6 +75,7 @@ class Config:
         Config.UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
         Config.DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
         Config.DATABASE_BACKUP.mkdir(parents=True, exist_ok=True)
+        Config.SESSION_FILE_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class DevelopmentConfig(Config):
