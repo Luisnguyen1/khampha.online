@@ -209,7 +209,22 @@ def register_page():
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
-    stats = db.get_stats()
+    try:
+        stats = db.get_stats()
+        return jsonify({
+            'success': True,
+            'status': 'healthy',
+            'stats': stats,
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        app.logger.error(f"Health check error: {str(e)}")
+        return jsonify({
+            'success': False,
+            'status': 'unhealthy',
+            'error': str(e)
+        }), 500
+
 @app.route('/api/chat-stream', methods=['POST'])
 def chat_stream():
     """Streaming chat endpoint using Server-Sent Events (SSE)"""

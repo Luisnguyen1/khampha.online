@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # Main Flask Application
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: khampha-web
+    restart: unless-stopped
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./backend/data:/app/backend/data
+      - ./backend/uploads:/app/backend/uploads
+      - ./backend/flask_session:/app/backend/flask_session
+    environment:
+      # Flask Configuration
+      - FLASK_ENV=production
+      - FLASK_DEBUG=False
+      - SECRET_KEY=${SECRET_KEY}
+      
+      # API Keys
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - RAPIDAPI_KEY=${RAPIDAPI_KEY}
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
+      
+      # Database
+      - DATABASE_PATH=data/travelmate.db
+      
+      # Application Settings
+      - APP_NAME=khampha.online
+      - APP_VERSION=1.0.0
+    networks:
+      - khampha-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Cloudflare Tunnel
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: khampha-tunnel
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    networks:
+      - khampha-network
+    depends_on:
+      web:
+        condition: service_healthy
+
+networks:
+  khampha-network:
+    driver: bridge
+
+volumes:
+  data:
+  uploads:
+  flask_session:
