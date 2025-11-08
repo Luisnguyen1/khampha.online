@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 
-<html class="light" lang="en"><head>
+<html class="dark" lang="vi"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta name="theme-color" content="#101c22">
 <title>Travel Plans</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
@@ -104,9 +105,9 @@
         }
     </style>
 </head>
-<body class="bg-background-light dark:bg-background-dark font-display">
+<body class="bg-background-light dark:bg-background-dark font-display text-text-light dark:text-text-dark">
 <!-- Header -->
-<header class="bg-white shadow-sm border-b relative z-50">
+<header class="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 relative z-50">
     <div class="container mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
             <!-- Logo -->
@@ -117,18 +118,18 @@
             
             <!-- Desktop Navigation -->
             <nav class="hidden md:flex items-center space-x-4">
-                <a href="/chat" class="text-gray-600 hover:text-blue-600 transition">
-                    💬 Chat
+                <a href="/chat" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
+                    💬 <span data-i18n="nav.chat">Chat</span>
                 </a>
-                <a href="/plans" class="text-blue-600 font-semibold">
-                    📋 Kế hoạch
+                <a href="/plans" class="text-blue-600 dark:text-blue-400 font-semibold">
+                    📋 <span data-i18n="nav.plans">Kế hoạch</span>
                 </a>
-                <a href="/discover" class="text-gray-600 hover:text-blue-600 transition">
-                    🔍 Khám phá
+                <a href="/discover" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
+                    🔍 <span data-i18n="nav.discover">Khám phá</span>
                 </a>
                 {% if user %}
-                <a href="/profile" class="text-gray-600 hover:text-blue-600 transition">
-                    👤 Hồ sơ
+                <a href="/profile" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
+                    👤 <span data-i18n="nav.profile">Hồ sơ</span>
                 </a>
                 {% endif %}
             </nav>
@@ -144,35 +145,35 @@
 </header>
 
 <!-- Mobile Navigation Drawer -->
-<div id="mobileDrawer" class="mobile-drawer">
-    <div class="mobile-drawer-header">
+<div id="mobileDrawer" class="mobile-drawer dark:bg-gray-800">
+    <div class="mobile-drawer-header dark:border-gray-700">
         <a href="/" class="flex items-center space-x-2">
             <span class="text-2xl">🧭</span>
-            <h2 class="text-xl font-bold text-blue-600">{{ app_name }}</h2>
+            <h2 class="text-xl font-bold text-blue-600 dark:text-blue-400">{{ app_name }}</h2>
         </a>
-        <button id="closeDrawerBtn" class="p-2 text-gray-600 hover:text-blue-600" aria-label="Close menu">
+        <button id="closeDrawerBtn" class="p-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400" aria-label="Close menu">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
         </button>
     </div>
     <nav class="mobile-drawer-nav">
-        <a href="/chat" class="mobile-nav-item">
+        <a href="/chat" class="mobile-nav-item dark:text-gray-300 dark:hover:bg-gray-700">
             <span class="text-xl">💬</span>
-            <span>Chat</span>
+            <span data-i18n="nav.chat">Chat</span>
         </a>
-        <a href="/plans" class="mobile-nav-item">
+        <a href="/plans" class="mobile-nav-item dark:text-gray-300 dark:hover:bg-gray-700">
             <span class="text-xl">📋</span>
-            <span>Kế hoạch</span>
+            <span data-i18n="nav.plans">Kế hoạch</span>
         </a>
-        <a href="/discover" class="mobile-nav-item">
+        <a href="/discover" class="mobile-nav-item dark:text-gray-300 dark:hover:bg-gray-700">
             <span class="text-xl">🔍</span>
-            <span>Khám phá</span>
+            <span data-i18n="nav.discover">Khám phá</span>
         </a>
         {% if user %}
-        <a href="/profile" class="mobile-nav-item">
+        <a href="/profile" class="mobile-nav-item dark:text-gray-300 dark:hover:bg-gray-700">
             <span class="text-xl">👤</span>
-            <span>Hồ sơ</span>
+            <span data-i18n="nav.profile">Hồ sơ</span>
         </a>
         {% endif %}
     </nav>
@@ -293,6 +294,10 @@
         });
     });
 </script>
+
+<!-- Global Settings Scripts -->
+<script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
 
 <script src="{{ url_for('static', filename='js/danh_sach_ke_hoach.js') }}"></script>
 </body></html>

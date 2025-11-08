@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 
-<html class="light" lang="vi"><head>
+<html class="dark" lang="vi"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta name="theme-color" content="#101c22">
 <title>Chi tiết Kế hoạch Du lịch</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
@@ -157,9 +158,9 @@
         }
     </style>
 </head>
-<body class="bg-background-light dark:bg-background-dark font-display">
+<body class="bg-background-light dark:bg-background-dark font-display text-text-light dark:text-text-dark">
 <!-- Header -->
-<header class="bg-white shadow-sm border-b relative z-50">
+<header class="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 relative z-50">
     <div class="container mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
             <!-- Logo -->
@@ -170,14 +171,14 @@
             
             <!-- Desktop Navigation -->
             <nav class="hidden md:flex items-center space-x-4">
-                <a href="/chat" class="text-gray-600 hover:text-blue-600 transition">
-                    💬 Chat
+                <a href="/chat" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
+                    💬 <span data-i18n="nav.chat">Chat</span>
                 </a>
-                <a href="/plans" class="text-blue-600 font-semibold">
-                    📋 Kế hoạch
+                <a href="/plans" class="text-blue-600 dark:text-blue-400 font-semibold">
+                    📋 <span data-i18n="nav.plans">Kế hoạch</span>
                 </a>
-                <a href="/discover" class="text-gray-600 hover:text-blue-600 transition">
-                    🔍 Khám phá
+                <a href="/discover" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
+                    🔍 <span data-i18n="nav.discover">Khám phá</span>
                 </a>
                 {% if user %}
                 <a href="/profile" class="text-gray-600 hover:text-blue-600 transition">
@@ -650,6 +651,10 @@ Xác nhận kế hoạch
         });
     });
 </script>
+
+<!-- Global Settings & i18n -->
+<script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
 
 <script src="{{ url_for('static', filename='js/chi_tiet_ke_hoach.js') }}"></script>
 </body></html>
