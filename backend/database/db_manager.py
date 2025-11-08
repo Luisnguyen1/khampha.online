@@ -522,7 +522,8 @@ class DatabaseManager:
                   plan_name: Optional[str] = None, preferences: Optional[List[str]] = None,
                   total_cost: Optional[float] = None, user_id: Optional[int] = None,
                   conversation_id: Optional[int] = None, status: str = 'draft',
-                  start_date: Optional[str] = None, end_date: Optional[str] = None) -> int:
+                  start_date: Optional[str] = None, end_date: Optional[str] = None,
+                  search_sources: Optional[List[Dict]] = None) -> int:
         """Save travel plan to database
         
         Args:
@@ -531,13 +532,14 @@ class DatabaseManager:
             conversation_id: ID of conversation that created this plan
             start_date: ISO format YYYY-MM-DD
             end_date: ISO format YYYY-MM-DD
+            search_sources: List of search sources used to create the plan
         """
         with self.get_connection() as conn:
             cursor = conn.execute(
                 """INSERT INTO travel_plans 
                 (session_id, user_id, conversation_id, plan_name, destination, duration_days, budget, 
-                preferences, start_date, end_date, itinerary, total_cost, status) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                preferences, start_date, end_date, itinerary, total_cost, search_sources, status) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     session_id,
                     user_id,
@@ -551,6 +553,7 @@ class DatabaseManager:
                     end_date,
                     json.dumps(itinerary),
                     total_cost,
+                    json.dumps(search_sources) if search_sources else None,
                     status
                 )
             )
@@ -712,6 +715,7 @@ class DatabaseManager:
             end_date=row['end_date'] if 'end_date' in row.keys() else None,
             itinerary=json.loads(row['itinerary']),
             total_cost=row['total_cost'],
+            search_sources=row['search_sources'] if 'search_sources' in row.keys() else None,
             status=row['status'],
             is_favorite=bool(row['is_favorite']),
             created_at=datetime.fromisoformat(row['created_at']),

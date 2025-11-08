@@ -240,6 +240,8 @@ HÃY TRẢ LỜI:
     
     def _handle_plan_mode_stream(self, message: str, requirements: Optional[Dict] = None):
         """Streaming version of plan mode handler"""
+        search_sources = []  # Track search sources
+        
         try:
             yield {'type': 'thinking', 'content': 'extracting_requirements'}
             
@@ -276,7 +278,7 @@ HÃY TRẢ LỜI:
             yield {'type': 'thinking', 'content': 'searching'}
             
             # Search for destination
-            search_results = self._search_for_destination(
+            search_results, search_sources = self._search_for_destination(
                 requirements['destination'],
                 requirements.get('preferences')
             )
@@ -285,6 +287,9 @@ HÃY TRẢ LỜI:
             
             # Generate itinerary
             plan_data = self._generate_itinerary(requirements, search_results)
+            
+            # Add search sources to plan data
+            plan_data['search_sources'] = search_sources
             
             # Yield plan data
             yield {'type': 'plan', 'content': plan_data}
@@ -580,6 +585,7 @@ TRẢ VỀ CHỈ JSON, KHÔNG CÓ TEXT KHÁC:"""
             logger.info(f"🔍 Searching for: '{message}'")
             search_results = self.search.search(message, max_results=5)
             formatted_results = self.search.format_results_for_llm(search_results)
+            search_sources = self.search.extract_sources_for_storage(search_results)
             
             # Generate answer using Gemini
             if self.use_gemini:
@@ -814,6 +820,8 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
         """
         logger.info("📋 PLAN MODE - Creating travel plan")
         
+        search_sources = []  # Track search sources
+        
         try:
             # Use requirements from intent analysis if available, otherwise extract
             if requirements:
@@ -869,7 +877,7 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
                 # Search for information
                 logger.info(f"🔍 Step 2: Searching for destination '{requirements['destination']}'...")
                 try:
-                    search_results = self._search_for_destination(
+                    search_results, search_sources = self._search_for_destination(
                         requirements['destination'],
                         requirements.get('preferences')
                     )
@@ -877,6 +885,7 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
                 except Exception as search_error:
                     logger.error(f"❌ Search failed: {type(search_error).__name__}: {str(search_error)}")
                     search_results = "Không tìm thấy thông tin tìm kiếm."
+                    search_sources = []
                 
                 # Generate itinerary
                 logger.info("📋 Step 3: Generating itinerary...")
@@ -898,6 +907,9 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
                     duration_days=requirements['duration_days'],
                     total_cost=self._format_currency(plan_data.get('total_cost', 0))
                 )
+                
+                # Add search sources to plan data
+                plan_data['search_sources'] = search_sources
                 
                 return {
                     'success': True,
@@ -1182,8 +1194,12 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
             logger.error(f"Parse error: {str(e)}")
             return self._simple_extract_requirements(original_text)
     
-    def _search_for_destination(self, destination: str, preferences: Optional[str] = None) -> str:
-        """Search for destination information"""
+    def _search_for_destination(self, destination: str, preferences: Optional[str] = None) -> Tuple[str, List[Dict]]:
+        """Search for destination information
+        
+        Returns:
+            Tuple of (formatted_string_for_llm, list_of_source_dicts)
+        """
         logger.info(f"   🔍 Searching for: {destination}")
         logger.info(f"   🎯 Preferences: {preferences}")
         
@@ -1209,7 +1225,12 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
         # Format for LLM
         formatted = self.search.format_results_for_llm(all_results)
         logger.info(f"   📝 Formatted results: {len(formatted)} chars")
-        return formatted
+        
+        # Extract sources for storage
+        sources = self.search.extract_sources_for_storage(all_results)
+        logger.info(f"   💾 Extracted {len(sources)} sources for storage")
+        
+        return formatted, sources
     
     def _generate_itinerary(self, requirements: Dict, search_results: str) -> Dict:
         """

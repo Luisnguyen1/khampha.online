@@ -104,6 +104,7 @@ class TravelPlan:
     end_date: Optional[str] = None  # ISO format: YYYY-MM-DD
     itinerary: Dict[str, Any] = None  # JSON object
     total_cost: Optional[float] = None
+    search_sources: Optional[str] = None  # JSON array of search sources
     status: str = "draft"  # draft, active, archived, completed
     is_favorite: bool = False
     created_at: Optional[datetime] = None
@@ -126,6 +127,7 @@ class TravelPlan:
             'end_date': self.end_date,
             'itinerary': self.itinerary,
             'total_cost': self.total_cost,
+            'search_sources': json.loads(self.search_sources) if self.search_sources else [],
             'status': self.status,
             'is_favorite': self.is_favorite,
             'created_at': self.created_at.isoformat() if self.created_at else None,

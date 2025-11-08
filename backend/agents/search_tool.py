@@ -169,6 +169,25 @@ class SearchTool:
         
         return formatted
     
+    def extract_sources_for_storage(self, results: List[Dict[str, str]]) -> List[Dict[str, str]]:
+        """
+        Extract source information for storage in database
+        
+        Args:
+            results: List of search results
+            
+        Returns:
+            List of dicts with title, url, snippet for each source
+        """
+        sources = []
+        for result in results:
+            sources.append({
+                'title': result.get('title', 'Không có tiêu đề'),
+                'url': result.get('url', ''),
+                'snippet': result.get('snippet', '')[:200]  # Limit snippet length
+            })
+        return sources
+    
     def extract_travel_info(self, results: List[Dict[str, str]]) -> Dict[str, any]:
         """
         Extract structured travel information from search results

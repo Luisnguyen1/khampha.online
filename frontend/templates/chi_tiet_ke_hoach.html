@@ -234,6 +234,41 @@
 <!-- Drawer Overlay -->
 <div id="drawerOverlay" class="drawer-overlay"></div>
 
+<!-- References Modal -->
+<div id="referencesModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000] hidden">
+<div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-3xl w-full mx-4 max-h-[80vh] flex flex-col">
+<!-- Modal Header -->
+<div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-3xl">menu_book</span>
+<h2 class="text-2xl font-bold text-gray-900 dark:text-white">Kiến thức tham khảo</h2>
+</div>
+<button onclick="closeReferencesModal()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-400">close</span>
+</button>
+</div>
+
+<!-- Modal Body -->
+<div class="flex-1 overflow-y-auto p-6">
+<div id="referencesList" class="space-y-3">
+<!-- References will be populated by JavaScript -->
+<div class="text-center py-12">
+<span class="material-symbols-outlined text-6xl text-gray-400">search</span>
+<p class="text-gray-500 dark:text-gray-400 mt-4">Không có dữ liệu tham khảo</p>
+</div>
+</div>
+</div>
+
+<!-- Modal Footer -->
+<div class="p-6 border-t border-gray-200 dark:border-gray-700">
+<p class="text-sm text-gray-500 dark:text-gray-400 text-center">
+<span class="material-symbols-outlined text-xs align-middle">info</span>
+Các nguồn tham khảo được sử dụng để tạo kế hoạch của bạn
+</p>
+</div>
+</div>
+</div>
+
 <div class="relative flex min-h-screen w-full flex-col group/design-root overflow-x-hidden">
 <div class="flex flex-grow layout-container">
 <!-- SideNavBar -->
@@ -274,10 +309,16 @@
 <p class="text-[#111618] dark:text-white text-3xl font-black leading-tight tracking-[-0.033em]" id="page-heading">Đang tải...</p>
 <p class="text-[#617c89] dark:text-gray-400 text-base font-normal leading-normal" id="page-subheading">Đang tải chi tiết lịch trình...</p>
 </div>
+<div class="flex gap-3">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-sm font-bold leading-normal tracking-[0.015em] gap-2" id="references-button" onclick="openReferencesModal()">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="truncate">Kiến thức tham khảo</span>
+</button>
 <button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-gray-200 dark:bg-gray-700 text-[#111618] dark:text-white text-sm font-bold leading-normal tracking-[0.015em] gap-2" id="edit-button">
 <span class="material-symbols-outlined">edit</span>
 <span class="truncate">Chỉnh sửa kế hoạch</span>
 </button>
+</div>
 </div>
 <!-- Stats -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6" id="day-stats">

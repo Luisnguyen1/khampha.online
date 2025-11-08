@@ -1,12 +1,32 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#101c22">
     <title>{% block title %}{{ app_name }}{% endblock %}</title>
     
     <!-- TailwindCSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13a4ec",
+                        "secondary": "#F5A623",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101c22",
+                        "text-light": "#333333",
+                        "text-secondary-light": "#777777",
+                        "text-dark": "#ffffff",
+                        "text-secondary-dark": "#a0aec0",
+                    }
+                }
+            }
+        }
+    </script>
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
@@ -14,39 +34,39 @@
     {% block extra_css %}{% endblock %}
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 dark:bg-background-dark min-h-screen text-text-light dark:text-text-dark">
     
     {% block header %}
     <!-- Header -->
-    <header class="bg-white shadow-sm border-b relative z-50">
+    <header class="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700 relative z-50">
         <div class="container mx-auto px-4 py-4">
             <div class="flex items-center justify-between">
                 <!-- Logo -->
                 <a href="/" class="flex items-center space-x-2">
                     <span class="text-2xl">🧭</span>
-                    <h1 class="text-xl md:text-2xl font-bold text-blue-600">{{ app_name }}</h1>
+                    <h1 class="text-xl md:text-2xl font-bold text-blue-600 dark:text-blue-400">{{ app_name }}</h1>
                 </a>
                 
                 <!-- Desktop Navigation -->
                 <nav class="hidden md:flex items-center space-x-4">
-                    <a href="/" class="text-gray-600 hover:text-blue-600 transition">
-                        💬 Chat
+                    <a href="/" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
+                        💬 <span data-i18n="nav.chat">Chat</span>
                     </a>
-                    <a href="/plans" class="text-gray-600 hover:text-blue-600 transition">
-                        📋 Kế hoạch
+                    <a href="/plans" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
+                        📋 <span data-i18n="nav.plans">Kế hoạch</span>
                     </a>
-                    <a href="/discover" class="text-gray-600 hover:text-blue-600 transition">
-                        🔍 Khám phá
+                    <a href="/discover" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
+                        🔍 <span data-i18n="nav.discover">Khám phá</span>
                     </a>
                     {% if user %}
-                    <a href="/profile" class="text-gray-600 hover:text-blue-600 transition">
-                        👤 Hồ sơ
+                    <a href="/profile" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition">
+                        👤 <span data-i18n="nav.profile">Hồ sơ</span>
                     </a>
                     {% endif %}
                 </nav>
                 
                 <!-- Mobile Hamburger Button -->
-                <button id="mobileMenuBtn" class="md:hidden p-2 text-gray-600 hover:text-blue-600 transition" aria-label="Menu">
+                <button id="mobileMenuBtn" class="md:hidden p-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition" aria-label="Menu">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                     </svg>
@@ -56,35 +76,35 @@
     </header>
     
     <!-- Mobile Navigation Drawer -->
-    <div id="mobileDrawer" class="mobile-drawer">
+    <div id="mobileDrawer" class="mobile-drawer bg-white dark:bg-gray-800">
         <div class="mobile-drawer-header">
             <a href="/" class="flex items-center space-x-2">
                 <span class="text-2xl">🧭</span>
-                <h2 class="text-xl font-bold text-blue-600">{{ app_name }}</h2>
+                <h2 class="text-xl font-bold text-blue-600 dark:text-blue-400">{{ app_name }}</h2>
             </a>
-            <button id="closeDrawerBtn" class="p-2 text-gray-600 hover:text-blue-600" aria-label="Close menu">
+            <button id="closeDrawerBtn" class="p-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400" aria-label="Close menu">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
             </button>
         </div>
         <nav class="mobile-drawer-nav">
-            <a href="/" class="mobile-nav-item">
+            <a href="/" class="mobile-nav-item text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                 <span class="text-xl">💬</span>
-                <span>Chat</span>
+                <span data-i18n="nav.chat">Chat</span>
             </a>
-            <a href="/plans" class="mobile-nav-item">
+            <a href="/plans" class="mobile-nav-item text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                 <span class="text-xl">📋</span>
-                <span>Kế hoạch</span>
+                <span data-i18n="nav.plans">Kế hoạch</span>
             </a>
-            <a href="/discover" class="mobile-nav-item">
+            <a href="/discover" class="mobile-nav-item text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                 <span class="text-xl">🔍</span>
-                <span>Khám phá</span>
+                <span data-i18n="nav.discover">Khám phá</span>
             </a>
             {% if user %}
-            <a href="/profile" class="mobile-nav-item">
+            <a href="/profile" class="mobile-nav-item text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                 <span class="text-xl">👤</span>
-                <span>Hồ sơ</span>
+                <span data-i18n="nav.profile">Hồ sơ</span>
             </a>
             {% endif %}
         </nav>
@@ -101,8 +121,8 @@
     
     {% block footer %}
     <!-- Footer -->
-    <footer class="bg-white border-t mt-auto py-6">
-        <div class="container mx-auto px-4 text-center text-gray-600">
+    <footer class="bg-white dark:bg-gray-800 border-t dark:border-gray-700 mt-auto py-6">
+        <div class="container mx-auto px-4 text-center text-gray-600 dark:text-gray-400">
             <p>&copy; 2025 {{ app_name }} - SGU Hackathon 2025</p>
             <p class="text-sm mt-2">Made with ❤️ by SGU Innovators</p>
         </div>
@@ -111,6 +131,10 @@
     
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+    
+    <!-- Global Settings & i18n -->
+    <script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
     
     <!-- Mobile Navigation JS -->
     <script>

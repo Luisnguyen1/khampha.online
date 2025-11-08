@@ -300,6 +300,7 @@ def chat_stream():
                         end_date=plan_data.get('end_date'),
                         itinerary=plan_data.get('itinerary'),
                         total_cost=plan_data.get('total_cost'),
+                        search_sources=plan_data.get('search_sources'),
                         user_id=user_id,
                         status='draft'
                     )
@@ -497,6 +498,7 @@ def chat():
                     start_date=plan_data.get('start_date'),
                     end_date=plan_data.get('end_date'),
                     itinerary=plan_data.get('itinerary', {}),
+                    search_sources=plan_data.get('search_sources'),
                     status='draft'  # Auto-saved plans start as draft
                 )
             except Exception as e:

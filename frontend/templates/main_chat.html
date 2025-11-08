@@ -196,23 +196,23 @@
 <nav class="flex-1 px-2 py-4 space-y-2 overflow-y-auto">
                 <a class="flex items-center gap-3 px-3 py-2 rounded-xl text-text-light dark:text-text-dark hover:bg-gray-100 dark:hover:bg-gray-700" href="/">
 <span class="material-symbols-outlined">home</span>
-<span class="text-sm font-medium">Trang chủ</span>
+<span class="text-sm font-medium" data-i18n="nav.home">Trang chủ</span>
 </a>
 <a class="flex items-center gap-3 px-3 py-2 rounded-xl bg-primary/20 dark:bg-primary/30 text-primary" href="/chat">
 <span class="material-symbols-outlined">chat</span>
-<span class="text-sm font-medium">Chat</span>
+<span class="text-sm font-medium" data-i18n="nav.chat">Chat</span>
 </a>
 <a class="flex items-center gap-3 px-3 py-2 rounded-xl text-text-light dark:text-text-dark hover:bg-gray-100 dark:hover:bg-gray-700" href="/plans">
 <span class="material-symbols-outlined">list_alt</span>
-<span class="text-sm font-medium">Kế hoạch</span>
+<span class="text-sm font-medium" data-i18n="nav.plans">Kế hoạch</span>
 </a>
                 <a class="flex items-center gap-3 px-3 py-2 rounded-xl text-text-light dark:text-text-dark hover:bg-gray-100 dark:hover:bg-gray-700" href="/discover">
 <span class="material-symbols-outlined">explore</span>
-<span class="text-sm font-medium">Discover</span>
+<span class="text-sm font-medium" data-i18n="nav.discover">Discover</span>
 </a>
 <a class="flex items-center gap-3 px-3 py-2 rounded-xl text-text-light dark:text-text-dark hover:bg-gray-100 dark:hover:bg-gray-700" href="/profile">
 <span class="material-symbols-outlined">person</span>
-<span class="text-sm font-medium">Profile</span>
+<span class="text-sm font-medium" data-i18n="nav.profile">Profile</span>
 </a>
 
 <!-- Chat History Section -->
@@ -236,13 +236,13 @@
 <span class="truncate">Về tôi</span>
 </button>
 <div class="mt-4 space-y-1">
-<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-text-light dark:text-text-dark hover:bg-gray-100 dark:hover:bg-gray-700" href="#">
+                <button id="settingsBtn" class="flex items-center gap-3 px-3 py-2 rounded-xl text-text-light dark:text-text-dark hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left">
 <span class="material-symbols-outlined">settings</span>
-<span class="text-sm font-medium">Settings</span>
-</a>
+<span class="text-sm font-medium" data-i18n="nav.settings">Settings</span>
+</button>
 <a class="flex items-center gap-3 px-3 py-2 rounded-xl text-text-light dark:text-text-dark hover:bg-gray-100 dark:hover:bg-gray-700" href="#">
 <span class="material-symbols-outlined">help</span>
-<span class="text-sm font-medium">Help</span>
+<span class="text-sm font-medium" data-i18n="nav.help">Help</span>
 </a>
 </div>
 </div>
@@ -253,6 +253,207 @@
 
 <!-- Plan Panel Overlay (Mobile Only) -->
 <div id="planPanelOverlay" class="fixed inset-0 bg-black/50 z-30 md:hidden opacity-0 invisible transition-all duration-300"></div>
+
+<!-- Settings Modal -->
+<div id="settingsModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+<div class="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+<!-- Modal Header -->
+<div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 flex justify-between items-center">
+<h2 class="text-2xl font-bold text-text-light dark:text-text-dark">Cài đặt</h2>
+<button id="closeSettingsModal" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-400">close</span>
+</button>
+</div>
+<!-- Modal Content -->
+<div class="p-6 md:p-8 space-y-6">
+<!-- Language Settings -->
+<div class="border-b border-gray-200 dark:border-gray-700 pb-6">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary text-2xl">language</span>
+<h3 class="text-lg font-semibold text-text-light dark:text-text-dark">Ngôn ngữ</h3>
+</div>
+<div class="space-y-3">
+<label class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+<input type="radio" name="language" value="vi" checked class="w-4 h-4 text-primary focus:ring-primary">
+<div class="flex items-center gap-2">
+<span class="text-2xl">🇻🇳</span>
+<span class="text-text-light dark:text-text-dark">Tiếng Việt</span>
+</div>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+<input type="radio" name="language" value="en" class="w-4 h-4 text-primary focus:ring-primary">
+<div class="flex items-center gap-2">
+<span class="text-2xl">🇬🇧</span>
+<span class="text-text-light dark:text-text-dark">English</span>
+</div>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+<input type="radio" name="language" value="ja" class="w-4 h-4 text-primary focus:ring-primary">
+<div class="flex items-center gap-2">
+<span class="text-2xl">🇯🇵</span>
+<span class="text-text-light dark:text-text-dark">日本語</span>
+</div>
+</label>
+</div>
+</div>
+
+<!-- Theme Settings -->
+<div class="border-b border-gray-200 dark:border-gray-700 pb-6">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary text-2xl">palette</span>
+<h3 class="text-lg font-semibold text-text-light dark:text-text-dark">Giao diện</h3>
+</div>
+<div class="grid grid-cols-3 gap-3">
+<label class="flex flex-col items-center gap-2 p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-primary cursor-pointer transition-colors">
+<input type="radio" name="theme" value="light" class="sr-only theme-radio">
+<span class="material-symbols-outlined text-3xl text-yellow-600 dark:text-yellow-500">light_mode</span>
+<span class="text-sm font-medium text-text-light dark:text-text-dark">Sáng</span>
+</label>
+<label class="flex flex-col items-center gap-2 p-4 rounded-lg border-2 border-primary cursor-pointer transition-colors">
+<input type="radio" name="theme" value="dark" checked class="sr-only theme-radio">
+<span class="material-symbols-outlined text-3xl text-indigo-600 dark:text-indigo-400">dark_mode</span>
+<span class="text-sm font-medium text-text-light dark:text-text-dark">Tối</span>
+</label>
+<label class="flex flex-col items-center gap-2 p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-primary cursor-pointer transition-colors">
+<input type="radio" name="theme" value="auto" class="sr-only theme-radio">
+<span class="material-symbols-outlined text-3xl text-blue-600 dark:text-blue-400">brightness_auto</span>
+<span class="text-sm font-medium text-text-light dark:text-text-dark">Tự động</span>
+</label>
+</div>
+</div>
+
+<!-- Notification Settings -->
+<div class="border-b border-gray-200 dark:border-gray-700 pb-6">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary text-2xl">notifications</span>
+<h3 class="text-lg font-semibold text-text-light dark:text-text-dark">Thông báo</h3>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-400">email</span>
+<div>
+<p class="text-sm font-medium text-text-light dark:text-text-dark">Thông báo Email</p>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">Nhận thông báo qua email</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input type="checkbox" class="sr-only peer" checked>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-400">notifications_active</span>
+<div>
+<p class="text-sm font-medium text-text-light dark:text-text-dark">Thông báo đẩy</p>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">Nhận thông báo trên trình duyệt</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input type="checkbox" class="sr-only peer">
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+
+<!-- Chat Settings -->
+<div class="border-b border-gray-200 dark:border-gray-700 pb-6">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary text-2xl">chat</span>
+<h3 class="text-lg font-semibold text-text-light dark:text-text-dark">Trò chuyện</h3>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-400">history</span>
+<div>
+<p class="text-sm font-medium text-text-light dark:text-text-dark">Lưu lịch sử chat</p>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">Lưu các cuộc trò chuyện của bạn</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input type="checkbox" class="sr-only peer" checked>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-400">voice_chat</span>
+<div>
+<p class="text-sm font-medium text-text-light dark:text-text-dark">Nhập bằng giọng nói</p>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">Sử dụng mic để nhập tin nhắn</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input type="checkbox" class="sr-only peer" checked>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-400">auto_awesome</span>
+<div>
+<p class="text-sm font-medium text-text-light dark:text-text-dark">Gợi ý thông minh</p>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">Hiển thị gợi ý câu hỏi</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input type="checkbox" class="sr-only peer" checked>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+
+<!-- Privacy Settings -->
+<div class="pb-6">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary text-2xl">shield</span>
+<h3 class="text-lg font-semibold text-text-light dark:text-text-dark">Quyền riêng tư</h3>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-400">analytics</span>
+<div>
+<p class="text-sm font-medium text-text-light dark:text-text-dark">Phân tích sử dụng</p>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">Giúp cải thiện trải nghiệm</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input type="checkbox" class="sr-only peer" checked>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+<button class="w-full flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-left">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-red-500">delete</span>
+<div>
+<p class="text-sm font-medium text-text-light dark:text-text-dark">Xóa dữ liệu</p>
+<p class="text-xs text-text-secondary-light dark:text-text-secondary-dark">Xóa tất cả lịch sử và dữ liệu</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-gray-400">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+
+<!-- Modal Footer -->
+<div class="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-6">
+<div class="flex gap-3">
+<button id="resetSettingsBtn" class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-text-light dark:text-text-dark font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+Đặt lại mặc định
+</button>
+<button id="saveSettingsBtn" class="flex-1 px-4 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 transition-colors">
+Lưu thay đổi
+</button>
+</div>
+</div>
+</div>
+</div>
 
 <!-- About Me Modal -->
 <div id="aboutMeModal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
@@ -422,7 +623,7 @@ Công việc của tôi tập trung vào việc xây dựng các trang web khôn
 <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8 md:size-10 shrink-0 hidden sm:block" data-alt="User avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDAOPdig2xXVkpEEaEzNp800SSr_7CUwuQ50cmd62R8CRA0bSGIe7SvaFKzmHOx8rgrRVS4wcWcHWQVxpBq7NLhS7mtVEaZ4OoJNRbqFwnvycSzbPChOyFdcCHwWAEMQvl_by6QrgvsG94XtiGnGxH454lNnz9IWpiERqrfOxffSVcUqb_IapFfafE274RwZSkFfXQsHW-oSYwsQ2ql1dCMCEk0zIBtf31qbAIDjeijcg94WuTOGOhlxhtD_w4RCkN22IJU-UmI3q8");'></div>
 <label class="flex flex-col min-w-40 h-12 md:h-12 flex-1">
 <div class="flex w-full flex-1 items-stretch rounded-xl h-full">
-<input id="messageInput" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-text-light dark:text-text-dark focus:outline-0 focus:ring-2 focus:ring-primary border-none bg-gray-100 dark:bg-gray-700 focus:border-none h-full placeholder:text-text-secondary-light dark:placeholder:text-text-secondary-dark px-3 md:px-4 rounded-r-none border-r-0 pr-2 text-base font-normal leading-normal" placeholder="Nhập yêu cầu của bạn..." value=""/>
+                <input id="messageInput" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-text-light dark:text-text-dark focus:outline-0 focus:ring-2 focus:ring-primary border-none bg-gray-100 dark:bg-gray-700 focus:border-none h-full placeholder:text-text-secondary-light dark:placeholder:text-text-secondary-dark px-3 md:px-4 rounded-r-none border-r-0 pr-2 text-base font-normal leading-normal" placeholder="Nhập yêu cầu của bạn..." data-i18n="chat.input_placeholder" value=""/>
 <div class="flex border-none bg-gray-100 dark:bg-gray-700 items-center justify-center pr-1 md:pr-2 rounded-r-xl">
 <button class="hidden md:flex items-center justify-center p-1.5 text-text-secondary-light dark:text-text-secondary-dark hover:text-primary">
 <span class="material-symbols-outlined">add_circle</span>
@@ -462,6 +663,10 @@ Công việc của tôi tập trung vào việc xây dựng các trang web khôn
 <span class="material-symbols-outlined text-lg md:text-xl">edit</span>
 <span class="truncate hidden sm:inline">Edit</span>
 </button>
+<button id="referencesBtn" onclick="openReferencesModal()" class="flex items-center gap-1 md:gap-2 btn-touch cursor-pointer justify-center overflow-hidden rounded-lg px-2 md:px-4 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-text-light dark:text-text-dark text-sm font-medium leading-normal">
+<span class="material-symbols-outlined text-lg md:text-xl">article</span>
+<span class="truncate hidden sm:inline">Tham khảo</span>
+</button>
 </div>
 </div>
 </div>
@@ -488,6 +693,41 @@ Công việc của tôi tập trung vào việc xây dựng các trang web khôn
 </main>
 </div>
 
+<!-- References Modal -->
+<div id="referencesModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000] hidden">
+<div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-3xl w-full mx-4 max-h-[80vh] flex flex-col">
+<!-- Modal Header -->
+<div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-3xl">menu_book</span>
+<h2 class="text-2xl font-bold text-gray-900 dark:text-white">Kiến thức tham khảo</h2>
+</div>
+<button onclick="closeReferencesModal()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-400">close</span>
+</button>
+</div>
+
+<!-- Modal Body -->
+<div class="flex-1 overflow-y-auto p-6">
+<div id="referencesList" class="space-y-3">
+<!-- References will be populated by JavaScript -->
+<div class="text-center py-12">
+<span class="material-symbols-outlined text-6xl text-gray-400">search</span>
+<p class="text-gray-500 dark:text-gray-400 mt-4">Không có dữ liệu tham khảo</p>
+</div>
+</div>
+</div>
+
+<!-- Modal Footer -->
+<div class="p-6 border-t border-gray-200 dark:border-gray-700">
+<p class="text-sm text-gray-500 dark:text-gray-400 text-center">
+<span class="material-symbols-outlined text-xs align-middle">info</span>
+Các nguồn tham khảo được sử dụng để tạo kế hoạch của bạn
+</p>
+</div>
+</div>
+</div>
+
 <!-- Chat Sidebar & Plan Panel Toggle Script -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -495,6 +735,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const aboutMeBtn = document.getElementById('aboutMeBtn');
     const aboutMeModal = document.getElementById('aboutMeModal');
     const closeAboutModal = document.getElementById('closeAboutModal');
+    
+    // Settings Modal
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsModal = document.getElementById('settingsModal');
+    const closeSettingsModal = document.getElementById('closeSettingsModal');
+    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+    const resetSettingsBtn = document.getElementById('resetSettingsBtn');
     
     if (aboutMeBtn) {
         aboutMeBtn.addEventListener('click', function() {
@@ -512,12 +759,89 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Settings Modal Events
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', function() {
+            settingsModal.classList.remove('hidden');
+            settingsModal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+            
+            // Load current settings
+            loadCurrentSettings();
+        });
+    }
+    
+    if (closeSettingsModal) {
+        closeSettingsModal.addEventListener('click', function() {
+            settingsModal.classList.add('hidden');
+            settingsModal.classList.remove('flex');
+            document.body.style.overflow = '';
+        });
+    }
+    
+    if (saveSettingsBtn) {
+        saveSettingsBtn.addEventListener('click', function() {
+            saveSettings();
+        });
+    }
+    
+    if (resetSettingsBtn) {
+        resetSettingsBtn.addEventListener('click', function() {
+            resetSettings();
+        });
+    }
+    
+    // Language change handler
+    const languageRadios = document.querySelectorAll('input[name="language"]');
+    languageRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.checked && typeof changeLanguage === 'function') {
+                changeLanguage(this.value);
+                
+                // Show notification
+                const langNames = {
+                    'vi': 'Tiếng Việt',
+                    'en': 'English',
+                    'ja': '日本語'
+                };
+                showNotification('info', '🌐 Ngôn ngữ', `Đã chuyển sang ${langNames[this.value]}`);
+            }
+        });
+    });
+    
+    // Theme radio buttons visual feedback
+    const themeRadios = document.querySelectorAll('input[name="theme"]');
+    themeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Remove border-primary from all labels
+            document.querySelectorAll('input[name="theme"]').forEach(r => {
+                r.closest('label').classList.remove('border-primary');
+                r.closest('label').classList.add('border-gray-200', 'dark:border-gray-700');
+            });
+            // Add border-primary to selected label
+            if (this.checked) {
+                this.closest('label').classList.remove('border-gray-200', 'dark:border-gray-700');
+                this.closest('label').classList.add('border-primary');
+            }
+        });
+    });
+    
     // Close modal when clicking outside
     if (aboutMeModal) {
         aboutMeModal.addEventListener('click', function(e) {
             if (e.target === aboutMeModal) {
                 aboutMeModal.classList.add('hidden');
                 aboutMeModal.classList.remove('flex');
+                document.body.style.overflow = '';
+            }
+        });
+    }
+    
+    if (settingsModal) {
+        settingsModal.addEventListener('click', function(e) {
+            if (e.target === settingsModal) {
+                settingsModal.classList.add('hidden');
+                settingsModal.classList.remove('flex');
                 document.body.style.overflow = '';
             }
         });
@@ -612,6 +936,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 aboutMeModal.classList.remove('flex');
                 document.body.style.overflow = '';
             }
+            if (settingsModal && !settingsModal.classList.contains('hidden')) {
+                settingsModal.classList.add('hidden');
+                settingsModal.classList.remove('flex');
+                document.body.style.overflow = '';
+            }
         }
     });
     
@@ -629,5 +958,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<script src="{{ url_for('static', filename='js/i18n.js') }}"></script>
+<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
 <script src="{{ url_for('static', filename='js/main_chat.js') }}"></script>
 </body></html>

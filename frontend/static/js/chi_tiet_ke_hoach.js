@@ -1745,3 +1745,120 @@ if (downloadButton) {
         alert('Tính năng tải PDF sẽ được cập nhật sớm!');
     });
 }
+
+// ===== REFERENCES MODAL FUNCTIONS =====
+
+/**
+ * Open the references modal and populate it with search sources
+ */
+function openReferencesModal() {
+    const modal = document.getElementById('referencesModal');
+    if (!modal) return;
+    
+    // Populate references
+    populateReferences();
+    
+    // Show modal
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+/**
+ * Close the references modal
+ */
+function closeReferencesModal() {
+    const modal = document.getElementById('referencesModal');
+    if (!modal) return;
+    
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+/**
+ * Populate the references list from plan data
+ */
+function populateReferences() {
+    const referencesList = document.getElementById('referencesList');
+    if (!referencesList) return;
+    
+    // Check if plan has search sources
+    if (!currentPlan || !currentPlan.search_sources || currentPlan.search_sources.length === 0) {
+        referencesList.innerHTML = `
+            <div class="text-center py-12">
+                <span class="material-symbols-outlined text-6xl text-gray-400">search_off</span>
+                <p class="text-gray-500 dark:text-gray-400 mt-4">Không có nguồn tham khảo cho kế hoạch này</p>
+                <p class="text-sm text-gray-400 dark:text-gray-500 mt-2">Kế hoạch có thể được tạo thủ công hoặc từ dữ liệu mẫu</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Build references HTML
+    let referencesHtml = `
+        <div class="mb-4">
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+                Tìm thấy <strong>${currentPlan.search_sources.length}</strong> nguồn tham khảo
+            </p>
+        </div>
+    `;
+    
+    currentPlan.search_sources.forEach((source, index) => {
+        const title = source.title || 'Không có tiêu đề';
+        const url = source.url || '#';
+        const snippet = source.snippet || '';
+        
+        referencesHtml += `
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                        <span class="text-primary font-bold text-sm">${index + 1}</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-semibold text-gray-900 dark:text-white mb-1 line-clamp-2">
+                            ${escapeHtml(title)}
+                        </h3>
+                        ${snippet ? `
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mb-2 line-clamp-2">
+                                ${escapeHtml(snippet)}
+                            </p>
+                        ` : ''}
+                        <a href="${escapeHtml(url)}" 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           class="inline-flex items-center gap-1 text-sm text-primary hover:text-primary/80 transition-colors">
+                            <span class="material-symbols-outlined text-sm">link</span>
+                            <span class="truncate max-w-md">${escapeHtml(url)}</span>
+                            <span class="material-symbols-outlined text-sm">open_in_new</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    referencesList.innerHTML = referencesHtml;
+}
+
+/**
+ * Escape HTML to prevent XSS
+ */
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Close modal on outside click
+document.addEventListener('click', (e) => {
+    const modal = document.getElementById('referencesModal');
+    if (e.target === modal) {
+        closeReferencesModal();
+    }
+});
+
+// Close modal on Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeReferencesModal();
+    }
+});
