@@ -25,7 +25,7 @@ function initializeDOMElements() {
     sendButton = document.getElementById('sendButton');
     modeDropdown = document.getElementById('modeDropdown');
     modeOptions = document.querySelectorAll('.mode-option');
-    
+
     console.log('DOM Elements initialized:', {
         chatMessages: !!chatMessagesContainer,
         planDisplay: !!planDisplay,
@@ -44,10 +44,10 @@ window.addEventListener('DOMContentLoaded', () => {
     attachEventListeners();
     initializeMarkdown();
     applyViewportHeightFix();
-    
+
     // Request user's location
     requestUserLocation();
-    
+
     // Check for auto-send message from URL parameter (from Discover page)
     checkAutoSendMessage();
 });
@@ -59,11 +59,11 @@ function initializeMarkdown() {
         marked.setOptions({
             breaks: true,
             gfm: true,
-            highlight: function(code, lang) {
+            highlight: function (code, lang) {
                 if (lang && hljs.getLanguage(lang)) {
                     try {
                         return hljs.highlight(code, { language: lang }).value;
-                    } catch (err) {}
+                    } catch (err) { }
                 }
                 return code;
             }
@@ -112,10 +112,10 @@ function hideModeDropdown() {
 // Handle @ input for mode selection
 function handleAtSymbol() {
     if (!messageInput) return;
-    
+
     const value = messageInput.value;
     const cursorPos = messageInput.selectionStart;
-    
+
     // Check if @ is at cursor position
     if (value[cursorPos - 1] === '@') {
         showModeDropdown();
@@ -140,7 +140,7 @@ function attachEventListeners() {
     } else {
         console.error('Send button not found!');
     }
-    
+
     // Input events
     if (messageInput) {
         // Enter key
@@ -151,10 +151,10 @@ function attachEventListeners() {
                 handleSendMessage();
             }
         });
-        
+
         // @ symbol detection
         messageInput.addEventListener('input', handleAtSymbol);
-        
+
         // Hide dropdown when focus lost
         messageInput.addEventListener('blur', () => {
             setTimeout(hideModeDropdown, 200); // Delay to allow click on dropdown
@@ -162,13 +162,13 @@ function attachEventListeners() {
     } else {
         console.error('Message input not found!');
     }
-    
+
     // Mode option buttons
     modeOptions.forEach(option => {
         option.addEventListener('click', () => {
             const prefix = option.dataset.prefix;
             const mode = option.dataset.mode;
-            
+
             if (messageInput) {
                 const value = messageInput.value;
                 // Replace @ with mode prefix
@@ -177,7 +177,7 @@ function attachEventListeners() {
                 messageInput.focus();
                 currentMode = mode;
             }
-            
+
             hideModeDropdown();
         });
     });
@@ -191,7 +191,7 @@ function attachEventListeners() {
             }
         });
     });
-    
+
     // New chat button
     const newChatBtn = document.getElementById('newChatBtn');
     if (newChatBtn) {
@@ -203,43 +203,43 @@ function attachEventListeners() {
 async function handleSendMessage() {
     const message = messageInput?.value.trim();
     if (!message) return;
-    
+
     // Send message as-is, let backend LLM decide the mode
     // No need to add @plan prefix automatically
     console.log(`Sending message:`, message);
-    
+
     // Disable input and button
     if (messageInput) messageInput.disabled = true;
     if (sendButton) sendButton.disabled = true;
-    
+
     // Add user message (show original message without prefix)
     addUserMessage(message);
-    
+
     // Clear input
     if (messageInput) {
         messageInput.value = '';
     }
-    
+
     // Hide dropdown if visible
     hideModeDropdown();
-    
+
     // Show loading
     const loadingMsg = addLoadingMessage();
-    
+
     try {
         // Prepare request data
-        const requestData = { 
+        const requestData = {
             message: message,  // Send original message, let LLM analyze intent
             conversation_session_id: currentConversationId  // Send current conversation session ID
         };
-        
+
         // Include current plan if in edit mode
         if (currentMode === 'edit_plan' && currentPlan) {
             requestData.current_plan = currentPlan;
         }
-        
+
         console.log('Request data:', requestData);
-        
+
         // Send to API
         const response = await fetch('/api/chat', {
             method: 'POST',
@@ -248,37 +248,37 @@ async function handleSendMessage() {
             },
             body: JSON.stringify(requestData)
         });
-        
+
         const data = await response.json();
-        
+
         // Remove loading
         loadingMsg.remove();
         if (data.success) {
             // Add bot response
             addBotMessage(data.response);
-            
+
             // Update conversation ID from response (if returned by server)
             if (data.conversation_session_id) {
                 currentConversationId = data.conversation_session_id;
             }
-            
+
             // If has plan, update plan view and store it
             if (data.has_plan && data.plan_data) {
                 currentPlan = data.plan_data;  // Store for edit mode
                 updatePlanView(data.plan_data);
-                
+
                 // Add action buttons after bot message if plan_id exists
                 if (data.plan_id) {
                     addPlanActionButtons(data.plan_id);
                 }
             }
-            
+
             // Update header buttons based on whether we have a plan
             updateHeaderButtons();
-            
+
             // Update session list after sending message
             loadChatSessions();
-            
+
             // Auto-save session title if this is the first message in a new session
             if (currentConversationId && chatMessagesContainer.children.length === 4) {
                 // 4 children = welcome message (2) + user message (1) + bot message (1)
@@ -303,7 +303,7 @@ async function handleSendMessage() {
 function createBotMessage(text) {
     const msgDiv = document.createElement('div');
     msgDiv.className = 'flex items-end gap-3';
-    
+
     // Render markdown
     let renderedContent;
     if (typeof marked !== 'undefined') {
@@ -311,7 +311,7 @@ function createBotMessage(text) {
     } else {
         renderedContent = escapeHtml(text).replace(/\n/g, '<br>');
     }
-    
+
     msgDiv.innerHTML = `
         <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-10 shrink-0" 
              style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuASndgVA3RbX1H4yCbbqk8hsJujYw-P6pZI-uQr7cNE6Fya18CrfnQF3Q6u5lkHGOdbnxRhwJZDcIr3QYn2d9_fHpzc12fDYZTMAQJ7TptH7Pyu-rlqSErcQwCOM7T7182tN0XX_l_KuPUmWhBcT3Qsf6Y1drq5VInxput-tgaNfjrS50WHYfdtTuf2Ofxb432HdB0uwEupfdrgBaK8ptf5_sLoNoRi-VRHoMj3O_yZSs2pThNsHrNSU7onQN-hig4FR913Omzgito");'></div>
@@ -320,14 +320,14 @@ function createBotMessage(text) {
             <div class="markdown-content text-base font-normal leading-normal max-w-[480px] rounded-xl px-4 py-3 bg-gray-100 dark:bg-gray-700">${renderedContent}</div>
         </div>
     `;
-    
+
     // Highlight code blocks if hljs is available
     if (typeof hljs !== 'undefined') {
         msgDiv.querySelectorAll('pre code').forEach((block) => {
             hljs.highlightElement(block);
         });
     }
-    
+
     return msgDiv;
 }
 
@@ -361,7 +361,7 @@ function addPlanActionButtons(planId) {
             Tiếp tục đặt chỗ
         </button>
     `;
-    
+
     // Append to chat messages
     chatMessagesContainer?.appendChild(buttonDiv);
     scrollToBottom();
@@ -369,23 +369,25 @@ function addPlanActionButtons(planId) {
 
 // Handle edit plan button click
 function editPlan() {
-    // Set mode to edit_plan
-    currentMode = 'edit_plan';
-    
-    // Update mode dropdown UI
-    if (modeDropdown) {
-        const modeText = modeDropdown.querySelector('.mode-text');
-        if (modeText) modeText.textContent = '@edit_plan';
+    if (!currentPlan) {
+        showNotification('error', 'Lỗi', 'Chưa có kế hoạch để chỉnh sửa');
+        return;
     }
-    
-    // Focus on input
-    if (messageInput) {
-        messageInput.focus();
-        messageInput.placeholder = 'Nhập yêu cầu chỉnh sửa kế hoạch...';
+
+    if (currentPlan.id) {
+        // If plan has ID, redirect to edit page
+        window.location.href = `/plans/${currentPlan.id}/edit`;
+    } else {
+        // If no ID, prompt user to use chat to edit
+        showNotification('info', 'Mẹo', 'Bạn có thể sử dụng @edit_plan trong chat để chỉnh sửa kế hoạch!');
+
+        // Focus on message input
+        const messageInput = document.getElementById('messageInput');
+        if (messageInput) {
+            messageInput.focus();
+            messageInput.value = '@edit_plan ';
+        }
     }
-    
-    // Show notification
-    showNotification('Chế độ chỉnh sửa kế hoạch đã được kích hoạt', 'info');
 }
 
 // Handle continue to plan detail button click
@@ -401,15 +403,14 @@ function continueToPlanDetail(planId) {
 function showNotification(message, type = 'info') {
     // Create notification element
     const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-300 ${
-        type === 'error' ? 'bg-red-500 text-white' : 
-        type === 'success' ? 'bg-green-500 text-white' : 
-        'bg-blue-500 text-white'
-    }`;
+    notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 transition-opacity duration-300 ${type === 'error' ? 'bg-red-500 text-white' :
+        type === 'success' ? 'bg-green-500 text-white' :
+            'bg-blue-500 text-white'
+        }`;
     notification.textContent = message;
-    
+
     document.body.appendChild(notification);
-    
+
     // Auto remove after 3 seconds
     setTimeout(() => {
         notification.style.opacity = '0';
@@ -472,9 +473,9 @@ function updatePlanView(planData) {
         console.warn('Plan display element not found');
         return;
     }
-    
+
     planDisplay.innerHTML = '';
-    
+
     // Header
     const header = document.createElement('div');
     header.className = 'flex flex-col gap-2 border-b pb-3 mb-3';
@@ -483,7 +484,7 @@ function updatePlanView(planData) {
         <p class="text-sm text-gray-600 dark:text-gray-400">${planData.destination} - ${planData.duration_days} ngày</p>
     `;
     planDisplay.appendChild(header);
-    
+
     // Budget summary
     if (planData.budget) {
         const budgetDiv = document.createElement('div');
@@ -497,13 +498,13 @@ function updatePlanView(planData) {
         `;
         planDisplay.appendChild(budgetDiv);
     }
-    
+
     // Itinerary by day
     if (planData.itinerary && Array.isArray(planData.itinerary)) {
         planData.itinerary.forEach((day, index) => {
             const dayDiv = document.createElement('div');
             dayDiv.className = 'flex flex-col gap-2 mt-3';
-            
+
             // Day header
             const dayHeader = document.createElement('div');
             dayHeader.className = 'flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-2';
@@ -512,7 +513,7 @@ function updatePlanView(planData) {
                 <span class="font-bold text-gray-900 dark:text-white">Ngày ${day.day}</span>
             `;
             dayDiv.appendChild(dayHeader);
-            
+
             // Activities
             if (day.activities && Array.isArray(day.activities)) {
                 day.activities.forEach(activity => {
@@ -531,11 +532,11 @@ function updatePlanView(planData) {
                     dayDiv.appendChild(activityDiv);
                 });
             }
-            
+
             planDisplay.appendChild(dayDiv);
         });
     }
-    
+
     // Save button
     const saveBtn = document.createElement('button');
     saveBtn.className = 'mt-4 w-full flex items-center justify-center gap-2 rounded-lg h-12 px-5 bg-primary text-white font-bold hover:bg-primary/90 transition-all';
@@ -554,7 +555,7 @@ async function savePlan(planData) {
         addErrorMessage('Dữ liệu kế hoạch không hợp lệ');
         return;
     }
-    
+
     // Show loading
     const saveBtn = event.target.closest('button');
     const originalContent = saveBtn.innerHTML;
@@ -563,7 +564,7 @@ async function savePlan(planData) {
         <span class="material-symbols-outlined animate-spin">progress_activity</span>
         <span>Đang lưu...</span>
     `;
-    
+
     try {
         const response = await fetch('/api/save-plan', {
             method: 'POST',
@@ -572,16 +573,16 @@ async function savePlan(planData) {
             },
             body: JSON.stringify(planData)
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             // Show success message
             addBotMessage('✅ Đã lưu kế hoạch thành công! Đang chuyển đến trang kế hoạch...');
-            
+
             // Show notification
             showNotification('success', 'Kế hoạch đã được lưu!', 'Bạn có thể xem lại trong mục "My Plans"');
-            
+
             // Redirect after 1.5 seconds
             setTimeout(() => {
                 window.location.href = '/plans';
@@ -616,8 +617,8 @@ function escapeHtml(text) {
 
 function formatCurrency(amount) {
     if (!amount) return '0 ₫';
-    return new Intl.NumberFormat('vi-VN', { 
-        style: 'currency', 
+    return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
         currency: 'VND',
         minimumFractionDigits: 0
     }).format(amount);
@@ -641,7 +642,7 @@ function showNotification(type, title, message) {
         </div>
     `;
     document.body.appendChild(notif);
-    
+
     // Auto remove after 5 seconds
     setTimeout(() => {
         notif.remove();
@@ -653,11 +654,11 @@ async function loadChatSessions() {
     try {
         const response = await fetch('/api/chat-sessions');
         const data = await response.json();
-        
+
         if (data.success && data.sessions) {
             chatSessions = data.sessions;
             renderChatSessions();
-            
+
             // DON'T auto-load session on page load
             // Only load if explicitly requested by user
         }
@@ -670,9 +671,9 @@ async function loadChatSessions() {
 function renderChatSessions() {
     const sessionsList = document.getElementById('chatSessionsList');
     if (!sessionsList) return;
-    
+
     sessionsList.innerHTML = '';
-    
+
     if (chatSessions.length === 0) {
         sessionsList.innerHTML = `
             <div class="px-3 py-2 text-xs text-text-secondary-light dark:text-text-secondary-dark text-center">
@@ -681,16 +682,15 @@ function renderChatSessions() {
         `;
         return;
     }
-    
+
     chatSessions.forEach(session => {
         const sessionDiv = document.createElement('div');
         const isActive = currentConversationId === session.id;
-        sessionDiv.className = `group flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${
-            isActive 
-                ? 'bg-primary/20 dark:bg-primary/30 text-primary' 
-                : 'text-text-light dark:text-text-dark hover:bg-gray-100 dark:hover:bg-gray-700'
-        }`;
-        
+        sessionDiv.className = `group flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer ${isActive
+            ? 'bg-primary/20 dark:bg-primary/30 text-primary'
+            : 'text-text-light dark:text-text-dark hover:bg-gray-100 dark:hover:bg-gray-700'
+            }`;
+
         sessionDiv.innerHTML = `
             <span class="material-symbols-outlined text-sm">chat_bubble</span>
             <div class="flex-1 min-w-0">
@@ -701,21 +701,21 @@ function renderChatSessions() {
                 <span class="material-symbols-outlined text-sm text-red-500">delete</span>
             </button>
         `;
-        
+
         // Click to load session
         sessionDiv.addEventListener('click', (e) => {
             if (!e.target.closest('.delete-session-btn')) {
                 loadChatSession(session.id);
             }
         });
-        
+
         // Delete button
         const deleteBtn = sessionDiv.querySelector('.delete-session-btn');
         deleteBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             deleteChatSession(session.id);
         });
-        
+
         sessionsList.appendChild(sessionDiv);
     });
 }
@@ -725,37 +725,37 @@ async function loadChatSession(sessionId) {
     try {
         const response = await fetch(`/api/chat-sessions/${sessionId}/messages`);
         const data = await response.json();
-        
+
         if (data.success && data.messages) {
             currentConversationId = sessionId;
-            
+
             // Clear current messages
             if (chatMessagesContainer) {
                 chatMessagesContainer.innerHTML = '';
             }
-            
+
             // Clear current plan first
             currentPlan = null;
-            
+
             // Add messages and track the latest plan
             let latestPlan = null;
             let latestPlanId = null;
             data.messages.forEach((msg, index) => {
                 addUserMessage(msg.user_message);
                 addBotMessage(msg.bot_response);
-                
+
                 // Track the latest plan in this session
                 if (msg.plan_id && msg.plan_data) {
                     latestPlan = msg.plan_data;
                     latestPlanId = msg.plan_id;
                 }
             });
-            
+
             // Add action buttons for the latest plan (if exists)
             if (latestPlanId) {
                 addPlanActionButtons(latestPlanId);
             }
-            
+
             // Display the latest plan if found
             if (latestPlan) {
                 currentPlan = latestPlan;
@@ -775,7 +775,7 @@ async function loadChatSession(sessionId) {
                 }
                 updateHeaderButtons();  // Disable save/share/edit buttons
             }
-            
+
             // Update UI
             renderChatSessions();
         }
@@ -797,18 +797,18 @@ async function createNewChatSession() {
                 title: 'Chat mới'
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success && data.session) {
             // Clear current chat
             currentConversationId = data.session.id;
             currentPlan = null;
-            
+
             if (chatMessagesContainer) {
                 chatMessagesContainer.innerHTML = '';
             }
-            
+
             if (planDisplay) {
                 planDisplay.innerHTML = `
                     <div class="text-center py-12">
@@ -818,16 +818,16 @@ async function createNewChatSession() {
                     </div>
                 `;
             }
-            
+
             // Disable header buttons (no plan yet)
             updateHeaderButtons();
-            
+
             // Reload sessions list
             await loadChatSessions();
-            
+
             // Add welcome message
             addWelcomeMessage();
-            
+
             showNotification('success', 'Chat mới', 'Đã tạo cuộc hội thoại mới');
         }
     } catch (error) {
@@ -841,14 +841,14 @@ async function deleteChatSession(sessionId) {
     if (!confirm('Bạn có chắc muốn xóa cuộc hội thoại này?')) {
         return;
     }
-    
+
     try {
         const response = await fetch(`/api/chat-sessions/${sessionId}`, {
             method: 'DELETE'
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             // If deleting current session, create new one
             if (currentConversationId === sessionId) {
@@ -856,7 +856,7 @@ async function deleteChatSession(sessionId) {
             } else {
                 await loadChatSessions();
             }
-            
+
             showNotification('success', 'Đã xóa', 'Cuộc hội thoại đã được xóa');
         }
     } catch (error) {
@@ -870,7 +870,7 @@ async function autoSaveSessionTitle(sessionId, firstMessage) {
     try {
         // Extract a short title from the message (first 50 chars)
         const title = firstMessage.substring(0, 50).trim() + (firstMessage.length > 50 ? '...' : '');
-        
+
         await fetch(`/api/chat-sessions/${sessionId}`, {
             method: 'PUT',
             headers: {
@@ -886,19 +886,19 @@ async function autoSaveSessionTitle(sessionId, firstMessage) {
 // Format session time
 function formatSessionTime(timestamp) {
     if (!timestamp) return '';
-    
+
     const date = new Date(timestamp);
     const now = new Date();
     const diffMs = now - date;
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
-    
+
     if (diffMins < 1) return 'Vừa xong';
     if (diffMins < 60) return `${diffMins} phút trước`;
     if (diffHours < 24) return `${diffHours} giờ trước`;
     if (diffDays < 7) return `${diffDays} ngày trước`;
-    
+
     return date.toLocaleDateString('vi-VN');
 }
 
@@ -912,7 +912,7 @@ if (savePlanBtn) {
             showNotification('error', 'Lỗi', 'Chưa có kế hoạch để lưu');
             return;
         }
-        
+
         // Show loading
         const originalContent = savePlanBtn.innerHTML;
         savePlanBtn.disabled = true;
@@ -920,19 +920,19 @@ if (savePlanBtn) {
             <span class="material-symbols-outlined animate-spin">progress_activity</span>
             <span>Đang lưu...</span>
         `;
-        
+
         try {
             // Create plan data with explicit status override
             const planToSave = {
                 ...currentPlan,
                 status: 'active'  // Mark as active when user explicitly saves
             };
-            
+
             // Ensure status is 'active' (double-check)
             planToSave.status = 'active';
-            
+
             console.log('💾 Saving plan with status:', planToSave.status);
-            
+
             const response = await fetch('/api/save-plan', {
                 method: 'POST',
                 headers: {
@@ -940,27 +940,27 @@ if (savePlanBtn) {
                 },
                 body: JSON.stringify(planToSave)
             });
-            
+
             const data = await response.json();
-            
+
             if (data.success) {
                 showNotification('success', 'Thành công', 'Kế hoạch đã được lưu!');
-                
+
                 // Update currentPlan with saved data
                 if (data.plan_id) {
                     currentPlan.id = data.plan_id;
                 }
                 // Update status to active since we just saved it as active
                 currentPlan.status = 'active';
-                
+
                 console.log('✅ Plan saved successfully, status updated to:', currentPlan.status);
-                
+
                 // Re-enable with checkmark
                 savePlanBtn.innerHTML = `
                     <span class="material-symbols-outlined">check_circle</span>
                     <span>Đã lưu</span>
                 `;
-                
+
                 // Reset after 2 seconds
                 setTimeout(() => {
                     savePlanBtn.innerHTML = originalContent;
@@ -988,10 +988,10 @@ if (sharePlanBtn) {
             showNotification('error', 'Lỗi', 'Chưa có kế hoạch để chia sẻ');
             return;
         }
-        
+
         // Generate shareable link
         const shareUrl = window.location.origin + '/plans/' + (currentPlan.id || 'draft');
-        
+
         // Copy to clipboard
         if (navigator.clipboard) {
             navigator.clipboard.writeText(shareUrl).then(() => {
@@ -1015,14 +1015,14 @@ if (editPlanBtn) {
             showNotification('error', 'Lỗi', 'Chưa có kế hoạch để chỉnh sửa');
             return;
         }
-        
+
         if (currentPlan.id) {
             // If plan has ID, redirect to edit page
             window.location.href = `/plans/${currentPlan.id}/edit`;
         } else {
             // If no ID, prompt user to use chat to edit
             showNotification('info', 'Mẹo', 'Bạn có thể sử dụng @edit_plan trong chat để chỉnh sửa kế hoạch!');
-            
+
             // Focus on message input
             const messageInput = document.getElementById('messageInput');
             if (messageInput) {
@@ -1036,7 +1036,7 @@ if (editPlanBtn) {
 // Function to enable/disable header buttons based on plan availability
 function updateHeaderButtons() {
     const hasPlan = currentPlan !== null;
-    
+
     if (savePlanBtn) savePlanBtn.disabled = !hasPlan;
     if (sharePlanBtn) sharePlanBtn.disabled = !hasPlan;
     if (editPlanBtn) editPlanBtn.disabled = !hasPlan;
@@ -1049,35 +1049,35 @@ function requestUserLocation() {
         console.log('❌ Geolocation is not supported by this browser');
         return;
     }
-    
+
     // Request permission and get location
     navigator.geolocation.getCurrentPosition(
         // Success callback
-        function(position) {
+        function (position) {
             const latitude = position.coords.latitude;
             const longitude = position.coords.longitude;
             const accuracy = position.coords.accuracy;
-            
+
             console.log('📍 Location obtained:', {
                 latitude,
                 longitude,
                 accuracy: accuracy + 'm'
             });
-            
+
             // Send to server
             saveUserLocation(latitude, longitude);
         },
         // Error callback
-        function(error) {
+        function (error) {
             console.log('⚠️ Location request denied or failed:', error.message);
-            
+
             // Show friendly notification (optional)
             const errorMessages = {
                 1: 'Bạn đã từ chối chia sẻ vị trí',
                 2: 'Không thể xác định vị trí',
                 3: 'Yêu cầu vị trí hết thời gian'
             };
-            
+
             const message = errorMessages[error.code] || 'Không thể lấy vị trí';
             console.log('ℹ️', message);
         },
@@ -1103,9 +1103,9 @@ async function saveUserLocation(latitude, longitude) {
                 longitude
             })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             console.log('✅ Location saved to server');
         } else {
@@ -1122,40 +1122,40 @@ function checkAutoSendMessage() {
     const autoMessage = urlParams.get('message');
     const command = urlParams.get('command');
     const planId = urlParams.get('plan_id');
-    
+
     // Handle edit plan command
     if (command === '@edit_plan' && planId && messageInput) {
         messageInput.value = `@edit_plan`;
         messageInput.focus();
-        
+
         // Show notification
         if (typeof showNotification === 'function') {
             showNotification('Nhập yêu cầu chỉnh sửa kế hoạch của bạn! ✏️', 'info');
         }
-        
+
         // Clean URL (remove query parameters)
         const cleanUrl = window.location.pathname;
         window.history.replaceState({}, document.title, cleanUrl);
         return;
     }
-    
+
     // Handle auto-send message from Discovery page
     if (autoMessage && messageInput) {
         // Decode and set message
         messageInput.value = decodeURIComponent(autoMessage);
-        
+
         // Show notification
         if (typeof showNotification === 'function') {
             showNotification('Đã tự động điền tin nhắn từ Discovery! 🗺️', 'info');
         }
-        
+
         // Auto-send after a short delay (allow user to see the message first)
         setTimeout(() => {
             if (messageInput && messageInput.value.trim()) {
                 handleSendMessage();
             }
         }, 500);
-        
+
         // Clean URL (remove query parameter)
         const cleanUrl = window.location.pathname;
         window.history.replaceState({}, document.title, cleanUrl);

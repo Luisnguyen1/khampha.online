@@ -528,12 +528,12 @@ function renderSummaryTab(plan) {
     console.log('Plan budget:', plan.budget);
     console.log('Plan total_cost (from DB):', plan.total_cost);
     
-    // Use calculated actual cost instead of plan.total_cost
-    loadHotelCost(actualCost);
+    // Load hotel cost and update total with activities + hotel
+    loadHotelCost(actualCost, plan.budget);
 }
 
 // Load hotel cost and update total
-async function loadHotelCost(activitiesCost) {
+async function loadHotelCost(activitiesCost, budget) {
     const planId = getPlanIdFromUrl();
     if (!planId) return;
     
@@ -546,14 +546,39 @@ async function loadHotelCost(activitiesCost) {
             hotelCost = data.hotel.total_price;
         }
         
-        // Update UI
+        // Calculate total actual cost (activities + hotel)
+        const totalActualCost = activitiesCost + hotelCost;
+        
+        // Update UI - Cost breakdown table
         const activitiesEl = document.getElementById('cost-activities');
         const hotelEl = document.getElementById('cost-hotel');
         const totalEl = document.getElementById('cost-total');
         
         if (activitiesEl) activitiesEl.textContent = formatPrice(activitiesCost);
         if (hotelEl) hotelEl.textContent = formatPrice(hotelCost);
-        if (totalEl) totalEl.textContent = formatPrice(activitiesCost + hotelCost);
+        if (totalEl) totalEl.textContent = formatPrice(totalActualCost);
+        
+        // Update stats at top of Summary tab
+        const statsContainer = document.getElementById('day-stats');
+        if (statsContainer && budget !== undefined) {
+            const savings = budget - totalActualCost;
+            const isOverBudget = savings < 0;
+            
+            statsContainer.innerHTML = `
+                <div class="flex flex-col gap-2 rounded-xl p-6 border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-gray-800">
+                    <p class="text-[#111618] dark:text-gray-300 text-base font-medium leading-normal">Tổng chi phí thực tế</p>
+                    <p class="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight">${formatCurrency(totalActualCost)}</p>
+                </div>
+                <div class="flex flex-col gap-2 rounded-xl p-6 border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-gray-800">
+                    <p class="text-[#111618] dark:text-gray-300 text-base font-medium leading-normal">Ngân sách dự kiến</p>
+                    <p class="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight">${formatCurrency(budget)}</p>
+                </div>
+                <div class="flex flex-col gap-2 rounded-xl p-6 border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-gray-800">
+                    <p class="text-[#111618] dark:text-gray-300 text-base font-medium leading-normal">${isOverBudget ? 'Vượt ngân sách' : 'Tiết kiệm'}</p>
+                    <p class="text-[#111618] dark:text-white tracking-light text-2xl font-bold leading-tight ${isOverBudget ? 'text-red-600' : 'text-green-600'}">${formatCurrency(Math.abs(savings))}</p>
+                </div>
+            `;
+        }
     } catch (error) {
         console.error('Error loading hotel cost:', error);
     }
@@ -1046,8 +1071,8 @@ if (editButton) {
     editButton.addEventListener('click', () => {
         const planId = getPlanIdFromUrl();
         if (planId) {
-            // Redirect to chat page with @edit_plan command pre-filled
-            window.location.href = `/chat?plan_id=${planId}&command=@edit_plan`;
+            // Redirect to edit plan page
+            window.location.href = `/plans/${planId}/edit`;
         }
     });
 }
