@@ -557,6 +557,84 @@ def get_plan(plan_id):
         }), 500
 
 
+@app.route('/api/plans/<int:plan_id>', methods=['PUT'])
+def update_plan(plan_id):
+    """Update a plan"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'No data provided'
+            }), 400
+        
+        # Get the plan to verify it exists
+        plan = db.get_plan(plan_id)
+        if not plan:
+            return jsonify({
+                'success': False,
+                'error': 'Plan not found'
+            }), 404
+        
+        # Verify user owns this plan
+        current_user = get_current_user()
+        if plan.user_id and current_user and plan.user_id != current_user.id:
+            return jsonify({
+                'success': False,
+                'error': 'Unauthorized'
+            }), 403
+        
+        # Update plan fields
+        update_fields = {}
+        
+        if 'plan_name' in data:
+            update_fields['plan_name'] = data['plan_name']
+        if 'destination' in data:
+            update_fields['destination'] = data['destination']
+        if 'duration_days' in data:
+            update_fields['duration_days'] = data['duration_days']
+        if 'budget' in data:
+            update_fields['budget'] = data['budget']
+        if 'preferences' in data:
+            update_fields['preferences'] = data['preferences']
+        if 'start_date' in data:
+            update_fields['start_date'] = data['start_date']
+        if 'end_date' in data:
+            update_fields['end_date'] = data['end_date']
+        if 'itinerary' in data:
+            update_fields['itinerary'] = data['itinerary']
+        if 'status' in data:
+            update_fields['status'] = data['status']
+        
+        # Update in database
+        success = db.update_plan(plan_id, update_fields)
+        
+        if not success:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to update plan'
+            }), 500
+        
+        # Get updated plan
+        updated_plan = db.get_plan(plan_id)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Plan updated successfully',
+            'plan': updated_plan.to_dict()
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error updating plan: {str(e)}")
+        import traceback
+        app.logger.error(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
 @app.route('/api/plans/<int:plan_id>', methods=['DELETE'])
 def delete_plan(plan_id):
     """Delete a plan"""
@@ -829,7 +907,264 @@ def delete_plan_hotel(plan_id):
         }), 500
 
 
+# ===== FLIGHT ROUTES =====
+
+@app.route('/api/plans/<int:plan_id>/search-flights', methods=['POST'])
+def search_flights(plan_id):
+    """Search flights for a plan"""
+    try:
+        # Get plan to extract origin and destination
+        plan = db.get_plan(plan_id)
+        if not plan:
+            return jsonify({
+                'success': False,
+                'error': 'Plan not found'
+            }), 404
+        
+        # Get request data
+        data = request.get_json()
+        origin = data.get('origin')  # City name or airport code
+        destination = data.get('destination', plan.destination)
+        departure_date = data.get('departure_date')
+        return_date = data.get('return_date')  # Optional for one-way
+        adults = data.get('adults', 1)
+        children = data.get('children', 0)
+        infants = data.get('infants', 0)
+        cabin_class = data.get('cabin_class', 'Economy')
+        
+        if not origin or not destination or not departure_date:
+            return jsonify({
+                'success': False,
+                'error': 'Origin, destination, and departure date are required'
+            }), 400
+        
+        # Import FlightSearcher
+        from utils.flight_search import AgodaFlightSearchAPI
+        from config import Config
+        
+        # Initialize flight searcher
+        searcher = AgodaFlightSearchAPI(api_key=Config.RAPIDAPI_KEY)
+        
+        # Get airport codes
+        origin_code = searcher.get_airport_code(origin)
+        dest_code = searcher.get_airport_code(destination)
+        
+        if not origin_code or not dest_code:
+            return jsonify({
+                'success': False,
+                'error': 'Could not find airport codes for specified locations'
+            }), 400
+        
+        # Search flights
+        if return_date:
+            # Round trip
+            flights = searcher.search_round_trip_flight(
+                origin=origin_code,
+                destination=dest_code,
+                departure_date=departure_date,
+                return_date=return_date,
+                adults=adults,
+                children=children,
+                infants=infants
+            )
+        else:
+            # One way
+            flights = searcher.search_one_way_flight(
+                origin=origin_code,
+                destination=dest_code,
+                departure_date=departure_date,
+                adults=adults,
+                children=children,
+                infants=infants
+            )
+        
+        if not flights:
+            return jsonify({
+                'success': True,
+                'flights': [],
+                'message': 'No flights found for the specified criteria'
+            })
+        
+        # Extract and format flight information
+        formatted_flights = searcher.extract_flight_info(flights)
+        
+        return jsonify({
+            'success': True,
+            'flights': formatted_flights,
+            'search_params': {
+                'origin': origin,
+                'origin_code': origin_code,
+                'destination': destination,
+                'destination_code': dest_code,
+                'departure_date': departure_date,
+                'return_date': return_date,
+                'passengers': {
+                    'adults': adults,
+                    'children': children,
+                    'infants': infants
+                },
+                'cabin_class': cabin_class
+            }
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error searching flights: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/plans/<int:plan_id>/flight', methods=['POST'])
+def save_plan_flight(plan_id):
+    """Save selected flight for a plan"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'Flight data is required'
+            }), 400
+        
+        # Determine flight type (outbound or return)
+        flight_type = data.get('flight_type', 'outbound')
+        
+        # Prepare flight data
+        flight_data = {
+            'bundle_key': data.get('bundle_key', ''),
+            'carrier_name': data.get('carrier_name', ''),
+            'carrier_code': data.get('carrier_code', ''),
+            'carrier_logo': data.get('carrier_logo'),
+            'flight_number': data.get('flight_number', ''),
+            'origin_airport': data.get('origin_airport', ''),
+            'origin_code': data.get('origin_code', ''),
+            'origin_city': data.get('origin_city'),
+            'destination_airport': data.get('destination_airport', ''),
+            'destination_code': data.get('destination_code', ''),
+            'destination_city': data.get('destination_city'),
+            'departure_time': data.get('departure_time', ''),
+            'arrival_time': data.get('arrival_time', ''),
+            'duration': data.get('duration', 0),
+            'stops': data.get('stops', 0),
+            'cabin_class': data.get('cabin_class', 'Economy'),
+            'price_vnd': data.get('price_vnd', 0),
+            'currency': data.get('currency', 'VND'),
+            'adults': data.get('adults', 1),
+            'children': data.get('children', 0),
+            'infants': data.get('infants', 0),
+            'overnight_flight': data.get('overnight_flight', False),
+            'layover_info': data.get('layover_info', []),
+            'segments': data.get('segments', [])
+        }
+        
+        # Save to database
+        success = db.save_plan_flight(plan_id, flight_data, flight_type)
+        
+        if not success:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to save flight'
+            }), 500
+        
+        return jsonify({
+            'success': True,
+            'message': 'Flight saved successfully'
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error saving flight: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/plans/<int:plan_id>/flights', methods=['GET'])
+def get_plan_flights(plan_id):
+    """Get all selected flights for a plan"""
+    try:
+        flights = db.get_plan_flights(plan_id)
+        
+        return jsonify({
+            'success': True,
+            'flights': flights
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error getting flights: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/plans/<int:plan_id>/flight/<int:flight_id>', methods=['DELETE'])
+def delete_plan_flight(plan_id, flight_id):
+    """Delete a selected flight from a plan"""
+    try:
+        success = db.delete_plan_flight(plan_id, flight_id)
+        
+        if not success:
+            return jsonify({
+                'success': False,
+                'error': 'Flight not found'
+            }), 404
+        
+        return jsonify({
+            'success': True,
+            'message': 'Flight deleted successfully'
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error deleting flight: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/flights/search-location', methods=['POST'])
+def search_flight_location():
+    """Search for airport codes by city name"""
+    try:
+        data = request.get_json()
+        city_name = data.get('city_name')
+        
+        if not city_name:
+            return jsonify({
+                'success': False,
+                'error': 'City name is required'
+            }), 400
+        
+        from utils.flight_search import AgodaFlightSearchAPI
+        from config import Config
+        
+        searcher = AgodaFlightSearchAPI(api_key=Config.RAPIDAPI_KEY)
+        airport_code = searcher.get_airport_code(city_name)
+        
+        if not airport_code:
+            return jsonify({
+                'success': False,
+                'error': f'No airport found for {city_name}'
+            }), 404
+        
+        return jsonify({
+            'success': True,
+            'city_name': city_name,
+            'airport_code': airport_code
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error searching location: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
 @app.route('/api/plans/<int:plan_id>/confirm', methods=['POST'])
+
 def confirm_plan(plan_id):
     """Confirm a plan and update its status to confirmed"""
     try:

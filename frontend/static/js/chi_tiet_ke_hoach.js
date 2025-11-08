@@ -32,7 +32,7 @@ function switchTab(tabName) {
     currentTab = tabName;
     
     // Update tab buttons
-    const tabs = ['itinerary', 'hotel', 'summary'];
+    const tabs = ['itinerary', 'hotel', 'flight', 'summary'];
     tabs.forEach(tab => {
         const btn = document.getElementById(`tab-${tab}`);
         const content = document.getElementById(`content-${tab}`);
@@ -55,6 +55,8 @@ function switchTab(tabName) {
         renderSummaryTab(currentPlan);
     } else if (tabName === 'hotel' && currentPlan) {
         initializeHotelTab();
+    } else if (tabName === 'flight' && currentPlan) {
+        initializeFlightTab();
     }
 }
 
@@ -500,6 +502,568 @@ async function clearSelectedHotel() {
     }
 }
 
+// ===== FLIGHT FUNCTIONS =====
+
+// Initialize flight tab
+async function initializeFlightTab() {
+    console.log('=== initializeFlightTab called ===');
+    console.log('currentPlan:', currentPlan);
+    
+    // Load selected flights first
+    await loadSelectedFlights();
+    
+    // Fill in data from plan and auto-search
+    if (currentPlan) {
+        const originInput = document.getElementById('flight-origin');
+        const destinationInput = document.getElementById('flight-destination');
+        const departureInput = document.getElementById('flight-departure');
+        const returnInput = document.getElementById('flight-return');
+        
+        // Get user's location from localStorage (set during chat permission)
+        const userLocation = localStorage.getItem('userLocation') || 'SGN';
+        
+        // Set origin from user location
+        if (originInput) {
+            originInput.value = userLocation;
+        }
+        
+        // Set destination from plan
+        if (destinationInput && currentPlan.destination) {
+            destinationInput.value = currentPlan.destination;
+        }
+        
+        // Calculate dates: departure is 1 day before start_date, return is 1 day after end_date
+        let departureDate = '';
+        let returnDate = '';
+        
+        if (currentPlan.start_date) {
+            const startDate = new Date(currentPlan.start_date);
+            const departureDateObj = new Date(startDate.getTime() - (1 * 24 * 60 * 60 * 1000)); // 1 day before
+            departureDate = departureDateObj.toISOString().split('T')[0];
+            
+            if (departureInput) {
+                departureInput.value = departureDate;
+            }
+        }
+        
+        if (currentPlan.end_date) {
+            const endDate = new Date(currentPlan.end_date);
+            const returnDateObj = new Date(endDate.getTime() + (1 * 24 * 60 * 60 * 1000)); // 1 day after
+            returnDate = returnDateObj.toISOString().split('T')[0];
+            
+            if (returnInput) {
+                returnInput.value = returnDate;
+            }
+        }
+        
+        // Auto-search flights if we have all required data
+        if (userLocation && currentPlan.destination && departureDate && returnDate) {
+            console.log('Auto-searching flights:', {
+                origin: userLocation,
+                destination: currentPlan.destination,
+                departure: departureDate,
+                return: returnDate
+            });
+            
+            // Use setTimeout to ensure DOM is updated
+            setTimeout(() => {
+                autoSearchFlights(userLocation, currentPlan.destination, departureDate, returnDate);
+            }, 100);
+        }
+    }
+}
+
+// Auto-search flights on tab initialization
+async function autoSearchFlights(origin, destination, departureDate, returnDate) {
+    const planId = getPlanIdFromUrl();
+    if (!planId) return;
+    
+    // Show loading
+    const resultsContainer = document.getElementById('flight-results');
+    if (resultsContainer) {
+        resultsContainer.innerHTML = `
+            <div class="text-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                <p class="text-gray-500 dark:text-gray-400 mt-4">Đang tự động tìm kiếm chuyến bay phù hợp...</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Tìm chuyến bay đi và về cho bạn</p>
+            </div>
+        `;
+    }
+    
+    try {
+        // Search outbound flight (origin -> destination)
+        const outboundResponse = await fetch(`/api/plans/${planId}/search-flights`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                origin: origin,
+                destination: destination,
+                departure_date: departureDate,
+                return_date: null, // One-way for outbound
+                adults: 1,
+                children: 0,
+                infants: 0
+            })
+        });
+        
+        const outboundData = await outboundResponse.json();
+        
+        // Search return flight (destination -> origin)
+        const returnResponse = await fetch(`/api/plans/${planId}/search-flights`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                origin: destination,
+                destination: origin,
+                departure_date: returnDate,
+                return_date: null, // One-way for return
+                adults: 1,
+                children: 0,
+                infants: 0
+            })
+        });
+        
+        const returnData = await returnResponse.json();
+        
+        // Combine results
+        let allFlights = [];
+        
+        if (outboundData.success && outboundData.flights) {
+            // Mark outbound flights
+            outboundData.flights.forEach(flight => {
+                flight.flight_direction = 'outbound';
+                flight.flight_label = 'Chuyến đi';
+            });
+            allFlights = allFlights.concat(outboundData.flights);
+        }
+        
+        if (returnData.success && returnData.flights) {
+            // Mark return flights
+            returnData.flights.forEach(flight => {
+                flight.flight_direction = 'return';
+                flight.flight_label = 'Chuyến về';
+            });
+            allFlights = allFlights.concat(returnData.flights);
+        }
+        
+        if (allFlights.length > 0) {
+            renderCombinedFlightResults(allFlights);
+        } else {
+            if (resultsContainer) {
+                resultsContainer.innerHTML = `
+                    <div class="text-center py-12">
+                        <span class="material-symbols-outlined text-6xl text-gray-400">flight</span>
+                        <p class="text-gray-500 dark:text-gray-400 mt-4">Không tìm thấy chuyến bay phù hợp</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Vui lòng thử tìm kiếm với thông tin khác</p>
+                    </div>
+                `;
+            }
+        }
+    } catch (error) {
+        console.error('Error auto-searching flights:', error);
+        if (resultsContainer) {
+            resultsContainer.innerHTML = `
+                <div class="text-center py-12">
+                    <span class="material-symbols-outlined text-6xl text-red-400">error</span>
+                    <p class="text-gray-500 dark:text-gray-400 mt-4">Không thể tìm kiếm chuyến bay</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">${error.message}</p>
+                    <button onclick="searchFlights()" class="mt-4 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90">
+                        Thử lại
+                    </button>
+                </div>
+            `;
+        }
+    }
+}
+
+// Render combined flight results (outbound + return)
+function renderCombinedFlightResults(flights) {
+    const resultsContainer = document.getElementById('flight-results');
+    if (!resultsContainer) return;
+    
+    // Separate outbound and return flights
+    const outboundFlights = flights.filter(f => f.flight_direction === 'outbound');
+    const returnFlights = flights.filter(f => f.flight_direction === 'return');
+    
+    let html = '';
+    
+    // Outbound flights section
+    if (outboundFlights.length > 0) {
+        html += `
+            <div class="mb-8">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">flight_takeoff</span>
+                    Chuyến bay đi (${outboundFlights.length} chuyến)
+                </h3>
+                <div class="space-y-4">
+                    ${outboundFlights.map(flight => renderSingleFlight(flight, 'outbound')).join('')}
+                </div>
+            </div>
+        `;
+    }
+    
+    // Return flights section
+    if (returnFlights.length > 0) {
+        html += `
+            <div class="mb-8">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">flight_land</span>
+                    Chuyến bay về (${returnFlights.length} chuyến)
+                </h3>
+                <div class="space-y-4">
+                    ${returnFlights.map(flight => renderSingleFlight(flight, 'return')).join('')}
+                </div>
+            </div>
+        `;
+    }
+    
+    resultsContainer.innerHTML = html;
+}
+
+// Render a single flight card
+function renderSingleFlight(flight, flightType) {
+    return `
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <!-- Flight Info -->
+                <div class="flex-1">
+                    <div class="flex items-center gap-4 mb-3">
+                        ${flight.carrier_logo ? `<img src="${flight.carrier_logo}" alt="${flight.carrier_name}" class="h-8 w-8 object-contain" />` : ''}
+                        <div>
+                            <h3 class="font-bold text-gray-900 dark:text-white">${flight.carrier_name}</h3>
+                            <p class="text-sm text-gray-500">${flight.flight_number}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-4">
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-gray-900 dark:text-white">${formatTime(flight.departure_time)}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">${flight.origin_code}</p>
+                        </div>
+                        
+                        <div class="flex-1 text-center">
+                            <p class="text-sm text-gray-500">${formatDuration(flight.duration)}</p>
+                            <div class="relative h-0.5 bg-gray-300 my-2">
+                                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-2">
+                                    ${flight.stops === 0 ? '✈️ Bay thẳng' : `${flight.stops} điểm dừng`}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-gray-900 dark:text-white">${formatTime(flight.arrival_time)}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">${flight.destination_code}</p>
+                        </div>
+                    </div>
+                    
+                    ${flight.overnight_flight ? '<p class="text-xs text-orange-600 mt-2">⚠️ Bay qua đêm</p>' : ''}
+                </div>
+                
+                <!-- Price and Action -->
+                <div class="text-right md:ml-6">
+                    <p class="text-3xl font-bold text-primary mb-2">${formatPrice(flight.price_vnd)}</p>
+                    <p class="text-sm text-gray-500 mb-4">${flight.cabin_class}</p>
+                    <button onclick='selectFlight(${JSON.stringify(flight).replace(/'/g, "&apos;")}, "${flightType}")' 
+                            class="px-6 py-2 bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg transition-colors whitespace-nowrap">
+                        Chọn chuyến ${flightType === 'outbound' ? 'đi' : 'về'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Search flights
+async function searchFlights() {
+    const planId = getPlanIdFromUrl();
+    if (!planId) {
+        showError('Không tìm thấy ID kế hoạch');
+        return;
+    }
+    
+    const origin = document.getElementById('flight-origin')?.value;
+    const destination = document.getElementById('flight-destination')?.value;
+    const departure = document.getElementById('flight-departure')?.value;
+    const returnDate = document.getElementById('flight-return')?.value;
+    const adults = document.getElementById('flight-adults')?.value || 1;
+    
+    if (!origin || !destination || !departure) {
+        showError('Vui lòng điền đầy đủ thông tin điểm đi, điểm đến và ngày đi');
+        return;
+    }
+    
+    // Show loading
+    const resultsContainer = document.getElementById('flight-results');
+    if (resultsContainer) {
+        resultsContainer.innerHTML = `
+            <div class="text-center py-12">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                <p class="text-gray-500 dark:text-gray-400 mt-4">Đang tìm kiếm chuyến bay...</p>
+            </div>
+        `;
+    }
+    
+    try {
+        const response = await fetch(`/api/plans/${planId}/search-flights`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                origin: origin,
+                destination: destination,
+                departure_date: departure,
+                return_date: returnDate || null,
+                adults: parseInt(adults),
+                children: 0,
+                infants: 0
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.flights) {
+            renderFlightResults(data.flights, returnDate ? 'round-trip' : 'one-way');
+        } else {
+            showError(data.error || 'Không tìm thấy chuyến bay');
+        }
+    } catch (error) {
+        console.error('Error searching flights:', error);
+        showError('Không thể tìm kiếm chuyến bay');
+    }
+}
+
+// Render flight search results
+function renderFlightResults(flights, tripType) {
+    const resultsContainer = document.getElementById('flight-results');
+    if (!resultsContainer) return;
+    
+    if (!flights || flights.length === 0) {
+        resultsContainer.innerHTML = `
+            <div class="text-center py-12">
+                <span class="material-symbols-outlined text-6xl text-gray-400">flight</span>
+                <p class="text-gray-500 dark:text-gray-400 mt-4">Không tìm thấy chuyến bay phù hợp</p>
+            </div>
+        `;
+        return;
+    }
+    
+    resultsContainer.innerHTML = flights.map(flight => `
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-4 hover:shadow-lg transition-shadow">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <!-- Flight Info -->
+                <div class="flex-1">
+                    <div class="flex items-center gap-4 mb-3">
+                        ${flight.carrier_logo ? `<img src="${flight.carrier_logo}" alt="${flight.carrier_name}" class="h-8 w-8 object-contain" />` : ''}
+                        <div>
+                            <h3 class="font-bold text-gray-900 dark:text-white">${flight.carrier_name}</h3>
+                            <p class="text-sm text-gray-500">${flight.flight_number}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-4">
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-gray-900 dark:text-white">${formatTime(flight.departure_time)}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">${flight.origin_code}</p>
+                        </div>
+                        
+                        <div class="flex-1 text-center">
+                            <p class="text-sm text-gray-500">${formatDuration(flight.duration)}</p>
+                            <div class="relative h-0.5 bg-gray-300 my-2">
+                                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-2">
+                                    ${flight.stops === 0 ? '✈️ Bay thẳng' : `${flight.stops} điểm dừng`}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-gray-900 dark:text-white">${formatTime(flight.arrival_time)}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">${flight.destination_code}</p>
+                        </div>
+                    </div>
+                    
+                    ${flight.overnight_flight ? '<p class="text-xs text-orange-600 mt-2">⚠️ Bay qua đêm</p>' : ''}
+                </div>
+                
+                <!-- Price and Action -->
+                <div class="text-right md:ml-6">
+                    <p class="text-3xl font-bold text-primary mb-2">${formatPrice(flight.price_vnd)}</p>
+                    <p class="text-sm text-gray-500 mb-4">${flight.cabin_class}</p>
+                    <button onclick='selectFlight(${JSON.stringify(flight).replace(/'/g, "&apos;")}, "outbound")' 
+                            class="px-6 py-2 bg-primary hover:bg-primary/90 text-white font-semibold rounded-lg transition-colors whitespace-nowrap">
+                        Chọn chuyến bay
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Format time from ISO string
+function formatTime(isoString) {
+    if (!isoString) return '--:--';
+    const date = new Date(isoString);
+    return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+}
+
+// Format duration in minutes to hours and minutes
+function formatDuration(minutes) {
+    if (!minutes) return '--';
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}g ${mins}p`;
+}
+
+// Select flight
+async function selectFlight(flight, flightType) {
+    const planId = getPlanIdFromUrl();
+    if (!planId) {
+        showError('Không tìm thấy ID kế hoạch');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/plans/${planId}/flight`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                ...flight,
+                flight_type: flightType
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess('Đã chọn chuyến bay thành công!');
+            await loadSelectedFlights();
+        } else {
+            showError(data.error || 'Không thể chọn chuyến bay');
+        }
+    } catch (error) {
+        console.error('Error selecting flight:', error);
+        showError('Không thể chọn chuyến bay');
+    }
+}
+
+// Load selected flights
+async function loadSelectedFlights() {
+    const planId = getPlanIdFromUrl();
+    if (!planId) return;
+    
+    try {
+        const response = await fetch(`/api/plans/${planId}/flights`);
+        const data = await response.json();
+        
+        if (data.success && data.flights && data.flights.length > 0) {
+            showSelectedFlights(data.flights);
+        }
+    } catch (error) {
+        console.error('Error loading selected flights:', error);
+    }
+}
+
+// Show selected flights
+function showSelectedFlights(flights) {
+    const selectedContainer = document.getElementById('selected-flights-container');
+    if (!selectedContainer) return;
+    
+    const outbound = flights.find(f => f.flight_type === 'outbound');
+    const returnFlight = flights.find(f => f.flight_type === 'return');
+    
+    let html = '<div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-xl p-6 mb-6">';
+    html += '<h3 class="text-lg font-bold text-green-800 dark:text-green-300 mb-4 flex items-center gap-2">';
+    html += '<span class="material-symbols-outlined">check_circle</span> Chuyến bay đã chọn';
+    html += '</h3>';
+    
+    if (outbound) {
+        html += `
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-4 mb-3">
+                <p class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">Chuyến đi</p>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        ${outbound.carrier_logo ? `<img src="${outbound.carrier_logo}" alt="${outbound.carrier_name}" class="h-6 w-6" />` : ''}
+                        <div>
+                            <p class="font-bold text-gray-900 dark:text-white">${outbound.carrier_name} ${outbound.flight_number}</p>
+                            <p class="text-sm text-gray-600">${outbound.origin_code} → ${outbound.destination_code}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-gray-900 dark:text-white">${formatTime(outbound.departure_time)} - ${formatTime(outbound.arrival_time)}</p>
+                        <p class="text-sm text-primary font-semibold">${formatPrice(outbound.price)}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    if (returnFlight) {
+        html += `
+            <div class="bg-white dark:bg-gray-800 rounded-lg p-4 mb-3">
+                <p class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">Chuyến về</p>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        ${returnFlight.carrier_logo ? `<img src="${returnFlight.carrier_logo}" alt="${returnFlight.carrier_name}" class="h-6 w-6" />` : ''}
+                        <div>
+                            <p class="font-bold text-gray-900 dark:text-white">${returnFlight.carrier_name} ${returnFlight.flight_number}</p>
+                            <p class="text-sm text-gray-600">${returnFlight.origin_code} → ${returnFlight.destination_code}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-gray-900 dark:text-white">${formatTime(returnFlight.departure_time)} - ${formatTime(returnFlight.arrival_time)}</p>
+                        <p class="text-sm text-primary font-semibold">${formatPrice(returnFlight.price)}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    html += `
+        <button onclick="clearSelectedFlights()" class="mt-3 px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors text-sm font-semibold">
+            Xóa chuyến bay đã chọn
+        </button>
+    </div>`;
+    
+    selectedContainer.innerHTML = html;
+    selectedContainer.classList.remove('hidden');
+}
+
+// Clear selected flights
+async function clearSelectedFlights() {
+    const planId = getPlanIdFromUrl();
+    if (!planId) return;
+    
+    try {
+        const response = await fetch(`/api/plans/${planId}/flights`);
+        const data = await response.json();
+        
+        if (data.success && data.flights) {
+            // Delete each flight
+            for (const flight of data.flights) {
+                await fetch(`/api/plans/${planId}/flight/${flight.id}`, {
+                    method: 'DELETE'
+                });
+            }
+            
+            const selectedContainer = document.getElementById('selected-flights-container');
+            if (selectedContainer) {
+                selectedContainer.innerHTML = '';
+                selectedContainer.classList.add('hidden');
+            }
+            showSuccess('Đã xóa chuyến bay đã chọn');
+        }
+    } catch (error) {
+        console.error('Error clearing flights:', error);
+        showError('Không thể xóa chuyến bay');
+    }
+}
+
 // Render summary tab
 function renderSummaryTab(plan) {
     // Update destination and duration
@@ -528,34 +1092,48 @@ function renderSummaryTab(plan) {
     console.log('Plan budget:', plan.budget);
     console.log('Plan total_cost (from DB):', plan.total_cost);
     
-    // Load hotel cost and update total with activities + hotel
-    loadHotelCost(actualCost, plan.budget);
+    // Load hotel and flight costs, then update total
+    loadAllCosts(actualCost, plan.budget);
 }
 
-// Load hotel cost and update total
-async function loadHotelCost(activitiesCost, budget) {
+// Load all costs (hotel + flights) and update total
+async function loadAllCosts(activitiesCost, budget) {
     const planId = getPlanIdFromUrl();
     if (!planId) return;
     
     try {
-        const response = await fetch(`/api/plans/${planId}/hotel`);
-        const data = await response.json();
+        // Load hotel cost
+        const hotelResponse = await fetch(`/api/plans/${planId}/hotel`);
+        const hotelData = await hotelResponse.json();
         
         let hotelCost = 0;
-        if (data.success && data.hotel && data.hotel.total_price) {
-            hotelCost = data.hotel.total_price;
+        if (hotelData.success && hotelData.hotel && hotelData.hotel.total_price) {
+            hotelCost = hotelData.hotel.total_price;
         }
         
-        // Calculate total actual cost (activities + hotel)
-        const totalActualCost = activitiesCost + hotelCost;
+        // Load flight costs
+        const flightResponse = await fetch(`/api/plans/${planId}/flights`);
+        const flightData = await flightResponse.json();
+        
+        let flightCost = 0;
+        if (flightData.success && flightData.flights) {
+            flightData.flights.forEach(flight => {
+                flightCost += (flight.price || 0);
+            });
+        }
+        
+        // Calculate total actual cost (activities + hotel + flights)
+        const totalActualCost = activitiesCost + hotelCost + flightCost;
         
         // Update UI - Cost breakdown table
         const activitiesEl = document.getElementById('cost-activities');
         const hotelEl = document.getElementById('cost-hotel');
+        const flightsEl = document.getElementById('cost-flights');
         const totalEl = document.getElementById('cost-total');
         
         if (activitiesEl) activitiesEl.textContent = formatPrice(activitiesCost);
         if (hotelEl) hotelEl.textContent = formatPrice(hotelCost);
+        if (flightsEl) flightsEl.textContent = formatPrice(flightCost);
         if (totalEl) totalEl.textContent = formatPrice(totalActualCost);
         
         // Update stats at top of Summary tab
@@ -580,8 +1158,13 @@ async function loadHotelCost(activitiesCost, budget) {
             `;
         }
     } catch (error) {
-        console.error('Error loading hotel cost:', error);
+        console.error('Error loading costs:', error);
     }
+}
+
+// Legacy function for backward compatibility - now calls loadAllCosts
+async function loadHotelCost(activitiesCost, budget) {
+    await loadAllCosts(activitiesCost, budget);
 }
 
 // Confirm plan

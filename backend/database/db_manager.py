@@ -9,7 +9,7 @@ from typing import Optional, List, Dict, Any
 from pathlib import Path
 from contextlib import contextmanager
 
-from .models import User, Conversation, TravelPlan, SearchCache, SCHEMA
+from .models import User, Conversation, TravelPlan, SearchCache, PlanFlight, SCHEMA
 import sys
 from pathlib import Path
 
@@ -657,6 +657,44 @@ class DatabaseManager:
             )
             return cursor.rowcount > 0
     
+    def update_plan(self, plan_id: int, update_fields: Dict) -> bool:
+        """Update plan with multiple fields"""
+        if not update_fields:
+            return False
+        
+        # Build SET clause dynamically
+        set_clauses = []
+        values = []
+        
+        for field, value in update_fields.items():
+            if field == 'itinerary':
+                # Convert itinerary to JSON string if it's a dict/list
+                if isinstance(value, (dict, list)):
+                    value = json.dumps(value)
+                set_clauses.append(f"{field} = ?")
+                values.append(value)
+            elif field == 'preferences':
+                # Convert preferences to JSON string if it's a dict/list
+                if isinstance(value, (dict, list)):
+                    value = json.dumps(value)
+                set_clauses.append(f"{field} = ?")
+                values.append(value)
+            else:
+                set_clauses.append(f"{field} = ?")
+                values.append(value)
+        
+        # Always update updated_at
+        set_clauses.append("updated_at = CURRENT_TIMESTAMP")
+        
+        # Add plan_id for WHERE clause
+        values.append(plan_id)
+        
+        sql = f"UPDATE travel_plans SET {', '.join(set_clauses)} WHERE id = ?"
+        
+        with self.get_connection() as conn:
+            cursor = conn.execute(sql, values)
+            return cursor.rowcount > 0
+    
     def _row_to_travel_plan(self, row) -> TravelPlan:
         """Convert database row to TravelPlan object"""
         return TravelPlan(
@@ -978,6 +1016,118 @@ class DatabaseManager:
                 return True
         except Exception as e:
             print(f"Error updating plan dates: {e}")
+            return False
+    
+    # ===== FLIGHT METHODS =====
+    
+    def save_plan_flight(self, plan_id: int, flight_data: Dict[str, Any], flight_type: str = "outbound") -> bool:
+        """Save selected flight for a plan"""
+        try:
+            with self.get_connection() as conn:
+                conn.execute("""
+                    INSERT OR REPLACE INTO plan_flights (
+                        plan_id, flight_type, bundle_key, carrier_name, carrier_code, carrier_logo,
+                        flight_number, origin_airport, origin_code, origin_city,
+                        destination_airport, destination_code, destination_city,
+                        departure_time, arrival_time, duration, stops, cabin_class,
+                        price, currency, adults, children, infants, is_overnight,
+                        layover_info, segments, flight_data
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    plan_id,
+                    flight_type,
+                    flight_data.get('bundle_key', ''),
+                    flight_data.get('carrier_name', ''),
+                    flight_data.get('carrier_code', ''),
+                    flight_data.get('carrier_logo'),
+                    flight_data.get('flight_number', ''),
+                    flight_data.get('origin_airport', ''),
+                    flight_data.get('origin_code', ''),
+                    flight_data.get('origin_city'),
+                    flight_data.get('destination_airport', ''),
+                    flight_data.get('destination_code', ''),
+                    flight_data.get('destination_city'),
+                    flight_data.get('departure_time', ''),
+                    flight_data.get('arrival_time', ''),
+                    flight_data.get('duration', 0),
+                    flight_data.get('stops', 0),
+                    flight_data.get('cabin_class', 'Economy'),
+                    flight_data.get('price_vnd', 0),
+                    flight_data.get('currency', 'VND'),
+                    flight_data.get('adults', 1),
+                    flight_data.get('children', 0),
+                    flight_data.get('infants', 0),
+                    1 if flight_data.get('overnight_flight', False) else 0,
+                    json.dumps(flight_data.get('layover_info', [])),
+                    json.dumps(flight_data.get('segments', [])),
+                    json.dumps(flight_data)
+                ))
+                return True
+        except Exception as e:
+            print(f"Error saving flight: {e}")
+            return False
+    
+    def get_plan_flights(self, plan_id: int) -> List[Dict[str, Any]]:
+        """Get all flights for a plan"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.execute("""
+                    SELECT * FROM plan_flights WHERE plan_id = ? ORDER BY departure_time
+                """, (plan_id,))
+                
+                rows = cursor.fetchall()
+                flights = []
+                
+                for row in rows:
+                    flight = PlanFlight(
+                        id=row[0],
+                        plan_id=row[1],
+                        flight_type=row[2],
+                        bundle_key=row[3],
+                        carrier_name=row[4],
+                        carrier_code=row[5],
+                        carrier_logo=row[6],
+                        flight_number=row[7],
+                        origin_airport=row[8],
+                        origin_code=row[9],
+                        origin_city=row[10],
+                        destination_airport=row[11],
+                        destination_code=row[12],
+                        destination_city=row[13],
+                        departure_time=row[14],
+                        arrival_time=row[15],
+                        duration=row[16],
+                        stops=row[17],
+                        cabin_class=row[18],
+                        price=row[19],
+                        currency=row[20],
+                        adults=row[21],
+                        children=row[22],
+                        infants=row[23],
+                        is_overnight=bool(row[24]),
+                        layover_info=row[25],
+                        segments=row[26],
+                        flight_data=row[27],
+                        selected_at=datetime.fromisoformat(row[28]) if row[28] else None,
+                        updated_at=datetime.fromisoformat(row[29]) if row[29] else None
+                    )
+                    flights.append(flight.to_dict())
+                
+                return flights
+        except Exception as e:
+            print(f"Error getting flights: {e}")
+            return []
+    
+    def delete_plan_flight(self, plan_id: int, flight_id: int) -> bool:
+        """Delete a flight from a plan"""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.execute("""
+                    DELETE FROM plan_flights WHERE id = ? AND plan_id = ?
+                """, (flight_id, plan_id))
+                return cursor.rowcount > 0
+        except Exception as e:
+            print(f"Error deleting flight: {e}")
             return False
     
     # ===== STATISTICS =====

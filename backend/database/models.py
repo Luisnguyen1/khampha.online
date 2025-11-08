@@ -225,6 +225,76 @@ class PlanHotel:
         }
 
 
+@dataclass
+class PlanFlight:
+    """Plan flight model - Selected flight for a travel plan"""
+    id: Optional[int] = None
+    plan_id: int = 0
+    flight_type: str = "outbound"  # outbound (chiều đi) hoặc inbound (chiều về)
+    bundle_key: str = ""
+    carrier_name: str = ""
+    carrier_code: str = ""
+    carrier_logo: Optional[str] = None
+    flight_number: str = ""
+    origin_airport: str = ""
+    origin_code: str = ""
+    origin_city: Optional[str] = None
+    destination_airport: str = ""
+    destination_code: str = ""
+    destination_city: Optional[str] = None
+    departure_time: str = ""
+    arrival_time: str = ""
+    duration: int = 0
+    stops: int = 0
+    cabin_class: str = "Economy"
+    price: float = 0
+    currency: str = "VND"
+    adults: int = 1
+    children: int = 0
+    infants: int = 0
+    is_overnight: bool = False
+    layover_info: Optional[str] = None
+    segments: Optional[str] = None
+    flight_data: Optional[str] = None
+    selected_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    
+    def to_dict(self) -> dict:
+        """Convert to dictionary"""
+        return {
+            'id': self.id,
+            'plan_id': self.plan_id,
+            'flight_type': self.flight_type,
+            'bundle_key': self.bundle_key,
+            'carrier_name': self.carrier_name,
+            'carrier_code': self.carrier_code,
+            'carrier_logo': self.carrier_logo,
+            'flight_number': self.flight_number,
+            'origin_airport': self.origin_airport,
+            'origin_code': self.origin_code,
+            'origin_city': self.origin_city,
+            'destination_airport': self.destination_airport,
+            'destination_code': self.destination_code,
+            'destination_city': self.destination_city,
+            'departure_time': self.departure_time,
+            'arrival_time': self.arrival_time,
+            'duration': self.duration,
+            'stops': self.stops,
+            'cabin_class': self.cabin_class,
+            'price': self.price,
+            'currency': self.currency,
+            'adults': self.adults,
+            'children': self.children,
+            'infants': self.infants,
+            'is_overnight': self.is_overnight,
+            'layover_info': json.loads(self.layover_info) if self.layover_info else [],
+            'segments': json.loads(self.segments) if self.segments else [],
+            'flight_data': json.loads(self.flight_data) if self.flight_data else None,
+            'selected_at': self.selected_at.isoformat() if self.selected_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+
+
 # SQL Schema
 SCHEMA = """
 -- Table 1: users - Quản lý người dùng với authentication
