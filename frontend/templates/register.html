@@ -43,14 +43,52 @@
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
                         Email <span class="text-red-500">*</span>
                     </label>
-                    <input 
-                        id="email" 
-                        name="email" 
-                        type="email" 
-                        autocomplete="email" 
-                        required 
-                        class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" 
-                        placeholder="email@example.com">
+                    <div class="flex gap-2">
+                        <input 
+                            id="email" 
+                            name="email" 
+                            type="email" 
+                            autocomplete="email" 
+                            required 
+                            class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" 
+                            placeholder="email@example.com">
+                        <button
+                            type="button"
+                            id="sendOtpBtn"
+                            class="flex items-center justify-center gap-1 px-4 py-2 border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 rounded-md text-sm font-medium transition-colors whitespace-nowrap">
+                            <span class="material-symbols-outlined text-lg">mail</span>
+                            <span>Gửi OTP</span>
+                        </button>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Nhập email và nhấn "Gửi OTP" để nhận mã xác thực</p>
+                </div>
+
+                <!-- OTP Input -->
+                <div id="otpSection" class="hidden">
+                    <label for="otp" class="block text-sm font-medium text-gray-700 mb-1">
+                        Mã OTP <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex gap-2">
+                        <input 
+                            id="otp" 
+                            name="otp" 
+                            type="text" 
+                            maxlength="6"
+                            pattern="[0-9]{6}"
+                            class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm font-mono text-lg tracking-widest text-center" 
+                            placeholder="000000">
+                        <button
+                            type="button"
+                            id="verifyOtpBtn"
+                            class="flex items-center justify-center gap-1 px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-md text-sm font-medium transition-colors whitespace-nowrap">
+                            <span class="material-symbols-outlined text-lg">verified</span>
+                            <span>Xác thực</span>
+                        </button>
+                    </div>
+                    <div class="mt-2 flex items-center justify-between">
+                        <p class="text-xs text-gray-500">Nhập mã 6 số đã được gửi đến email</p>
+                        <button type="button" id="resendOtpBtn" class="text-xs text-blue-600 hover:text-blue-700 font-medium">Gửi lại OTP</button>
+                    </div>
                 </div>
                 
                 <!-- Username -->
@@ -145,11 +183,9 @@
                 <button 
                     type="submit" 
                     id="registerButton"
-                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
-                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                        <span class="material-symbols-outlined">person_add</span>
-                    </span>
-                    Đăng ký
+                    class="group w-full flex items-center justify-center gap-2 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                    <span class="material-symbols-outlined">person_add</span>
+                    <span>Đăng ký</span>
                 </button>
             </div>
         </form>
@@ -164,11 +200,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const passwordInput = document.getElementById('password');
     const confirmPasswordInput = document.getElementById('confirm_password');
     const fullNameInput = document.getElementById('full_name');
+    const otpInput = document.getElementById('otp');
     const registerButton = document.getElementById('registerButton');
+    const sendOtpBtn = document.getElementById('sendOtpBtn');
+    const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+    const resendOtpBtn = document.getElementById('resendOtpBtn');
+    const otpSection = document.getElementById('otpSection');
     const errorMessage = document.getElementById('errorMessage');
     const errorText = document.getElementById('errorText');
     const successMessage = document.getElementById('successMessage');
     const successText = document.getElementById('successText');
+
+    let otpVerified = false;
+    let currentEmail = '';
+
+    // Disable register button initially
+    registerButton.disabled = true;
+    registerButton.classList.add('opacity-50', 'cursor-not-allowed');
 
     // Hide messages on input
     const hideMessages = () => {
@@ -176,14 +224,135 @@ document.addEventListener('DOMContentLoaded', () => {
         successMessage.classList.add('hidden');
     };
 
-    [emailInput, usernameInput, passwordInput, confirmPasswordInput, fullNameInput].forEach(input => {
-        input.addEventListener('input', hideMessages);
+    [emailInput, usernameInput, passwordInput, confirmPasswordInput, fullNameInput, otpInput].forEach(input => {
+        if (input) input.addEventListener('input', hideMessages);
+    });
+
+    // Send OTP
+    sendOtpBtn.addEventListener('click', async () => {
+        const email = emailInput.value.trim();
+        
+        if (!email) {
+            showError('Vui lòng nhập email');
+            return;
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showError('Email không hợp lệ');
+            return;
+        }
+
+        sendOtpBtn.disabled = true;
+        sendOtpBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-lg">progress_activity</span><span>Đang gửi...</span>';
+
+        try {
+            const response = await fetch('/api/auth/send-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showSuccess('Mã OTP đã được gửi đến email của bạn!');
+                currentEmail = email;
+                otpSection.classList.remove('hidden');
+                emailInput.disabled = true;
+                sendOtpBtn.innerHTML = '<span class="material-symbols-outlined text-lg">check_circle</span><span>Đã gửi</span>';
+            } else {
+                showError(data.error || 'Không thể gửi OTP');
+                sendOtpBtn.disabled = false;
+                sendOtpBtn.innerHTML = '<span class="material-symbols-outlined text-lg">mail</span><span>Gửi OTP</span>';
+            }
+        } catch (error) {
+            console.error('Send OTP error:', error);
+            showError('Lỗi kết nối, vui lòng thử lại');
+            sendOtpBtn.disabled = false;
+            sendOtpBtn.innerHTML = '<span class="material-symbols-outlined text-lg">mail</span><span>Gửi OTP</span>';
+        }
+    });
+
+    // Verify OTP
+    verifyOtpBtn.addEventListener('click', async () => {
+        const otpCode = otpInput.value.trim();
+        
+        if (!otpCode || otpCode.length !== 6) {
+            showError('Vui lòng nhập mã OTP 6 số');
+            return;
+        }
+
+        verifyOtpBtn.disabled = true;
+        verifyOtpBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-lg">progress_activity</span><span>Xác thực...</span>';
+
+        try {
+            const response = await fetch('/api/auth/verify-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: currentEmail, otp: otpCode })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showSuccess('Xác thực email thành công! ✓');
+                otpVerified = true;
+                otpInput.disabled = true;
+                verifyOtpBtn.disabled = true;
+                verifyOtpBtn.innerHTML = '<span class="material-symbols-outlined text-lg">check_circle</span><span>Đã xác thực</span>';
+                verifyOtpBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                verifyOtpBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+                
+                // Enable register button
+                registerButton.disabled = false;
+                registerButton.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                showError(data.error || 'Mã OTP không chính xác');
+                verifyOtpBtn.disabled = false;
+                verifyOtpBtn.innerHTML = '<span class="material-symbols-outlined text-lg">verified</span><span>Xác thực</span>';
+            }
+        } catch (error) {
+            console.error('Verify OTP error:', error);
+            showError('Lỗi kết nối, vui lòng thử lại');
+            verifyOtpBtn.disabled = false;
+            verifyOtpBtn.innerHTML = '<span class="material-symbols-outlined text-lg">verified</span><span>Xác thực</span>';
+        }
+    });
+
+    // Resend OTP
+    resendOtpBtn.addEventListener('click', () => {
+        // Reset OTP section
+        otpInput.value = '';
+        otpInput.disabled = false;
+        otpVerified = false;
+        
+        // Reset verify button
+        verifyOtpBtn.disabled = false;
+        verifyOtpBtn.innerHTML = '<span class="material-symbols-outlined text-lg">verified</span><span>Xác thực</span>';
+        verifyOtpBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+        verifyOtpBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+        
+        // Reset register button
+        registerButton.disabled = true;
+        registerButton.classList.add('opacity-50', 'cursor-not-allowed');
+        
+        // Reset send button
+        sendOtpBtn.disabled = false;
+        sendOtpBtn.innerHTML = '<span class="material-symbols-outlined text-lg">mail</span><span>Gửi OTP</span>';
+        
+        // Trigger send
+        sendOtpBtn.click();
     });
 
     // Handle form submit
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         hideMessages();
+
+        if (!otpVerified) {
+            showError('Vui lòng xác thực email bằng mã OTP trước khi đăng ký');
+            return;
+        }
 
         const email = emailInput.value.trim();
         const username = usernameInput.value.trim();
@@ -219,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Disable button
         registerButton.disabled = true;
-        registerButton.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span> Đang xử lý...';
+        registerButton.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span><span>Đang xử lý...</span>';
 
         try {
             const response = await fetch('/api/auth/register', {
@@ -246,25 +415,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 showError(data.error || 'Đăng ký thất bại');
                 // Re-enable button
                 registerButton.disabled = false;
-                registerButton.innerHTML = '<span class="absolute left-0 inset-y-0 flex items-center pl-3"><span class="material-symbols-outlined">person_add</span></span>Đăng ký';
+                registerButton.innerHTML = '<span class="material-symbols-outlined">person_add</span><span>Đăng ký</span>';
             }
         } catch (error) {
             console.error('Register error:', error);
             showError('Lỗi kết nối, vui lòng thử lại');
             // Re-enable button
             registerButton.disabled = false;
-            registerButton.innerHTML = '<span class="absolute left-0 inset-y-0 flex items-center pl-3"><span class="material-symbols-outlined">person_add</span></span>Đăng ký';
+            registerButton.innerHTML = '<span class="material-symbols-outlined">person_add</span><span>Đăng ký</span>';
         }
     });
 
     function showError(message) {
         errorText.textContent = message;
         errorMessage.classList.remove('hidden');
+        // Auto scroll to error
+        errorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function showSuccess(message) {
         successText.textContent = message;
         successMessage.classList.remove('hidden');
+        // Auto scroll to success
+        successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 });
 </script>

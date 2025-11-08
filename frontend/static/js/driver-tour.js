@@ -42,7 +42,7 @@ function initializeDriverTour() {
                 element: '#chatMessages',
                 popover: {
                     title: 'Khu vực chat',
-                    description: 'Đây là nơi hiển thị cuộc trò chuyện giữa bạn và TravelBot. Tin nhắn của bạn sẽ hiển thị bên phải, còn phản hồi của bot sẽ ở bên trái.',
+                    description: 'Đây là nơi hiển thị cuộc trò chuyện giữa bạn và khampha.online. Tin nhắn của bạn sẽ hiển thị bên phải, còn phản hồi của bot sẽ ở bên trái.',
                     side: "left",
                     align: 'start'
                 }

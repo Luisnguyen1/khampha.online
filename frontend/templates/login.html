@@ -84,11 +84,9 @@
                 <button 
                     type="submit" 
                     id="loginButton"
-                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
-                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                        <span class="material-symbols-outlined">login</span>
-                    </span>
-                    Đăng nhập
+                    class="group w-full flex items-center justify-center gap-2 py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                    <span class="material-symbols-outlined">login</span>
+                    <span>Đăng nhập</span>
                 </button>
             </div>
         </form>
@@ -123,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Disable button
         loginButton.disabled = true;
-        loginButton.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span> Đang xử lý...';
+        loginButton.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span><span>Đang xử lý...</span>';
 
         try {
             const response = await fetch('/api/auth/login', {
@@ -145,14 +143,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 showError(data.error || 'Đăng nhập thất bại');
                 // Re-enable button
                 loginButton.disabled = false;
-                loginButton.innerHTML = '<span class="absolute left-0 inset-y-0 flex items-center pl-3"><span class="material-symbols-outlined">login</span></span>Đăng nhập';
+                loginButton.innerHTML = '<span class="material-symbols-outlined">login</span><span>Đăng nhập</span>';
             }
         } catch (error) {
             console.error('Login error:', error);
             showError('Lỗi kết nối, vui lòng thử lại');
             // Re-enable button
             loginButton.disabled = false;
-            loginButton.innerHTML = '<span class="absolute left-0 inset-y-0 flex items-center pl-3"><span class="material-symbols-outlined">login</span></span>Đăng nhập';
+            loginButton.innerHTML = '<span class="material-symbols-outlined">login</span><span>Đăng nhập</span>';
         }
     });
 

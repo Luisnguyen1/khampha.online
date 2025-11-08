@@ -1,5 +1,5 @@
 /**
- * Settings Management for TravelBot
+ * Settings Management for khampha.online
  * Handles language, theme, and other app settings
  * This file works globally across all pages
  */

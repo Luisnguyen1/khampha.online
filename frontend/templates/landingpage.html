@@ -1,8 +1,13 @@
 <!DOCTYPE html>
-<html class="light" lang="en"><head>
+<html class="light" lang="vi"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Travel Chatbot Landing Page</title>
+<title>khampha.online - Lập Kế Hoạch Du Lịch Trong 30 Giây Với AI</title>
+<meta name="description" content="Trợ lý AI du lịch thông minh giúp bạn tạo lịch trình chi tiết, tìm vé máy bay và khách sạn giá tốt chỉ trong 30 giây. Miễn phí 100%, hỗ trợ tiếng Việt, dữ liệu thời gian thực."/>
+<meta property="og:title" content="khampha.online - Lập Kế Hoạch Du Lịch Trong 30 Giây Với AI"/>
+<meta property="og:description" content="Trợ lý AI du lịch thông minh. Miễn phí 100% • Tiếng Việt • Dữ liệu thời gian thực"/>
+<meta property="og:type" content="website"/>
+<meta property="og:url" content="https://khampha.online"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
@@ -37,22 +42,44 @@
     </style>
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display text-[#111618] dark:text-white">
+<!-- Mobile Menu Overlay -->
+<div id="mobile-menu" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+  <div class="absolute right-0 top-0 h-full w-64 bg-white dark:bg-background-dark shadow-lg transform translate-x-full transition-transform duration-300" id="mobile-menu-panel">
+    <div class="flex justify-end p-4">
+      <button id="close-menu" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <nav class="flex flex-col p-4 space-y-4">
+      <a class="text-[#111618] dark:text-white hover:text-primary font-medium py-2" href="#">Trang chủ</a>
+      <a class="text-[#111618] dark:text-white hover:text-primary font-medium py-2" href="#features">Tính năng</a>
+      <a class="text-[#111618] dark:text-white hover:text-primary font-medium py-2" href="#how-it-works">Cách hoạt động</a>
+      <a class="text-[#111618] dark:text-white hover:text-primary font-medium py-2" href="#use-cases">Ví dụ thực tế</a>
+      <a class="text-[#111618] dark:text-white hover:text-primary font-medium py-2" href="#contact">Liên hệ</a>
+      <a class="text-[#111618] dark:text-white hover:text-primary font-medium py-2" href="/login">Đăng nhập</a>
+      <a class="bg-primary text-white px-4 py-3 rounded-lg hover:bg-blue-600 font-medium text-center" href="/register">Đăng ký</a>
+    </nav>
+  </div>
+</div>
+
 <div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
 <div class="layout-container flex h-full grow flex-col">
 <header class="sticky top-0 z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-sm">
 <div class="px-4 md:px-10 lg:px-40 mx-auto flex h-16 max-w-[1280px] items-center justify-between">
 <a class="flex items-center gap-2" href="#">
 <span class="material-symbols-outlined text-primary text-3xl">travel_explore</span>
-<span class="text-lg font-bold">TravelBot</span>
+<span class="text-lg font-bold">khampha.online</span>
 </a>
-<nav class="hidden md:flex items-center gap-6">
-<a class="text-[#111618] dark:text-white hover:text-primary font-medium" href="#">Trang chủ</a>
-<a class="text-[#111618] dark:text-white hover:text-primary font-medium" href="#features">Tính năng</a>
-<a class="text-[#111618] dark:text-white hover:text-primary font-medium" href="#contact">Liên hệ</a>
-<a class="text-[#111618] dark:text-white hover:text-primary font-medium" href="/login">Đăng nhập</a>
-<a class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-600 font-medium" href="/register">Đăng ký</a>
+                <nav class="hidden md:flex items-center gap-6">
+<a class="text-[#111618] dark:text-white hover:text-primary font-medium transition-colors" href="#">Trang chủ</a>
+<a class="text-[#111618] dark:text-white hover:text-primary font-medium transition-colors" href="#features">Tính năng</a>
+<a class="text-[#111618] dark:text-white hover:text-primary font-medium transition-colors" href="#how-it-works">Cách hoạt động</a>
+<a class="text-[#111618] dark:text-white hover:text-primary font-medium transition-colors" href="#use-cases">Ví dụ thực tế</a>
+<a class="text-[#111618] dark:text-white hover:text-primary font-medium transition-colors" href="#contact">Liên hệ</a>
+<a class="text-[#111618] dark:text-white hover:text-primary font-medium transition-colors" href="/login">Đăng nhập</a>
+<a class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-600 font-medium transition-colors" href="/register">Đăng ký</a>
 </nav>
-<button class="md:hidden flex items-center justify-center p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700">
+<button id="open-menu" class="md:hidden flex items-center justify-center p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
 <span class="material-symbols-outlined">menu</span>
 </button>
 </div>
@@ -61,153 +88,546 @@
 <div class="layout-content-container flex flex-col max-w-[960px] flex-1">
 <div class="@container">
 <div class="p-0 sm:p-4">
-<div class="flex min-h-[480px] flex-col gap-6 bg-cover bg-center bg-no-repeat @[480px]:gap-8 rounded-none sm:rounded-xl items-center justify-center p-4" data-alt="A beautiful landscape with mountains and a lake at sunset." style='background-image: linear-gradient(rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.5) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuBjAtS1Ld9lUCOvfpxjA1ip56LGP8FUyAYcD5HGQcoHx41GAuKDS4OCncZJ09WVWYf9wGchDxGVcsA9NGHf9nOaFKr_uCwotl4ipRt_0BVH39a_sBP6nXv5_8hmBCNlcl-irXIqgs5Ml_ceg5cfrqdIm-08l7EwxmO8tIZboqgxVkhOhCmPQ6rxgX_El3zST1kPsBL9owwjnCCcVgTqzBz5O4rys0HeeNqI7hWc2Iy0WwHwCj8qOf210S5KTmLtZTwMvl6GzzbEHLc");'>
-<div class="flex flex-col gap-2 text-center">
-<h1 class="text-white text-4xl font-black leading-tight tracking-[-0.033em] @[480px]:text-5xl">Trợ lý du lịch ảo của bạn</h1>
-<h2 class="text-white text-base font-normal leading-normal @[480px]:text-lg">Lên kế hoạch cho chuyến đi trong mơ chỉ với vài cú nhấp chuột</h2>
+<div class="flex min-h-[500px] md:min-h-[600px] flex-col gap-6 bg-cover bg-center bg-no-repeat @[480px]:gap-8 rounded-none sm:rounded-xl items-center justify-center p-6 md:p-8" data-alt="Vietnamese travel destinations" style='background-image: linear-gradient(135deg, rgba(19, 164, 236, 0.85) 0%, rgba(16, 28, 34, 0.75) 100%), url("https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=1200&q=80");'>
+<div class="flex flex-col gap-4 text-center max-w-4xl">
+<div class="inline-flex items-center justify-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-white text-sm font-medium mb-2">
+<span class="material-symbols-outlined text-xl">verified</span>
+<span>Miễn phí 100% • Tiếng Việt • Dữ liệu thời gian thực</span>
 </div>
-<a href="/login" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 @[480px]:h-12 @[480px]:px-5 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] @[480px]:text-base">
-<span class="truncate">Bắt đầu ngay</span>
+<h1 class="text-white text-4xl md:text-5xl lg:text-6xl font-black leading-tight tracking-[-0.033em]">
+Lên kế hoạch du lịch trong <span class="text-yellow-300">30 giây</span> với AI
+</h1>
+<h2 class="text-white text-lg md:text-xl font-normal leading-normal max-w-2xl mx-auto">
+Chỉ cần trò chuyện với AI, nhận ngay lịch trình chi tiết + giá vé máy bay + khách sạn tốt nhất
+</h2>
+</div>
+<div class="flex flex-col sm:flex-row gap-4 items-center justify-center w-full max-w-md">
+<a href="/login" class="flex w-full sm:w-auto min-w-[160px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl h-12 md:h-14 px-6 md:px-8 bg-white text-primary text-base md:text-lg font-bold leading-normal tracking-[0.015em] hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg">
+<span class="material-symbols-outlined">rocket_launch</span>
+<span class="truncate">Dùng thử ngay</span>
+</a>
+<a href="#how-it-works" class="flex w-full sm:w-auto min-w-[160px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl h-12 md:h-14 px-6 md:px-8 bg-white/10 backdrop-blur-sm border-2 border-white text-white text-base md:text-lg font-bold leading-normal tracking-[0.015em] hover:bg-white/20 transition-all">
+<span class="material-symbols-outlined">play_circle</span>
+<span class="truncate">Xem demo</span>
+</a>
+</div>
+<div class="flex flex-wrap items-center justify-center gap-6 md:gap-12 mt-6 text-white">
+<div class="flex flex-col items-center">
+<div class="text-3xl md:text-4xl font-bold">30s</div>
+<div class="text-sm opacity-90">Tạo kế hoạch</div>
+</div>
+<div class="flex flex-col items-center">
+<div class="text-3xl md:text-4xl font-bold">100%</div>
+<div class="text-sm opacity-90">Miễn phí</div>
+</div>
+<div class="flex flex-col items-center">
+<div class="text-3xl md:text-4xl font-bold">24/7</div>
+<div class="text-sm opacity-90">Hỗ trợ AI</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Features Section -->
+<div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-16 bg-gradient-to-b from-white to-gray-50 dark:from-background-dark dark:to-gray-900" id="features">
+<div class="layout-content-container flex flex-col max-w-[1200px] flex-1">
+<div class="flex flex-col gap-4 text-center items-center mb-12">
+<h2 class="text-[#111618] dark:text-white text-3xl md:text-4xl font-bold leading-tight">Tất cả trong một nền tảng</h2>
+<p class="text-[#617c89] dark:text-gray-300 text-lg max-w-2xl">Từ lên kế hoạch đến đặt vé, mọi thứ bạn cần cho chuyến đi hoàn hảo</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
+<!-- Feature Card 1 -->
+<div class="group bg-white dark:bg-gray-800 rounded-xl p-6 border-2 border-gray-200 dark:border-gray-700 hover:border-primary hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+<div class="flex items-center justify-center w-14 h-14 bg-primary/10 rounded-lg mb-4 group-hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-primary text-3xl">smart_toy</span>
+</div>
+<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2">AI Chat Tiếng Việt</h3>
+<p class="text-[#617c89] dark:text-gray-300 text-sm mb-4">Trò chuyện tự nhiên bằng tiếng Việt với AI được tối ưu riêng cho du lịch Việt Nam. Hiểu địa danh, ngân sách VNĐ và văn hóa bản địa.</p>
+<a href="#how-it-works" class="text-primary font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
+Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward</span>
+</a>
+</div>
+
+<!-- Feature Card 2 -->
+<div class="group bg-white dark:bg-gray-800 rounded-xl p-6 border-2 border-gray-200 dark:border-gray-700 hover:border-primary hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+<div class="flex items-center justify-center w-14 h-14 bg-primary/10 rounded-lg mb-4 group-hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-primary text-3xl">event_note</span>
+</div>
+<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2">Tạo Lịch Trình Tự Động</h3>
+<p class="text-[#617c89] dark:text-gray-300 text-sm mb-4">Nhận lịch trình chi tiết theo giờ, từng ngày với địa điểm cụ thể, chi phí ước tính và tips hữu ích chỉ trong 30 giây.</p>
+<a href="#how-it-works" class="text-primary font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
+Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward</span>
+</a>
+</div>
+
+<!-- Feature Card 3 -->
+<div class="group bg-white dark:bg-gray-800 rounded-xl p-6 border-2 border-gray-200 dark:border-gray-700 hover:border-primary hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+<div class="flex items-center justify-center w-14 h-14 bg-primary/10 rounded-lg mb-4 group-hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-primary text-3xl">flight</span>
+</div>
+<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2">Tìm Vé Máy Bay</h3>
+<p class="text-[#617c89] dark:text-gray-300 text-sm mb-4">Tích hợp Agoda API để tìm kiếm vé máy bay với giá tốt nhất, so sánh nhiều hãng, lọc theo sở thích ngay trong chat.</p>
+<a href="#how-it-works" class="text-primary font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
+Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward</span>
+</a>
+</div>
+
+<!-- Feature Card 4 -->
+<div class="group bg-white dark:bg-gray-800 rounded-xl p-6 border-2 border-gray-200 dark:border-gray-700 hover:border-primary hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+<div class="flex items-center justify-center w-14 h-14 bg-primary/10 rounded-lg mb-4 group-hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-primary text-3xl">hotel</span>
+</div>
+<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2">Tìm Khách Sạn</h3>
+<p class="text-[#617c89] dark:text-gray-300 text-sm mb-4">Khám phá khách sạn phù hợp với đánh giá thực, hình ảnh đẹp, giá cả minh bạch và ưu đãi độc quyền từ Agoda.</p>
+<a href="#how-it-works" class="text-primary font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
+Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward</span>
+</a>
+</div>
+
+<!-- Feature Card 5 -->
+<div class="group bg-white dark:bg-gray-800 rounded-xl p-6 border-2 border-gray-200 dark:border-gray-700 hover:border-primary hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+<div class="flex items-center justify-center w-14 h-14 bg-primary/10 rounded-lg mb-4 group-hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-primary text-3xl">explore</span>
+</div>
+<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2">Khám Phá Điểm Đến</h3>
+<p class="text-[#617c89] dark:text-gray-300 text-sm mb-4">Vuốt qua 20 địa danh đẹp nhất Việt Nam với giao diện Tinder-style. Thích nơi nào? Chạm để tạo kế hoạch ngay!</p>
+<a href="#how-it-works" class="text-primary font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
+Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward</span>
+</a>
+</div>
+
+<!-- Feature Card 6 -->
+<div class="group bg-white dark:bg-gray-800 rounded-xl p-6 border-2 border-gray-200 dark:border-gray-700 hover:border-primary hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+<div class="flex items-center justify-center w-14 h-14 bg-primary/10 rounded-lg mb-4 group-hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-primary text-3xl">folder_open</span>
+</div>
+<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2">Quản Lý Kế Hoạch</h3>
+<p class="text-[#617c89] dark:text-gray-300 text-sm mb-4">Lưu, chỉnh sửa và theo dõi tất cả kế hoạch du lịch ở một nơi. Đánh dấu yêu thích, chia sẻ với bạn bè dễ dàng.</p>
+<a href="#how-it-works" class="text-primary font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
+Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+<!-- How It Works Section -->
+<div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-16" id="how-it-works">
+<div class="layout-content-container flex flex-col max-w-[1000px] flex-1">
+<h2 class="text-[#111618] dark:text-white text-3xl md:text-4xl font-bold leading-tight px-4 pb-8 text-center">Cách hoạt động</h2>
+<div class="relative flex flex-col md:flex-row items-center justify-between gap-8 px-4">
+<!-- Connector Line (Hidden on mobile) -->
+<div class="hidden md:block absolute top-20 left-0 right-0 h-1 bg-gradient-to-r from-primary via-primary to-primary opacity-20 z-0"></div>
+
+<!-- Step 1 -->
+<div class="relative flex flex-col items-center text-center flex-1 z-10">
+<div class="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-primary to-blue-600 rounded-full flex items-center justify-center mb-4 shadow-lg">
+<span class="material-symbols-outlined text-white text-4xl md:text-5xl">chat_bubble</span>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-200 dark:border-gray-700 w-full">
+<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2">1. Trò chuyện với AI</h3>
+<p class="text-sm text-[#617c89] dark:text-gray-300">Nói với chatbot về điểm đến, ngân sách và thời gian. Ví dụ: "Tôi muốn đi Đà Lạt 3 ngày, ngân sách 5 triệu"</p>
+</div>
+</div>
+
+<!-- Step 2 -->
+<div class="relative flex flex-col items-center text-center flex-1 z-10">
+<div class="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-primary to-blue-600 rounded-full flex items-center justify-center mb-4 shadow-lg">
+<span class="material-symbols-outlined text-white text-4xl md:text-5xl">auto_awesome</span>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-200 dark:border-gray-700 w-full">
+<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2">2. Nhận lịch trình & giá</h3>
+<p class="text-sm text-[#617c89] dark:text-gray-300">AI tạo kế hoạch chi tiết + tìm vé máy bay và khách sạn tốt nhất. <strong class="text-primary">Chỉ mất 30 giây!</strong></p>
+</div>
+</div>
+
+<!-- Step 3 -->
+<div class="relative flex flex-col items-center text-center flex-1 z-10">
+<div class="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-primary to-blue-600 rounded-full flex items-center justify-center mb-4 shadow-lg">
+<span class="material-symbols-outlined text-white text-4xl md:text-5xl">bookmark</span>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-200 dark:border-gray-700 w-full">
+<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2">3. Lưu & quản lý</h3>
+<p class="text-sm text-[#617c89] dark:text-gray-300">Lưu kế hoạch, chỉnh sửa bất cứ lúc nào, và chuẩn bị sẵn sàng cho chuyến đi của bạn!</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- USP Section -->
+<div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-16 bg-gradient-to-br from-primary/5 to-blue-50 dark:from-primary/10 dark:to-gray-900">
+<div class="layout-content-container flex flex-col max-w-[1200px] flex-1">
+<h2 class="text-[#111618] dark:text-white text-3xl md:text-4xl font-bold leading-tight px-4 pb-12 text-center">Tại sao chọn khampha.online?</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 px-4">
+<!-- USP 1 -->
+<div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg border-l-4 border-primary">
+<div class="flex items-start gap-4">
+<div class="text-5xl">⚡</div>
+<div>
+<h3 class="text-2xl font-bold text-[#111618] dark:text-white mb-2">Nhanh gấp 100 lần</h3>
+<div class="flex items-center gap-4 mb-3">
+<div class="text-center">
+<div class="text-3xl font-black text-primary">30s</div>
+<div class="text-xs text-[#617c89] dark:text-gray-300">khampha.online</div>
+</div>
+<div class="text-2xl text-[#617c89]">vs</div>
+<div class="text-center">
+<div class="text-3xl font-black text-gray-400">3 giờ</div>
+<div class="text-xs text-[#617c89] dark:text-gray-300">Tìm kiếm thủ công</div>
+</div>
+</div>
+<p class="text-[#617c89] dark:text-gray-300 text-sm">Không cần mở 20 tab, so sánh giá trên nhiều trang. AI làm hết cho bạn!</p>
+</div>
+</div>
+</div>
+
+<!-- USP 2 -->
+<div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg border-l-4 border-primary">
+<div class="flex items-start gap-4">
+<div class="text-5xl">🇻🇳</div>
+<div>
+<h3 class="text-2xl font-bold text-[#111618] dark:text-white mb-2">Tối ưu cho người Việt</h3>
+<ul class="space-y-2 text-sm text-[#617c89] dark:text-gray-300">
+<li class="flex items-center gap-2"><span class="text-primary">✓</span> Hiểu địa danh Việt Nam (Đà Lạt, Nha Trang, Phú Quốc...)</li>
+<li class="flex items-center gap-2"><span class="text-primary">✓</span> Ngân sách VNĐ (5 triệu, 10 triệu...)</li>
+<li class="flex items-center gap-2"><span class="text-primary">✓</span> Văn hóa & sở thích bản địa</li>
+</ul>
+</div>
+</div>
+</div>
+
+<!-- USP 3 -->
+<div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg border-l-4 border-primary">
+<div class="flex items-start gap-4">
+<div class="text-5xl">🔍</div>
+<div>
+<h3 class="text-2xl font-bold text-[#111618] dark:text-white mb-2">Dữ liệu thời gian thực</h3>
+<p class="text-[#617c89] dark:text-gray-300 text-sm mb-3">Giá vé máy bay và khách sạn <strong>live</strong> từ Agoda API. Không phải lo thông tin cũ hay sai lệch.</p>
+<div class="inline-flex items-center gap-2 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full text-green-700 dark:text-green-300 text-xs font-medium">
+<span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+Cập nhật liên tục
+</div>
+</div>
+</div>
+</div>
+
+<!-- USP 4 -->
+<div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg border-l-4 border-primary">
+<div class="flex items-start gap-4">
+<div class="text-5xl">💯</div>
+<div>
+<h3 class="text-2xl font-bold text-[#111618] dark:text-white mb-2">Miễn phí hoàn toàn</h3>
+<ul class="space-y-2 text-sm text-[#617c89] dark:text-gray-300">
+<li class="flex items-center gap-2"><span class="text-primary">✓</span> Không phí ẩn, không quảng cáo phiền phức</li>
+<li class="flex items-center gap-2"><span class="text-primary">✓</span> Không giới hạn số lượng kế hoạch</li>
+<li class="flex items-center gap-2"><span class="text-primary">✓</span> Tất cả tính năng đều miễn phí</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Use Cases Section -->
+<div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-16" id="use-cases">
+<div class="layout-content-container flex flex-col max-w-[1200px] flex-1">
+<h2 class="text-[#111618] dark:text-white text-3xl md:text-4xl font-bold leading-tight px-4 pb-4 text-center">Ví dụ thực tế</h2>
+<p class="text-[#617c89] dark:text-gray-300 text-center mb-12 max-w-2xl mx-auto">Xem cách người dùng khác lên kế hoạch chuyến đi với khampha.online</p>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
+<!-- Use Case 1 -->
+<div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow">
+<div class="h-48 bg-gradient-to-br from-blue-400 to-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-6xl">family_restroom</span>
+</div>
+<div class="p-6">
+<div class="flex items-center gap-3 mb-4">
+<img src="https://i.pravatar.cc/80?img=1" alt="Avatar" class="w-12 h-12 rounded-full border-2 border-primary"/>
+<div>
+<h4 class="font-bold text-[#111618] dark:text-white">Gia đình 4 người</h4>
+<p class="text-sm text-[#617c89] dark:text-gray-300">Phú Quốc • 5 ngày</p>
+</div>
+</div>
+<div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
+<div class="text-2xl font-bold text-primary mb-1">15 triệu VNĐ</div>
+<div class="text-xs text-[#617c89] dark:text-gray-300">Ngân sách tổng</div>
+<div class="mt-3 space-y-1 text-xs">
+<div class="flex justify-between"><span>Vé máy bay:</span><span class="font-medium">6.8tr</span></div>
+<div class="flex justify-between"><span>Khách sạn:</span><span class="font-medium">4.5tr</span></div>
+<div class="flex justify-between"><span>Ăn uống & vui chơi:</span><span class="font-medium">3.7tr</span></div>
+</div>
+</div>
+<p class="text-sm text-[#617c89] dark:text-gray-300 mb-4 italic">"Lịch trình rất chi tiết với nhiều hoạt động phù hợp cho trẻ em. Giá khách sạn rẻ hơn tự tìm 20%!"</p>
+<a href="/login" class="flex items-center justify-center gap-2 w-full py-2 px-4 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors font-medium text-sm">
+<span class="material-symbols-outlined text-lg">visibility</span>
+Xem kế hoạch mẫu
+</a>
+</div>
+</div>
+
+<!-- Use Case 2 -->
+<div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow">
+<div class="h-48 bg-gradient-to-br from-pink-400 to-red-400 flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-6xl">favorite</span>
+</div>
+<div class="p-6">
+<div class="flex items-center gap-3 mb-4">
+<img src="https://i.pravatar.cc/80?img=5" alt="Avatar" class="w-12 h-12 rounded-full border-2 border-primary"/>
+<div>
+<h4 class="font-bold text-[#111618] dark:text-white">Couple lãng mạn</h4>
+<p class="text-sm text-[#617c89] dark:text-gray-300">Đà Lạt • 3 ngày 2 đêm</p>
+</div>
+</div>
+<div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
+<div class="text-2xl font-bold text-primary mb-1">6 triệu VNĐ</div>
+<div class="text-xs text-[#617c89] dark:text-gray-300">Ngân sách tổng</div>
+<div class="mt-3 space-y-1 text-xs">
+<div class="flex justify-between"><span>Homestay view đẹp:</span><span class="font-medium">2.4tr</span></div>
+<div class="flex justify-between"><span>Ăn uống cao cấp:</span><span class="font-medium">2.0tr</span></div>
+<div class="flex justify-between"><span>Tham quan & xe:</span><span class="font-medium">1.6tr</span></div>
+</div>
+</div>
+<p class="text-sm text-[#617c89] dark:text-gray-300 mb-4 italic">"AI gợi ý cả quán cafe ngắm hoàng hôn và nhà hàng nướng BBQ tuyệt vời. Chuyến đi hoàn hảo!"</p>
+<a href="/login" class="flex items-center justify-center gap-2 w-full py-2 px-4 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors font-medium text-sm">
+<span class="material-symbols-outlined text-lg">visibility</span>
+Xem kế hoạch mẫu
+</a>
+</div>
+</div>
+
+<!-- Use Case 3 -->
+<div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow">
+<div class="h-48 bg-gradient-to-br from-green-400 to-teal-400 flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-6xl">hiking</span>
+</div>
+<div class="p-6">
+<div class="flex items-center gap-3 mb-4">
+<img src="https://i.pravatar.cc/80?img=12" alt="Avatar" class="w-12 h-12 rounded-full border-2 border-primary"/>
+<div>
+<h4 class="font-bold text-[#111618] dark:text-white">Solo backpacker</h4>
+<p class="text-sm text-[#617c89] dark:text-gray-300">Sapa • 1 tuần trek</p>
+</div>
+</div>
+<div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
+<div class="text-2xl font-bold text-primary mb-1">3 triệu VNĐ</div>
+<div class="text-xs text-[#617c89] dark:text-gray-300">Ngân sách tổng</div>
+<div class="mt-3 space-y-1 text-xs">
+<div class="flex justify-between"><span>Hostel/Homestay:</span><span class="font-medium">1.0tr</span></div>
+<div class="flex justify-between"><span>Ăn uống bình dân:</span><span class="font-medium">0.8tr</span></div>
+<div class="flex justify-between"><span>Tour & xe:</span><span class="font-medium">1.2tr</span></div>
+</div>
+</div>
+<p class="text-sm text-[#617c89] dark:text-gray-300 mb-4 italic">"Route trekking rất an toàn, có tips mua đồ địa phương và chỗ ngủ tiết kiệm. Đúng gu backpacker!"</p>
+<a href="/login" class="flex items-center justify-center gap-2 w-full py-2 px-4 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors font-medium text-sm">
+<span class="material-symbols-outlined text-lg">visibility</span>
+Xem kế hoạch mẫu
 </a>
 </div>
 </div>
 </div>
 </div>
 </div>
-<div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-5" id="features">
-<div class="layout-content-container flex flex-col max-w-[960px] flex-1">
-<div class="flex flex-col gap-10 px-4 py-10 @container">
-<div class="flex flex-col gap-4 text-center items-center">
-<h2 class="text-[#111618] dark:text-white tracking-light text-[32px] font-bold leading-tight @[480px]:text-4xl max-w-[720px]">Tính năng nổi bật</h2>
-<p class="text-[#617c89] dark:text-gray-300 text-base font-normal leading-normal max-w-[720px]">Khám phá những tính năng tuyệt vời của chatbot du lịch của chúng tôi.</p>
-</div>
-<div class="grid grid-cols-1 gap-12 pt-8">
-<div class="flex flex-col md:flex-row items-center gap-8">
-<div class="w-full md:w-1/2">
-<h3 class="text-2xl font-bold text-[#111618] dark:text-white mb-3">Lập kế hoạch chuyến đi thông minh</h3>
-<p class="text-[#617c89] dark:text-gray-300 mb-4">Chỉ cần cho chúng tôi biết điểm đến, sở thích và ngân sách của bạn, chatbot sẽ tự động tạo ra một lịch trình chi tiết, từ gợi ý các điểm tham quan, hoạt động vui chơi đến các nhà hàng địa phương ngon nhất.</p>
-<ul class="space-y-2">
-<li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">check_circle</span><span>Lịch trình tùy chỉnh</span></li>
-<li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">check_circle</span><span>Gợi ý dựa trên sở thích</span></li>
-<li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">check_circle</span><span>Tối ưu hóa thời gian và chi phí</span></li>
-</ul>
-</div>
-<div class="w-full md:w-1/2">
-<img alt="Smart Itinerary Planning" class="rounded-lg shadow-lg w-full h-auto object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBi431GoI_L_Ro8OS_0o7tms8ftUxqlH_GuK5Qmy7-O5YqyQQPIxVnhHT_T9aFtVaSKs_UOWEBQ17rUNUi5inVQTxb1yz3wkH4SwfsAgXS-GTLDWljbrsBRtiq7XSfEXwNUQXYhqkuVZr5d6ltffuWgelC8kPOnAf4gYvpRPnUqA3VpISC7oJsZNoGe4eMMpVww2EeTr7Wgoyu_65YlPp6CHrPNUa9sNqEmE-QUpcCMk-Ek0hYujEpVXrnfjX5gpwlUM6es0pO9P-0"/>
-</div>
-</div>
-<div class="flex flex-col md:flex-row-reverse items-center gap-8">
-<div class="w-full md:w-1/2">
-<h3 class="text-2xl font-bold text-[#111618] dark:text-white mb-3">Đặt vé và phòng dễ dàng</h3>
-<p class="text-[#617c89] dark:text-gray-300 mb-4">Tích hợp với các hệ thống đặt vé hàng đầu, chatbot giúp bạn tìm kiếm và đặt vé máy bay, khách sạn, tour du lịch với mức giá tốt nhất chỉ trong vài thao tác đơn giản, ngay trên giao diện trò chuyện.</p>
-<ul class="space-y-2">
-<li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">check_circle</span><span>So sánh giá nhanh chóng</span></li>
-<li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">check_circle</span><span>Thanh toán an toàn, tiện lợi</span></li>
-<li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">check_circle</span><span>Quản lý tất cả booking ở một nơi</span></li>
-</ul>
-</div>
-<div class="w-full md:w-1/2">
-<img alt="Easy Booking System" class="rounded-lg shadow-lg w-full h-auto object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3AAP4EdPrG2G1iem4V2AmKVMA6MB44j5VKlsdpLHcLKIrkYK-qlFIjHVbxy2vp2uPtnh3gjKrfNG3Ohdp0sDngutFPBlbP47eHihQ8kbWZZCo64BKLyVpcObLCxt8gUWcqyLwwMTaaXKn0JqX_iWZC2DHCszjFaMwCpRYidg0AFAC3FcpglaYwtPa3boohcA0-1tza1WaAK3gVpJhMI1vSQ5glId8PPw0Rba76IbHQYBUmN4lJwS9Um_CjQu1z7N5D5GyQEUznk4"/>
-</div>
-</div>
-<div class="flex flex-col md:flex-row items-center gap-8">
-<div class="w-full md:w-1/2">
-<h3 class="text-2xl font-bold text-[#111618] dark:text-white mb-3">Hỗ trợ thời gian thực 24/7</h3>
-<p class="text-[#617c89] dark:text-gray-300 mb-4">Dù bạn đang ở bất cứ đâu, chatbot luôn sẵn sàng hỗ trợ bạn 24/7. Từ việc hỏi đường, dịch ngôn ngữ, tìm kiếm thông tin khẩn cấp đến gợi ý các địa điểm ăn uống gần bạn, trợ lý ảo luôn đồng hành cùng bạn.</p>
-<ul class="space-y-2">
-<li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">check_circle</span><span>Trợ giúp tức thì mọi lúc mọi nơi</span></li>
-<li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">check_circle</span><span>Dịch thuật đa ngôn ngữ</span></li>
-<li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">check_circle</span><span>Thông tin khẩn cấp và an toàn</span></li>
-</ul>
-</div>
-<div class="w-full md:w-1/2">
-<img alt="24/7 Real-time Support" class="rounded-lg shadow-lg w-full h-auto object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6M3rAGsw0DlYlK3nsW0bOshectiUCsqXucASgf8vzkbZkr1uqJXxN_mJmlJezLRigOua_GqXbP7T06V_qza07F9kwJS5UGJpwHBnA16l6dma7O3yoDOTlSFnGIFpa2Kxp1hGrS8ZXHt9RsnaN--_F5BeDBYTM4Bbs9YO2izn92-D51x7SVj5AZIuq4bSTyir_3a2Qa8riWr-RjbVAL6uzrcxdk0m0J0Jf0e6AEHQuMqI9PDFVMTeKk_xuR50GWWpJPsOJC4UxQBw"/>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-5">
-<div class="layout-content-container flex flex-col max-w-[960px] flex-1">
-<h2 class="text-[#111618] dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5 text-center">Cách hoạt động</h2>
-<div class="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4 p-4">
-<div class="flex flex-1 gap-3 rounded-lg border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-background-dark p-4 items-center flex-col text-center">
-<span class="material-symbols-outlined text-primary text-3xl mb-2">forum</span>
-<h3 class="text-[#111618] dark:text-white text-base font-bold leading-tight">1. Đặt câu hỏi</h3>
-<p class="text-sm text-[#617c89] dark:text-gray-300">Chia sẻ ý tưởng chuyến đi của bạn.</p>
-</div>
-<div class="flex flex-1 gap-3 rounded-lg border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-background-dark p-4 items-center flex-col text-center">
-<span class="material-symbols-outlined text-primary text-3xl mb-2">checklist</span>
-<h3 class="text-[#111618] dark:text-white text-base font-bold leading-tight">2. Nhận gợi ý</h3>
-<p class="text-sm text-[#617c89] dark:text-gray-300">Chatbot sẽ đề xuất lịch trình.</p>
-</div>
-<div class="flex flex-1 gap-3 rounded-lg border border-[#dbe2e6] dark:border-gray-700 bg-white dark:bg-background-dark p-4 items-center flex-col text-center">
-<span class="material-symbols-outlined text-primary text-3xl mb-2">flight_takeoff</span>
-<h3 class="text-[#111618] dark:text-white text-base font-bold leading-tight">3. Lên kế hoạch</h3>
-<p class="text-sm text-[#617c89] dark:text-gray-300">Xác nhận và bắt đầu chuyến đi.</p>
-</div>
-</div>
-</div>
-</div>
-<div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-5">
-<div class="layout-content-container flex flex-col max-w-[960px] flex-1">
-<h2 class="text-[#111618] dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5 text-center">Đánh giá từ khách hàng</h2>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-8 p-4">
-<div class="bg-white dark:bg-background-dark border border-[#dbe2e6] dark:border-gray-700 rounded-lg p-6 flex flex-col items-center text-center">
-<img alt="User Avatar" class="w-20 h-20 rounded-full mb-4 border-2 border-primary" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvvgYaLTHLK7cYesz6GJ0f-nUrr6nGakl1nIWC3ZQlyhDIEuxVk4HhdnErUKCYwo8TzNloILjMxcbTaQ0ibzkyTR9WBUtghuYCZ2UL5VDwmlxErqKJ_J7sVf0i-m-OUWW3z5LLcqpaXrtbpspBxgzTGgLLXecUplaC8aG8gSQNa8mA-RuPcZoCl4qvtX47u5WFAg9qkyFvp3e_YQh40Rk8h7yl_bHEhd8ZiuKhbQOwwqeKfQiOGZFR0EXrdPZu9fG_iJrfFAWrCxE"/>
-<p class="text-[#617c89] dark:text-gray-300 italic mb-4">"Chatbot này đã giúp tôi lên kế hoạch cho chuyến đi châu Âu một cách hoàn hảo! Rất dễ sử dụng và đầy đủ thông tin."</p>
-<h4 class="font-bold text-[#111618] dark:text-white">An Nguyễn</h4>
-<p class="text-sm text-[#617c89] dark:text-gray-300">Travel Blogger</p>
-</div>
-<div class="bg-white dark:bg-background-dark border border-[#dbe2e6] dark:border-gray-700 rounded-lg p-6 flex flex-col items-center text-center">
-<img alt="User Avatar" class="w-20 h-20 rounded-full mb-4 border-2 border-primary" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDp4uTT1sR74frUgemgfbIiGezEJcM43pjYYxUp_JdY1su1wvQq5JQ1qTu-f4cUM5NbZ9uRoEIghaaEIWsaK6DSETQV3V_vh-P8AH8re9R-G9-yB0fVNEepGg7exdYAwqlugTe1cd_Zp6rG5QrzJUwd8WpGWFRAXYswPeHRlypT-MZKaSY8Am-Mo0eCI0qnwPpntm-1LtGf5oVxcQ5M4VrGIR8RMdXz_U7nh-0qYTRRo0KqnTJfoZzgIQ7NNzidUN9jtxln7gmoSX4"/>
-<p class="text-[#617c89] dark:text-gray-300 italic mb-4">"Tiết kiệm rất nhiều thời gian so với việc tự tìm kiếm. Các gợi ý đều rất tuyệt vời và phù hợp với sở thích của tôi."</p>
-<h4 class="font-bold text-[#111618] dark:text-white">Minh Trần</h4>
-<p class="text-sm text-[#617c89] dark:text-gray-300">Phượt thủ</p>
-</div>
-</div>
-</div>
-</div>
-<div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-10 bg-white dark:bg-background-dark mt-10" id="contact">
+<!-- Contact Section -->
+<div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-16 bg-gradient-to-b from-white to-gray-50 dark:from-background-dark dark:to-gray-900" id="contact">
 <div class="layout-content-container flex flex-col max-w-[960px] flex-1 items-center">
-<h2 class="text-[#111618] dark:text-white text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5 text-center">Liên hệ với chúng tôi</h2>
-<p class="text-center text-[#617c89] dark:text-gray-300 max-w-xl mb-8">Bạn có câu hỏi? Hoặc muốn đăng ký để nhận thông tin cập nhật và ưu đãi độc quyền? Hãy điền vào form dưới đây.</p>
-<form class="w-full max-w-lg space-y-4">
-<div class="flex flex-wrap -mx-3">
-<div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
-<label class="block uppercase tracking-wide text-gray-700 dark:text-gray-300 text-xs font-bold mb-2" for="grid-first-name">Tên</label>
-<input class="appearance-none block w-full bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-primary" id="grid-first-name" placeholder="Jane" type="text"/>
+<h2 class="text-[#111618] dark:text-white text-3xl md:text-4xl font-bold leading-tight px-4 pb-4 text-center">Liên hệ với chúng tôi</h2>
+<p class="text-center text-[#617c89] dark:text-gray-300 max-w-xl mb-8">Có thắc mắc? Chúng tôi luôn sẵn sàng hỗ trợ bạn!</p>
+<div class="w-full max-w-lg bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
+<form class="space-y-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" for="contact-name">Họ và tên</label>
+<input class="w-full bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" id="contact-name" placeholder="Nguyễn Văn A" type="text" required/>
 </div>
-<div class="w-full md:w-1/2 px-3">
-<label class="block uppercase tracking-wide text-gray-700 dark:text-gray-300 text-xs font-bold mb-2" for="grid-last-name">Email</label>
-<input class="appearance-none block w-full bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-primary" id="grid-last-name" placeholder="jane.doe@example.com" type="email"/>
-</div>
-</div>
-<div class="flex flex-wrap -mx-3">
-<div class="w-full px-3">
-<label class="block uppercase tracking-wide text-gray-700 dark:text-gray-300 text-xs font-bold mb-2" for="grid-password">Tin nhắn</label>
-<textarea class="appearance-none block w-full bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-primary" id="grid-password" placeholder="Nội dung tin nhắn của bạn..."></textarea>
+<div>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" for="contact-email">Email</label>
+<input class="w-full bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" id="contact-email" placeholder="email@example.com" type="email" required/>
 </div>
 </div>
-<div class="flex justify-center">
-<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-8 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em]">
-<span class="truncate">Gửi tin nhắn</span>
+<div>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" for="contact-message">Tin nhắn</label>
+<textarea class="w-full bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" id="contact-message" placeholder="Nội dung tin nhắn của bạn..." rows="5" required></textarea>
+</div>
+<button type="submit" class="w-full flex items-center justify-center gap-2 rounded-xl h-12 px-8 bg-primary text-white font-bold hover:bg-blue-600 transition-all transform hover:scale-105 shadow-lg">
+<span class="material-symbols-outlined">send</span>
+<span>Gửi tin nhắn</span>
 </button>
-</div>
 </form>
 </div>
+<div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-3xl">
+<div class="flex flex-col items-center text-center p-4">
+<div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
+<span class="material-symbols-outlined text-primary text-2xl">email</span>
 </div>
-<footer class="bg-gray-100 dark:bg-gray-800 py-8">
-<div class="max-w-[960px] mx-auto px-4 md:px-10 lg:px-40 text-center text-[#617c89] dark:text-gray-400">
-<p class="text-sm">© 2024 Travel Chatbot. All rights reserved.</p>
-<div class="flex justify-center space-x-4 mt-4">
-<a class="hover:text-primary" href="#">Về chúng tôi</a>
-<a class="hover:text-primary" href="#">Điều khoản</a>
-<a class="hover:text-primary" href="#">Chính sách</a>
+<h4 class="font-bold text-[#111618] dark:text-white mb-1">Email</h4>
+<p class="text-sm text-[#617c89] dark:text-gray-300">contact@khampha.online</p>
+</div>
+<div class="flex flex-col items-center text-center p-4">
+<div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
+<span class="material-symbols-outlined text-primary text-2xl">phone</span>
+</div>
+<h4 class="font-bold text-[#111618] dark:text-white mb-1">Hotline</h4>
+<p class="text-sm text-[#617c89] dark:text-gray-300">1900-xxxx (8h-22h)</p>
+</div>
+<div class="flex flex-col items-center text-center p-4">
+<div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
+<span class="material-symbols-outlined text-primary text-2xl">location_on</span>
+</div>
+<h4 class="font-bold text-[#111618] dark:text-white mb-1">Địa chỉ</h4>
+<p class="text-sm text-[#617c89] dark:text-gray-300">TP. Hồ Chí Minh</p>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-gradient-to-b from-gray-900 to-black text-white py-12">
+<div class="max-w-[1200px] mx-auto px-4 md:px-10 lg:px-40">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+<!-- Company Info -->
+<div class="col-span-1 md:col-span-2">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary text-3xl">travel_explore</span>
+<span class="text-xl font-bold">khampha.online</span>
+</div>
+<p class="text-gray-400 text-sm mb-4">Nền tảng lập kế hoạch du lịch thông minh được hỗ trợ bởi AI. Tạo lịch trình chi tiết trong 30 giây, hoàn toàn miễn phí.</p>
+<div class="flex gap-4">
+<a href="#" class="w-10 h-10 bg-gray-800 hover:bg-primary rounded-full flex items-center justify-center transition-colors" aria-label="Facebook">
+<span class="material-symbols-outlined text-xl">facebook</span>
+</a>
+<a href="#" class="w-10 h-10 bg-gray-800 hover:bg-primary rounded-full flex items-center justify-center transition-colors" aria-label="Instagram">
+<span class="material-symbols-outlined text-xl">photo_camera</span>
+</a>
+<a href="#" class="w-10 h-10 bg-gray-800 hover:bg-primary rounded-full flex items-center justify-center transition-colors" aria-label="YouTube">
+<span class="material-symbols-outlined text-xl">play_arrow</span>
+</a>
+</div>
+</div>
+
+<!-- Quick Links -->
+<div>
+<h4 class="font-bold text-lg mb-4">Liên kết</h4>
+<ul class="space-y-2 text-sm">
+<li><a href="#features" class="text-gray-400 hover:text-primary transition-colors">Tính năng</a></li>
+<li><a href="#how-it-works" class="text-gray-400 hover:text-primary transition-colors">Cách hoạt động</a></li>
+<li><a href="#use-cases" class="text-gray-400 hover:text-primary transition-colors">Ví dụ thực tế</a></li>
+<li><a href="#contact" class="text-gray-400 hover:text-primary transition-colors">Liên hệ</a></li>
+</ul>
+</div>
+
+<!-- Legal -->
+<div>
+<h4 class="font-bold text-lg mb-4">Pháp lý</h4>
+<ul class="space-y-2 text-sm">
+<li><a href="#" class="text-gray-400 hover:text-primary transition-colors">Điều khoản sử dụng</a></li>
+<li><a href="#" class="text-gray-400 hover:text-primary transition-colors">Chính sách bảo mật</a></li>
+<li><a href="#" class="text-gray-400 hover:text-primary transition-colors">Về chúng tôi</a></li>
+<li><a href="#" class="text-gray-400 hover:text-primary transition-colors">FAQ</a></li>
+</ul>
+</div>
+</div>
+
+<div class="border-t border-gray-800 pt-6 text-center">
+<p class="text-gray-400 text-sm">© 2025 khampha.online. All rights reserved. Made with ❤️ in Vietnam</p>
 </div>
 </div>
 </footer>
+
+<!-- Sticky CTA Bar -->
+<div id="sticky-cta" class="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-primary to-blue-600 text-white py-4 px-4 shadow-2xl transform translate-y-full transition-transform duration-300 z-40">
+<div class="max-w-[1200px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+<div class="text-center sm:text-left">
+<div class="font-bold text-lg">Sẵn sàng lên kế hoạch du lịch?</div>
+<div class="text-sm opacity-90">Bắt đầu miễn phí ngay hôm nay!</div>
+</div>
+<a href="/login" class="flex items-center justify-center gap-2 bg-white text-primary px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg min-w-[200px]">
+<span class="material-symbols-outlined">rocket_launch</span>
+<span>Bắt đầu lập kế hoạch</span>
+</a>
 </div>
 </div>
+</div>
+</div>
+
+<script>
+// Mobile Menu Functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const mobileMenu = document.getElementById('mobile-menu');
+  const mobileMenuPanel = document.getElementById('mobile-menu-panel');
+  const openMenuBtn = document.getElementById('open-menu');
+  const closeMenuBtn = document.getElementById('close-menu');
+  
+  function openMenu() {
+    mobileMenu.classList.remove('hidden');
+    setTimeout(() => {
+      mobileMenuPanel.classList.remove('translate-x-full');
+    }, 10);
+  }
+  
+  function closeMenu() {
+    mobileMenuPanel.classList.add('translate-x-full');
+    setTimeout(() => {
+      mobileMenu.classList.add('hidden');
+    }, 300);
+  }
+  
+  openMenuBtn.addEventListener('click', openMenu);
+  closeMenuBtn.addEventListener('click', closeMenu);
+  
+  // Close menu when clicking outside
+  mobileMenu.addEventListener('click', function(e) {
+    if (e.target === mobileMenu) {
+      closeMenu();
+    }
+  });
+  
+  // Close menu when clicking on a link
+  const mobileMenuLinks = mobileMenuPanel.querySelectorAll('a');
+  mobileMenuLinks.forEach(link => {
+    link.addEventListener('click', closeMenu);
+  });
+  
+  // Sticky CTA Bar
+  const stickyCta = document.getElementById('sticky-cta');
+  let lastScrollTop = 0;
+  let scrollThreshold = window.innerHeight * 0.5; // Show after scrolling 50% of viewport
+  
+  window.addEventListener('scroll', function() {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    
+    // Show sticky CTA after scrolling down past threshold
+    if (scrollTop > scrollThreshold) {
+      stickyCta.classList.remove('translate-y-full');
+    } else {
+      stickyCta.classList.add('translate-y-full');
+    }
+    
+    lastScrollTop = scrollTop;
+  });
+  
+  // Smooth scrolling for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      const href = this.getAttribute('href');
+      if (href !== '#' && href.length > 1) {
+        e.preventDefault();
+        const target = document.querySelector(href);
+        if (target) {
+          const headerOffset = 80;
+          const elementPosition = target.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }
+    });
+  });
+});
+</script>
+
 </body></html>

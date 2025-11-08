@@ -24,8 +24,8 @@ Body:
 {
     "origin": "Ho Chi Minh City",
     "destination": "Hanoi",
-    "departure_date": "2024-03-15",
-    "return_date": "2024-03-20",  // Optional
+    "departure_date": "2025-03-15",
+    "return_date": "2025-03-20",  // Optional
     "adults": 1,
     "children": 0,
     "infants": 0,
@@ -82,7 +82,7 @@ db = DatabaseManager(Config.DATABASE_PATH)
 flights = searcher.search_one_way_flight(
     origin="SGN",
     destination="HAN",
-    departure_date="2024-03-15",
+    departure_date="2025-03-15",
     adults=1
 )
 
@@ -132,7 +132,7 @@ async function searchFlights(planId) {
         body: JSON.stringify({
             origin: "Ho Chi Minh City",
             destination: "Hanoi",
-            departure_date: "2024-03-15",
+            departure_date: "2025-03-15",
             adults: 1
         })
     });
@@ -195,8 +195,8 @@ Returned by `extract_flight_info()`:
 
 ```python
 {
-    'departure_time': '2024-03-15T08:00:00',
-    'arrival_time': '2024-03-15T10:15:00',
+    'departure_time': '2025-03-15T08:00:00',
+    'arrival_time': '2025-03-15T10:15:00',
     'duration': 135,  # minutes
     'carrier_name': 'Vietnam Airlines',
     'carrier_code': 'VN',

@@ -97,7 +97,7 @@ class SearchTool:
         mock_results = [
             {
                 'title': f'Du lịch {location} - Cẩm nang từ A-Z',
-                'snippet': f'Khám phá {location} với lịch trình chi tiết, địa điểm tham quan nổi tiếng, ẩm thực đặc sản và kinh nghiệm du lịch tự túc. Cập nhật 2024.',
+                'snippet': f'Khám phá {location} với lịch trình chi tiết, địa điểm tham quan nổi tiếng, ẩm thực đặc sản và kinh nghiệm du lịch tự túc. Cập nhật 2025.',
                 'url': f'https://example.com/{location.lower()}-guide',
                 'source': 'mock'
             },
@@ -108,7 +108,7 @@ class SearchTool:
                 'source': 'mock'
             },
             {
-                'title': f'Chi phí du lịch {location} 2024: Ăn, ở, đi lại',
+                'title': f'Chi phí du lịch {location} 2025: Ăn, ở, đi lại',
                 'snippet': f'Ước tính chi phí cho chuyến du lịch {location}: vé máy bay, khách sạn, ăn uống, vé tham quan. Cập nhật bảng giá mới nhất.',
                 'url': f'https://example.com/{location.lower()}-budget',
                 'source': 'mock'

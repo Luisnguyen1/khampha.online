@@ -81,8 +81,8 @@ CREATE TABLE plan_flights (
 {
     "origin": "Ho Chi Minh City",
     "destination": "Hanoi",
-    "departure_date": "2024-03-15",
-    "return_date": "2024-03-20",      // Optional for one-way
+    "departure_date": "2025-03-15",
+    "return_date": "2025-03-20",      // Optional for one-way
     "adults": 1,
     "children": 0,
     "infants": 0,
@@ -105,8 +105,8 @@ CREATE TABLE plan_flights (
             "origin_code": "SGN",
             "destination_airport": "Noi Bai International Airport",
             "destination_code": "HAN",
-            "departure_time": "2024-03-15T08:00:00",
-            "arrival_time": "2024-03-15T10:15:00",
+            "departure_time": "2025-03-15T08:00:00",
+            "arrival_time": "2025-03-15T10:15:00",
             "duration": 135,
             "stops": 0,
             "cabin_class": "Economy",
@@ -122,8 +122,8 @@ CREATE TABLE plan_flights (
         "origin_code": "SGN",
         "destination": "Hanoi",
         "destination_code": "HAN",
-        "departure_date": "2024-03-15",
-        "return_date": "2024-03-20",
+        "departure_date": "2025-03-15",
+        "return_date": "2025-03-20",
         "passengers": {
             "adults": 1,
             "children": 0,
@@ -148,8 +148,8 @@ CREATE TABLE plan_flights (
     "flight_number": "VN210",
     "origin_code": "SGN",
     "destination_code": "HAN",
-    "departure_time": "2024-03-15T08:00:00",
-    "arrival_time": "2024-03-15T10:15:00",
+    "departure_time": "2025-03-15T08:00:00",
+    "arrival_time": "2025-03-15T10:15:00",
     "duration": 135,
     "stops": 0,
     "cabin_class": "Economy",
@@ -185,10 +185,10 @@ CREATE TABLE plan_flights (
             "carrier_name": "Vietnam Airlines",
             "origin_code": "SGN",
             "destination_code": "HAN",
-            "departure_time": "2024-03-15T08:00:00",
+            "departure_time": "2025-03-15T08:00:00",
             "price": 1500000,
             "currency": "VND",
-            "selected_at": "2024-01-15T10:30:00"
+            "selected_at": "2025-01-15T10:30:00"
         }
     ]
 }
@@ -245,7 +245,7 @@ airport_code = searcher.get_airport_code("Ho Chi Minh City")
 flights = searcher.search_one_way_flight(
     origin_code="SGN",
     destination_code="HAN",
-    departure_date="2024-03-15",
+    departure_date="2025-03-15",
     adults=1
 )
 
@@ -253,8 +253,8 @@ flights = searcher.search_one_way_flight(
 flights = searcher.search_round_trip_flight(
     origin_code="SGN",
     destination_code="HAN",
-    departure_date="2024-03-15",
-    return_date="2024-03-20",
+    departure_date="2025-03-15",
+    return_date="2025-03-20",
     adults=2,
     children=1
 )

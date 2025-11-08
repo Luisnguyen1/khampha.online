@@ -86,7 +86,7 @@ db = DatabaseManager()
 flights = searcher.search_one_way_flight(
     origin_code="SGN",
     destination_code="HAN",
-    departure_date="2024-03-15",
+    departure_date="2025-03-15",
     adults=1
 )
 
@@ -107,7 +107,7 @@ const response = await fetch('/api/plans/1/search-flights', {
     body: JSON.stringify({
         origin: "Ho Chi Minh City",
         destination: "Hanoi",
-        departure_date: "2024-03-15",
+        departure_date: "2025-03-15",
         adults: 1
     })
 });

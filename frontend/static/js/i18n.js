@@ -1,5 +1,5 @@
 /**
- * Internationalization (i18n) for TravelBot
+ * Internationalization (i18n) for khampha.online
  * Handles multi-language support for Vietnamese, English, and Japanese
  */
 
@@ -23,7 +23,7 @@ const translations = {
         'chat.input_placeholder': 'Nhập yêu cầu của bạn...',
         'chat.thinking': 'Đang suy nghĩ...',
         'chat.you': 'You',
-        'chat.bot_name': 'TravelBot',
+        'chat.bot_name': 'khampha.online',
         'chat.tagline': 'Your Personal Travel Planner',
         
         // Suggestions
@@ -141,7 +141,7 @@ const translations = {
         'chat.input_placeholder': 'Enter your request...',
         'chat.thinking': 'Thinking...',
         'chat.you': 'You',
-        'chat.bot_name': 'TravelBot',
+        'chat.bot_name': 'khampha.online',
         'chat.tagline': 'Your Personal Travel Planner',
         
         // Suggestions

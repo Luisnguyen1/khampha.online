@@ -400,7 +400,7 @@ function createBotMessage(text) {
         <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-10 shrink-0" 
              style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuASndgVA3RbX1H4yCbbqk8hsJujYw-P6pZI-uQr7cNE6Fya18CrfnQF3Q6u5lkHGOdbnxRhwJZDcIr3QYn2d9_fHpzc12fDYZTMAQJ7TptH7Pyu-rlqSErcQwCOM7T7182tN0XX_l_KuPUmWhBcT3Qsf6Y1drq5VInxput-tgaNfjrS50WHYfdtTuf2Ofxb432HdB0uwEupfdrgBaK8ptf5_sLoNoRi-VRHoMj3O_yZSs2pThNsHrNSU7onQN-hig4FR913Omzgito");'></div>
         <div class="flex flex-1 flex-col gap-1 items-start">
-            <p class="text-xs text-gray-500">TravelBot</p>
+            <p class="text-xs text-gray-500">khampha.online</p>
             <div class="markdown-content text-base font-normal leading-normal max-w-[480px] rounded-xl px-4 py-3 bg-gray-100 dark:bg-gray-700">${renderedContent}</div>
         </div>
     `;
@@ -546,7 +546,7 @@ function addThinkingMessage() {
         <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-10 shrink-0" 
              style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuASndgVA3RbX1H4yCbbqk8hsJujYw-P6pZI-uQr7cNE6Fya18CrfnQF3Q6u5lkHGOdbnxRhwJZDcIr3QYn2d9_fHpzc12fDYZTMAQJ7TptH7Pyu-rlqSErcQwCOM7T7182tN0XX_l_KuPUmWhBcT3Qsf6Y1drq5VInxput-tgaNfjrS50WHYfdtTuf2Ofxb432HdB0uwEupfdrgBaK8ptf5_sLoNoRi-VRHoMj3O_yZSs2pThNsHrNSU7onQN-hig4FR913Omzgito");'></div>
         <div class="flex flex-1 flex-col gap-1 items-start">
-            <p class="text-xs text-gray-500">TravelBot</p>
+            <p class="text-xs text-gray-500">khampha.online</p>
             <div class="thinking-bubble rounded-xl px-4 py-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-700">
                 <div class="flex items-center gap-2">
                     <div class="thinking-spinner">
@@ -591,7 +591,7 @@ function createStreamingBotMessage() {
         <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-10 shrink-0" 
              style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuASndgVA3RbX1H4yCbbqk8hsJujYw-P6pZI-uQr7cNE6Fya18CrfnQF3Q6u5lkHGOdbnxRhwJZDcIr3QYn2d9_fHpzc12fDYZTMAQJ7TptH7Pyu-rlqSErcQwCOM7T7182tN0XX_l_KuPUmWhBcT3Qsf6Y1drq5VInxput-tgaNfjrS50WHYfdtTuf2Ofxb432HdB0uwEupfdrgBaK8ptf5_sLoNoRi-VRHoMj3O_yZSs2pThNsHrNSU7onQN-hig4FR913Omzgito");'></div>
         <div class="flex flex-1 flex-col gap-1 items-start">
-            <p class="text-xs text-gray-500">TravelBot</p>
+            <p class="text-xs text-gray-500">khampha.online</p>
             <div class="markdown-content text-base font-normal leading-normal max-w-[480px] rounded-xl px-4 py-3 bg-gray-100 dark:bg-gray-700 streaming-content streaming-active"></div>
         </div>
     `;

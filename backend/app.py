@@ -1506,10 +1506,95 @@ def delete_chat_session(session_id):
 
 # ===== AUTHENTICATION ROUTES =====
 
+@app.route('/api/auth/send-otp', methods=['POST'])
+def send_otp():
+    """Send OTP to user's email"""
+    try:
+        from utils.email_service import send_otp_email
+        
+        data = request.get_json()
+        
+        if not data or 'email' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Vui lòng nhập email'
+            }), 400
+        
+        email = sanitize_input(data['email'].lower().strip(), max_length=100)
+        
+        # Validate email
+        if not validate_email(email):
+            return jsonify({
+                'success': False,
+                'error': 'Email không hợp lệ'
+            }), 400
+        
+        # Check if email already exists
+        existing_user = db.get_user_by_email(email)
+        if existing_user:
+            return jsonify({
+                'success': False,
+                'error': 'Email đã được đăng ký'
+            }), 400
+        
+        # Send OTP
+        result = send_otp_email(email)
+        
+        if result['success']:
+            return jsonify({
+                'success': True,
+                'message': 'Mã OTP đã được gửi đến email của bạn'
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Không thể gửi OTP, vui lòng thử lại'
+            }), 500
+            
+    except Exception as e:
+        app.logger.error(f"Error sending OTP: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Lỗi hệ thống, vui lòng thử lại'
+        }), 500
+
+
+@app.route('/api/auth/verify-otp', methods=['POST'])
+def verify_otp_endpoint():
+    """Verify OTP code"""
+    try:
+        from utils.email_service import verify_otp
+        
+        data = request.get_json()
+        
+        if not data or 'email' not in data or 'otp' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Vui lòng nhập email và mã OTP'
+            }), 400
+        
+        email = sanitize_input(data['email'].lower().strip(), max_length=100)
+        otp_code = sanitize_input(data['otp'].strip(), max_length=10)
+        
+        # Verify OTP and mark as verified
+        result = verify_otp(email, otp_code, mark_verified=True)
+        
+        return jsonify(result), 200 if result['success'] else 400
+        
+    except Exception as e:
+        app.logger.error(f"Error verifying OTP: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Lỗi hệ thống, vui lòng thử lại'
+        }), 500
+
+
 @app.route('/api/auth/register', methods=['POST'])
 def register():
     """Register new user"""
     try:
+        from utils.email_service import is_otp_verified, clear_otp
+        
         data = request.get_json()
         
         # Validate required fields
@@ -1526,6 +1611,13 @@ def register():
         username = sanitize_input(data['username'].strip(), max_length=20)
         password = data['password']
         full_name = sanitize_input(data.get('full_name', '').strip(), max_length=100) if data.get('full_name') else None
+        
+        # Check if OTP was verified
+        if not is_otp_verified(email):
+            return jsonify({
+                'success': False,
+                'error': 'Vui lòng xác thực email bằng mã OTP trước'
+            }), 400
         
         # Validate email
         if not validate_email(email):
@@ -1572,6 +1664,10 @@ def register():
         session['user_id'] = user_id
         session['session_id'] = session_id
         session['is_authenticated'] = True
+        
+        # Clear OTP after successful registration
+        from utils.email_service import clear_otp
+        clear_otp(email)
         
         user = db.get_user_by_id(user_id)
         
