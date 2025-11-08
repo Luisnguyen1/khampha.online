@@ -15,3 +15,8 @@ ddgs
 python-dotenv==1.0.0
 requests==2.31.0
 werkzeug==3.0.0
+
+# Gmail API
+google-auth-oauthlib
+google-auth-httplib2
+google-api-python-client

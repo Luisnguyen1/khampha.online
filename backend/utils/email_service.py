@@ -1,9 +1,7 @@
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 import random
 import string
 from datetime import datetime, timedelta
+from .gmail_api import send_email_via_gmail_api
 
 # Store OTP temporarily (in production, use Redis or database)
 otp_storage = {}
@@ -23,16 +21,6 @@ def send_otp_email(email):
             'code': otp_code,
             'expires_at': datetime.now() + timedelta(minutes=5)
         }
-        
-        # Email credentials
-        taikhoan = "luisaccforwork@gmail.com"
-        matkhau = "jfow ozvc tivl vqkq"
-        
-        # Create message
-        message = MIMEMultipart("alternative")
-        message["Subject"] = "Mã xác thực OTP - khampha.online"
-        message["From"] = taikhoan
-        message["To"] = email
         
         # Email content
         text = f"""
@@ -68,16 +56,18 @@ Trân trọng,
 </html>
         """
         
-        message.attach(MIMEText(text, "plain"))
-        message.attach(MIMEText(html, "html"))
+        # Send email using Gmail API
+        result = send_email_via_gmail_api(
+            to_email=email,
+            subject="Mã xác thực OTP - khampha.online",
+            text_content=text,
+            html_content=html
+        )
         
-        # Send email
-        with smtplib.SMTP("smtp.gmail.com", 587) as server:
-            server.starttls()
-            server.login(taikhoan, matkhau)
-            server.sendmail(taikhoan, email, message.as_string())
-        
-        return {'success': True, 'message': 'OTP đã được gửi đến email của bạn'}
+        if result['success']:
+            return {'success': True, 'message': 'OTP đã được gửi đến email của bạn'}
+        else:
+            return {'success': False, 'error': result.get('error', 'Không thể gửi email')}
     
     except Exception as e:
         print(f"Error sending OTP: {e}")

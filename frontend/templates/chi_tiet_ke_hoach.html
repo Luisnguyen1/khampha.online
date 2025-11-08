@@ -156,6 +156,140 @@
         .main-scrollable::-webkit-scrollbar {
             display: none;
         }
+        
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            aside {
+                display: none;
+            }
+            
+            .layout-container {
+                height: auto;
+                min-height: calc(100vh - 89px);
+            }
+            
+            main {
+                padding: 1rem !important;
+            }
+            
+            /* Mobile Tabs */
+            nav.flex.gap-6 {
+                gap: 0.5rem;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+            
+            nav.flex.gap-6::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .tab-btn {
+                white-space: nowrap;
+                flex-shrink: 0;
+                padding: 0.75rem 0.5rem;
+                font-size: 0.875rem;
+            }
+            
+            .tab-btn span.flex {
+                gap: 0.25rem;
+            }
+            
+            .tab-btn .material-symbols-outlined {
+                font-size: 1.125rem;
+            }
+        }
+        
+        /* Mobile Sidebar Drawer */
+        .mobile-sidebar-drawer {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 85%;
+            max-width: 320px;
+            height: 100vh;
+            background: white;
+            z-index: 9999;
+            transition: left 0.3s ease;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+        
+        .dark .mobile-sidebar-drawer {
+            background: #101c22;
+        }
+        
+        .mobile-sidebar-drawer.drawer-open {
+            left: 0;
+        }
+        
+        /* Floating Action Button */
+        .fab-container {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 1000;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .fab-container {
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+                align-items: flex-end;
+            }
+        }
+        
+        .fab {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .fab:active {
+            transform: scale(0.95);
+        }
+        
+        .fab-menu {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .fab-menu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .fab-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: white;
+            padding: 0.75rem 1rem;
+            border-radius: 28px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+        }
+        
+        .dark .fab-item {
+            background: #1f2937;
+        }
     </style>
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display text-text-light dark:text-text-dark">
@@ -242,6 +376,59 @@
 
 <!-- Drawer Overlay -->
 <div id="drawerOverlay" class="drawer-overlay"></div>
+
+<!-- Mobile Sidebar Drawer -->
+<div id="mobileSidebarDrawer" class="mobile-sidebar-drawer">
+    <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+        <h2 class="text-lg font-bold text-gray-900 dark:text-white">Lịch trình</h2>
+        <button id="closeSidebarDrawerBtn" class="p-2 text-gray-600 dark:text-gray-300 hover:text-primary">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </div>
+    <div class="p-4">
+        <div class="flex gap-3 items-center mb-4" id="mobile-plan-header">
+            <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12" id="mobile-plan-avatar"></div>
+            <div class="flex flex-col">
+                <h1 class="text-gray-900 dark:text-white text-base font-bold" id="mobile-plan-title">Đang tải...</h1>
+                <p class="text-gray-500 dark:text-gray-400 text-sm" id="mobile-plan-subtitle">Đang tải...</p>
+            </div>
+        </div>
+        <div class="flex flex-col gap-2" id="mobile-day-navigation">
+            <!-- Day links will be generated dynamically -->
+        </div>
+    </div>
+</div>
+
+<!-- Floating Action Buttons (Mobile Only) -->
+<div class="fab-container">
+    <!-- FAB Menu Items -->
+    <div id="fabMenu" class="fab-menu">
+        <button onclick="window.location.href='/plans'" class="fab-item text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+            <span class="material-symbols-outlined text-primary">arrow_back</span>
+            <span class="text-sm font-medium">Quay lại</span>
+        </button>
+        <button onclick="openReferencesModal()" class="fab-item text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+            <span class="material-symbols-outlined text-blue-600">menu_book</span>
+            <span class="text-sm font-medium">Tham khảo</span>
+        </button>
+        <button id="fabDownloadBtn" class="fab-item text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+            <span class="material-symbols-outlined text-green-600">download</span>
+            <span class="text-sm font-medium">Tải PDF</span>
+        </button>
+        <button id="fabShareBtn" class="fab-item text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+            <span class="material-symbols-outlined text-purple-600">share</span>
+            <span class="text-sm font-medium">Chia sẻ</span>
+        </button>
+    </div>
+    
+    <!-- Main FAB Buttons -->
+    <button id="fabSidebarBtn" class="fab bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+        <span class="material-symbols-outlined">menu</span>
+    </button>
+    <button id="fabMenuBtn" class="fab bg-primary text-white hover:bg-primary/90">
+        <span class="material-symbols-outlined" id="fabMenuIcon">add</span>
+    </button>
+</div>
 
 <!-- References Modal -->
 <div id="referencesModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000] hidden">
@@ -828,4 +1015,5 @@ Lưu thay đổi
 <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
 
 <script src="{{ url_for('static', filename='js/chi_tiet_ke_hoach.js') }}"></script>
+<script src="{{ url_for('static', filename='js/chi_tiet_ke_hoach_mobile.js') }}"></script>
 </body></html>

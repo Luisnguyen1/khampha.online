@@ -1808,12 +1808,12 @@ function populateReferences() {
         const snippet = source.snippet || '';
         
         referencesHtml += `
-            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors overflow-hidden">
                 <div class="flex items-start gap-3">
                     <div class="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
                         <span class="text-primary font-bold text-sm">${index + 1}</span>
                     </div>
-                    <div class="flex-1 min-w-0">
+                    <div class="flex-1 min-w-0 overflow-hidden">
                         <h3 class="font-semibold text-gray-900 dark:text-white mb-1 line-clamp-2">
                             ${escapeHtml(title)}
                         </h3>
@@ -1825,10 +1825,10 @@ function populateReferences() {
                         <a href="${escapeHtml(url)}" 
                            target="_blank" 
                            rel="noopener noreferrer"
-                           class="inline-flex items-center gap-1 text-sm text-primary hover:text-primary/80 transition-colors">
-                            <span class="material-symbols-outlined text-sm">link</span>
-                            <span class="truncate max-w-md">${escapeHtml(url)}</span>
-                            <span class="material-symbols-outlined text-sm">open_in_new</span>
+                           class="flex items-start gap-1 text-sm text-primary hover:text-primary/80 transition-colors group">
+                            <span class="material-symbols-outlined text-sm flex-shrink-0">link</span>
+                            <span class="break-words flex-1 overflow-hidden">${escapeHtml(url)}</span>
+                            <span class="material-symbols-outlined text-sm flex-shrink-0">open_in_new</span>
                         </a>
                     </div>
                 </div>
