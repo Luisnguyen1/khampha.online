@@ -1,7 +1,7 @@
 """
 Main Flask application for khappha.online
 """
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, Response, stream_with_context
 from flask_cors import CORS
 from flask_session import Session
 import os
@@ -43,7 +43,7 @@ Config.init_app(app)
 Session(app)
 
 # Set Flask app logger level
-app.logger.setLevel(logging.INFO)
+app.logger.setLevel(logging.DEBUG)
 
 # Enable CORS
 CORS(app)
@@ -210,6 +210,135 @@ def register_page():
 def health_check():
     """Health check endpoint"""
     stats = db.get_stats()
+@app.route('/api/chat-stream', methods=['POST'])
+def chat_stream():
+    """Streaming chat endpoint using Server-Sent Events (SSE)"""
+    data = request.get_json()
+    
+    if not data or 'message' not in data:
+        return jsonify({
+            'success': False,
+            'error': 'Missing message'
+        }), 400
+    
+    user_message = data['message'].strip()
+    if not user_message:
+        return jsonify({
+            'success': False,
+            'error': 'Empty message'
+        }), 400
+    
+    # Get or create session
+    session_id = get_or_create_session()
+    
+    # Get conversation session ID
+    conversation_session_id = data.get('conversation_session_id')
+    if not conversation_session_id:
+        conversation_session_id = str(uuid.uuid4())
+    
+    def generate():
+        """Generator function for streaming responses"""
+        try:
+            # Send thinking event
+            yield f"event: thinking\ndata: {{\"status\": \"analyzing\"}}\n\n"
+            
+            # Get conversation history
+            conversations = db.get_conversations(session_id, limit=10)
+            history = [
+                {'user': conv.user_message, 'bot': conv.bot_response}
+                for conv in conversations
+            ]
+            
+            # Get current plan if needed
+            current_plan = data.get('current_plan')
+            
+            # Send thinking update
+            yield f"event: thinking\ndata: {{\"status\": \"processing\"}}\n\n"
+            
+            # Use AI agent with streaming
+            full_response = ""
+            plan_data = None
+            has_plan = False
+            
+            for chunk in ai_agent.chat_stream(
+                user_message, 
+                conversation_history=history,
+                current_plan=current_plan
+            ):
+                # Stream each chunk
+                if chunk.get('type') == 'text':
+                    text = chunk.get('content', '')
+                    full_response += text
+                    import json as json_module
+                    yield f"event: message\ndata: {json_module.dumps({'text': text}, ensure_ascii=False)}\n\n"
+                
+                elif chunk.get('type') == 'plan':
+                    has_plan = True
+                    plan_data = chunk.get('content')
+                    yield f"event: plan\ndata: {json_module.dumps(plan_data, ensure_ascii=False)}\n\n"
+                
+                elif chunk.get('type') == 'thinking':
+                    status = chunk.get('content', 'processing')
+                    yield f"event: thinking\ndata: {{\"status\": \"{status}\"}}\n\n"
+            
+            # Save plan if generated
+            plan_id = None
+            if has_plan and plan_data:
+                try:
+                    current_user = get_current_user()
+                    user_id = current_user.id if current_user else None
+                    
+                    plan_id = db.save_plan(
+                        session_id=session_id,
+                        plan_name=plan_data.get('plan_name'),
+                        destination=plan_data.get('destination'),
+                        duration_days=plan_data.get('duration_days'),
+                        budget=plan_data.get('budget'),
+                        preferences=plan_data.get('preferences'),
+                        start_date=plan_data.get('start_date'),
+                        end_date=plan_data.get('end_date'),
+                        itinerary=plan_data.get('itinerary'),
+                        total_cost=plan_data.get('total_cost'),
+                        user_id=user_id,
+                        status='draft'
+                    )
+                    plan_data['id'] = plan_id
+                except Exception as e:
+                    app.logger.error(f"Error saving plan: {str(e)}")
+            
+            # Save conversation
+            conversation_id = db.save_conversation(
+                session_id,
+                user_message,
+                full_response,
+                plan_id=plan_id,
+                conversation_session_id=conversation_session_id
+            )
+            
+            # Send completion event with metadata
+            completion_data = {
+                'conversation_id': conversation_id,
+                'conversation_session_id': conversation_session_id,
+                'has_plan': has_plan,
+                'plan_id': plan_id
+            }
+            yield f"event: done\ndata: {json_module.dumps(completion_data, ensure_ascii=False)}\n\n"
+            
+        except Exception as e:
+            app.logger.error(f"Streaming error: {str(e)}")
+            import json as json_module
+            yield f"event: error\ndata: {json_module.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
+    
+    return Response(
+        stream_with_context(generate()),
+        mimetype='text/event-stream',
+        headers={
+            'Cache-Control': 'no-cache',
+            'X-Accel-Buffering': 'no',
+            'Connection': 'keep-alive'
+        }
+    )
+
 @app.route('/api/chat', methods=['POST'])
 def chat():
     """Chat endpoint - Main AI interaction with mode support"""
@@ -497,13 +626,11 @@ def get_plans():
         
         limit = request.args.get('limit', 10, type=int)
         offset = request.args.get('offset', 0, type=int)
-        # Default to 'active' status (only show saved plans, not drafts)
-        # Use ?status=all to get all, ?status=draft to get drafts only
-        status = request.args.get('status', 'active')
-        if status == 'all':
-            status = None  # Get all statuses
+        # Get all plans (draft + active + archived + completed)
+        # Frontend will display tags based on status
+        status = request.args.get('status', None)  # None = get all statuses
         
-        app.logger.info(f"📋 Getting plans - Session: {session_id}, User: {user_id}, Status filter: {status}, Limit: {limit}")
+        app.logger.info(f"📋 Getting plans - Session: {session_id}, User: {user_id}, Status filter: {status or 'all'}, Limit: {limit}")
         
         plans = db.get_plans(
             session_id=session_id if not user_id else None,
@@ -1903,6 +2030,24 @@ def delete_account():
         
     except Exception as e:
         app.logger.error(f"Error deleting account: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Lỗi hệ thống'
+        }), 500
+
+
+# ===== CONFIG ENDPOINTS =====
+
+@app.route('/api/config/google-maps-key', methods=['GET'])
+def get_google_maps_key():
+    """Get Google Maps API key"""
+    try:
+        return jsonify({
+            'success': True,
+            'api_key': Config.GOOGLE_MAPS_API_KEY
+        })
+    except Exception as e:
+        app.logger.error(f"Error getting Google Maps key: {str(e)}")
         return jsonify({
             'success': False,
             'error': 'Lỗi hệ thống'

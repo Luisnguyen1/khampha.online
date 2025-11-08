@@ -708,6 +708,8 @@ class DatabaseManager:
             budget=row['budget'],
             budget_currency=row['budget_currency'],
             preferences=row['preferences'],
+            start_date=row['start_date'] if 'start_date' in row.keys() else None,
+            end_date=row['end_date'] if 'end_date' in row.keys() else None,
             itinerary=json.loads(row['itinerary']),
             total_cost=row['total_cost'],
             status=row['status'],
@@ -1021,11 +1023,18 @@ class DatabaseManager:
     # ===== FLIGHT METHODS =====
     
     def save_plan_flight(self, plan_id: int, flight_data: Dict[str, Any], flight_type: str = "outbound") -> bool:
-        """Save selected flight for a plan"""
+        """Save selected flight for a plan. Auto-removes existing flight of the same type."""
         try:
             with self.get_connection() as conn:
+                # First, delete any existing flight of the same type for this plan
                 conn.execute("""
-                    INSERT OR REPLACE INTO plan_flights (
+                    DELETE FROM plan_flights 
+                    WHERE plan_id = ? AND flight_type = ?
+                """, (plan_id, flight_type))
+                
+                # Then insert the new flight
+                conn.execute("""
+                    INSERT INTO plan_flights (
                         plan_id, flight_type, bundle_key, carrier_name, carrier_code, carrier_logo,
                         flight_number, origin_airport, origin_code, origin_city,
                         destination_airport, destination_code, destination_city,

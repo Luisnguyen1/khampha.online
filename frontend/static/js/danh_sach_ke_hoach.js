@@ -79,15 +79,25 @@ function createPlanCard(plan) {
     
     const itinerary = typeof plan.itinerary === 'string' ? JSON.parse(plan.itinerary) : plan.itinerary;
     const imageUrl = getDestinationImage(plan.destination);
-    const dateRange = formatDateRange(plan.created_at, plan.duration_days);
+    const dateRange = formatDateRange(plan.start_date || plan.created_at, plan.end_date, plan.duration_days);
+    
+    // Get status tag
+    const statusTag = getStatusTag(plan.status);
+    
+    // Clean plan name - remove duplicate "Ngày X: Ngày X:" pattern
+    let planName = plan.plan_name || `Khám phá ${plan.destination}`;
+    // Remove duplicate day prefix pattern (e.g., "Ngày 1: Ngày 1:" -> "Ngày 1:")
+    planName = planName.replace(/^(Ngày\s+\d+:\s+)Ngày\s+\d+:\s+/i, '$1');
     
     card.innerHTML = `
         <div class="flex flex-col items-stretch justify-start rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] bg-white dark:bg-gray-800 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-            <div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-t-xl" 
-                 style='background-image: url("${imageUrl}");'></div>
+            <div class="relative w-full bg-center bg-no-repeat aspect-video bg-cover rounded-t-xl" 
+                 style='background-image: url("${imageUrl}");'>
+                ${statusTag}
+            </div>
             <div class="flex w-full grow flex-col items-stretch justify-center gap-2 p-4">
                 <p class="text-[#111618] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">
-                    ${plan.plan_name || 'Khám phá ' + plan.destination}
+                    ${planName}
                 </p>
                 <div class="flex flex-col gap-1 text-[#617c89] dark:text-gray-400 text-sm">
                     <p>${dateRange} (${plan.duration_days} ngày)</p>
@@ -117,6 +127,9 @@ function viewPlan(planId) {
 
 // Show menu
 function showMenu(planId) {
+    // Get plan to check status
+    const plan = allPlans.find(p => p.id === planId);
+    
     // Create context menu
     const existingMenu = document.querySelector('.context-menu');
     if (existingMenu) existingMenu.remove();
@@ -124,15 +137,31 @@ function showMenu(planId) {
     const menu = document.createElement('div');
     menu.className = 'context-menu fixed bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 py-2';
     menu.style.minWidth = '200px';
-    menu.innerHTML = `
+    
+    // Build menu items based on plan status
+    let menuItems = `
         <button onclick="viewPlan(${planId}); this.parentElement.remove();" 
                 class="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3">
             <span class="material-symbols-outlined text-blue-600">visibility</span>
             <span>Xem chi tiết</span>
         </button>
+    `;
+    
+    // Show "Xác nhận kế hoạch" only for draft plans
+    if (plan && plan.status === 'draft') {
+        menuItems += `
+            <button onclick="confirmPlan(${planId}); this.parentElement.remove();" 
+                    class="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3">
+                <span class="material-symbols-outlined text-green-600">check_circle</span>
+                <span>Xác nhận kế hoạch</span>
+            </button>
+        `;
+    }
+    
+    menuItems += `
         <button onclick="editPlan(${planId}); this.parentElement.remove();" 
                 class="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3">
-            <span class="material-symbols-outlined text-green-600">edit</span>
+            <span class="material-symbols-outlined text-orange-600">edit</span>
             <span>Chỉnh sửa</span>
         </button>
         <hr class="my-1 border-gray-200 dark:border-gray-700">
@@ -142,6 +171,8 @@ function showMenu(planId) {
             <span>Xóa kế hoạch</span>
         </button>
     `;
+    
+    menu.innerHTML = menuItems;
     
     // Position menu at cursor
     const rect = event.target.closest('button').getBoundingClientRect();
@@ -164,6 +195,34 @@ function showMenu(planId) {
 // Edit plan
 function editPlan(planId) {
     window.location.href = `/plans/${planId}/edit`;
+}
+
+// Confirm plan (change status from draft to active)
+async function confirmPlan(planId) {
+    if (!confirm('✅ Xác nhận kế hoạch này?\n\nKế hoạch sẽ được chuyển từ trạng thái "Nháp" sang "Đã xác nhận".')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/plans/${planId}/confirm`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification('success', 'Đã xác nhận', 'Kế hoạch đã được xác nhận thành công');
+            await loadPlans();
+        } else {
+            showNotification('error', 'Lỗi', data.error || 'Không thể xác nhận kế hoạch');
+        }
+    } catch (error) {
+        console.error('Error confirming plan:', error);
+        showNotification('error', 'Lỗi', 'Không thể kết nối đến server');
+    }
 }
 
 // Delete plan
@@ -270,6 +329,40 @@ function hideEmptyState() {
 }
 
 // Utility functions
+function getStatusTag(status) {
+    const tags = {
+        'draft': {
+            label: 'Nháp',
+            bgColor: 'bg-yellow-500',
+            icon: 'edit_note'
+        },
+        'active': {
+            label: 'Đã xác nhận',
+            bgColor: 'bg-green-500',
+            icon: 'check_circle'
+        },
+        'completed': {
+            label: 'Hoàn thành',
+            bgColor: 'bg-blue-500',
+            icon: 'task_alt'
+        },
+        'archived': {
+            label: 'Lưu trữ',
+            bgColor: 'bg-gray-500',
+            icon: 'archive'
+        }
+    };
+    
+    const tag = tags[status] || tags['draft'];
+    
+    return `
+        <div class="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full ${tag.bgColor} text-white shadow-lg backdrop-blur-sm bg-opacity-90">
+            <span class="material-symbols-outlined text-sm">${tag.icon}</span>
+            <span class="text-xs font-semibold">${tag.label}</span>
+        </div>
+    `;
+}
+
 function getDestinationImage(destination) {
     const images = {
         'Đà Lạt': 'https://lh3.googleusercontent.com/aida-public/AB6AXuC7N7VoGqXmCE_xTG-tHnfXCsT6TiHXEnb78cYiG6wIN7KRbEyx6sDwE9MQln91NolhXdovFlN3UQ_eckloJVYRGTfODpca0_x5zRkbhI6yzoWvPsykr6SZT9YW8Ei1sETchTtJqPNvegsb9qVia_qAqt_A_C_tcDJS8ZQx-_2EENaani9oNspkWc-QZBEXCQ00Mjc-fTU1vydTmh1Tus7lMQej6ba3oBEpFthiMHAYdn7TZTxv5-pd7Gh9an5JuVdUTayVnHuyIWo',
@@ -281,10 +374,20 @@ function getDestinationImage(destination) {
     return images[destination] || 'https://lh3.googleusercontent.com/aida-public/AB6AXuBl4yfGCvMNncCqvEmgITcJeF7fh2BDC4gN06d2CnWngdCY1bkqXMsGRXfxWKYz1-aQErPpR9owyY4qXIfQVemgGDRKAFvziyWh7G6913ayP-zYXamHW3uNBmFCr_o_qT_jvGsDwpFjYnGopf-8-CwtI8N_IdDTuu4AwZ6A14h_zChPUwv47EK5N-7cIT3u3HPew7uiUex6BqTDvM6eps_E3oLo1YM79zuRQ_9VwPA4ok3UDw1v6MynDPZ5zKM2CKdxFC-BBAkPDjw';
 }
 
-function formatDateRange(createdAt, durationDays) {
-    const start = new Date(createdAt);
+function formatDateRange(startDate, endDate, durationDays) {
+    // If we have start_date and end_date, use them
+    if (startDate && endDate) {
+        const format = (dateStr) => {
+            const date = new Date(dateStr);
+            return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+        };
+        return `${format(startDate)} - ${format(endDate)}`;
+    }
+    
+    // Fallback: calculate from created_at
+    const start = new Date(startDate);
     const end = new Date(start);
-    end.setDate(end.getDate() + durationDays);
+    end.setDate(end.getDate() + durationDays - 1);
     
     const format = (date) => {
         return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;

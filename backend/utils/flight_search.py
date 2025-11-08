@@ -280,18 +280,58 @@ class AgodaFlightSearchAPI:
         Lấy mã sân bay từ tên địa điểm
         
         Args:
-            location_name: Tên địa điểm (ví dụ: "Hanoi")
+            location_name: Tên địa điểm (ví dụ: "Hà Nội" hoặc "Hanoi")
             
         Returns:
             Mã sân bay (ví dụ: "HAN") hoặc None
         """
-        result = self.search_location(location_name)
+        # Chuẩn hóa tên địa điểm: loại bỏ dấu, viết liền
+        normalized_name = self._normalize_location(location_name)
+        print(f"🔍 Normalizing location: '{location_name}' → '{normalized_name}'")
+        
+        result = self.search_location(normalized_name)
         if result and 'suggestions' in result and len(result['suggestions']) > 0:
             first_suggestion = result['suggestions'][0]
             airports = first_suggestion.get('airports', [])
             if airports:
-                return airports[0].get('code')
+                code = airports[0].get('code')
+                print(f"✅ Found airport code: {code}")
+                return code
+        
+        print(f"❌ No airport code found for '{location_name}'")
         return None
+    
+    def _normalize_location(self, location: str) -> str:
+        """
+        Chuẩn hóa tên địa điểm: loại bỏ dấu và khoảng trắng
+        
+        Args:
+            location: Tên địa điểm có dấu (ví dụ: "Hà Nội", "Đà Nẵng")
+            
+        Returns:
+            Tên địa điểm không dấu, viết liền (ví dụ: "HaNoi", "DaNang")
+        """
+        import unicodedata
+        
+        # Bảng mapping đặc biệt cho tiếng Việt
+        replacements = {
+            'Đ': 'D', 'đ': 'd',
+            'Ð': 'D', 'ð': 'd'
+        }
+        
+        # Thay thế các ký tự đặc biệt
+        result = location
+        for old, new in replacements.items():
+            result = result.replace(old, new)
+        
+        # Loại bỏ dấu bằng NFD (Normalization Form Decomposed)
+        nfd = unicodedata.normalize('NFD', result)
+        result = ''.join(char for char in nfd if unicodedata.category(char) != 'Mn')
+        
+        # Loại bỏ khoảng trắng
+        result = result.replace(' ', '')
+        
+        return result
     
     def save_to_json(self, data: Any, filename: str) -> bool:
         """

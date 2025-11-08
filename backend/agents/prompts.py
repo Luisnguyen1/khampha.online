@@ -287,14 +287,29 @@ def get_response_template(template_name, **kwargs):
 def format_missing_fields(missing):
     """Format missing fields message with required/optional indicators"""
     field_names = {
-        'destination': '📍 **Điểm đến**',
-        'duration_days': '📅 **Số ngày**',
-        'budget': '💰 **Ngân sách**',
-        'start_date': '📅 **Ngày bắt đầu** (VD: 20/12/2025)',
-        'preferences': '❤️ **Sở thích**'
+        'destination': '📍 **Điểm đến** (bắt buộc)',
+        'duration_days': '📅 **Số ngày** (bắt buộc)',
+        'budget': '💰 **Ngân sách** (bắt buộc)',
+        'start_date': '📅 **Ngày bắt đầu** (tùy chọn - VD: 20/12/2025)',
+        'preferences': '❤️ **Sở thích** (tùy chọn)'
     }
     
-    return '\n'.join([f"- {field_names.get(field, field)}" for field in missing])
+    # Separate required and optional fields
+    required = [field for field in missing if field in ['destination', 'duration_days', 'budget']]
+    optional = [field for field in missing if field in ['start_date', 'preferences']]
+    
+    result = []
+    if required:
+        result.append("**Thông tin bắt buộc:**")
+        result.extend([f"- {field_names.get(field, field)}" for field in required])
+    
+    if optional:
+        if required:
+            result.append("")  # Empty line
+        result.append("**Thông tin tùy chọn:**")
+        result.extend([f"- {field_names.get(field, field)}" for field in optional])
+    
+    return '\n'.join(result)
 
 def create_search_queries(destination, preferences=None):
     """Create detailed search queries for a destination"""

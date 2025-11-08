@@ -123,6 +123,187 @@ class TravelAgent:
         else:  # ask mode
             return self._handle_ask_mode(clean_message)
     
+    def chat_stream(self, user_message: str, conversation_history: Optional[List[Dict]] = None, current_plan: Optional[Dict] = None):
+        """
+        Streaming version of chat method - yields chunks as they're generated
+        
+        Args:
+            user_message: User's message
+            conversation_history: Previous conversation
+            current_plan: Current plan data for @edit_plan mode
+            
+        Yields:
+            Dict chunks with type and content:
+            - {'type': 'thinking', 'content': 'analyzing|processing|searching|generating'}
+            - {'type': 'text', 'content': 'text chunk'}
+            - {'type': 'plan', 'content': {plan_data}}
+        """
+        logger.info(f"\n{'='*80}")
+        logger.info(f"💬 NEW STREAMING CHAT REQUEST")
+        logger.info(f"User message: '{user_message}'")
+        logger.info(f"{'='*80}\n")
+        
+        # Update conversation history
+        if conversation_history:
+            self.conversation_history = conversation_history
+        
+        # Yield thinking status
+        yield {'type': 'thinking', 'content': 'analyzing'}
+        
+        # Analyze intent
+        intent_analysis = self._analyze_user_intent(user_message, current_plan)
+        mode = intent_analysis['mode']
+        
+        yield {'type': 'thinking', 'content': 'processing'}
+        
+        # Handle direct responses
+        if intent_analysis.get('direct_response') and intent_analysis.get('response'):
+            response = intent_analysis['response']
+            # Stream response word by word for better UX
+            words = response.split(' ')
+            for i, word in enumerate(words):
+                yield {'type': 'text', 'content': word + (' ' if i < len(words) - 1 else '')}
+                time.sleep(0.02)  # Small delay for streaming effect
+            return
+        
+        # Route to streaming handlers
+        clean_message = intent_analysis.get('clean_message', user_message)
+        
+        if mode == 'plan':
+            requirements = intent_analysis.get('requirements')
+            yield from self._handle_plan_mode_stream(clean_message, requirements)
+        elif mode == 'edit_plan':
+            yield from self._handle_edit_plan_mode_stream(clean_message, current_plan)
+        else:  # ask mode
+            yield from self._handle_ask_mode_stream(clean_message)
+    
+    def _handle_ask_mode_stream(self, message: str):
+        """Streaming version of ask mode handler"""
+        yield {'type': 'thinking', 'content': 'searching'}
+        
+        try:
+            # Search for relevant information
+            search_results = self.search.search(message, max_results=5)
+            formatted_results = self.search.format_results_for_llm(search_results)
+            
+            yield {'type': 'thinking', 'content': 'generating'}
+            
+            # Generate answer using Gemini with streaming
+            if self.use_gemini and self.model:
+                prompt = f"""Dựa trên câu hỏi và thông tin tìm kiếm, hãy trả lời câu hỏi một cách chi tiết, hữu ích.
+
+CÂU HỎI: {message}
+
+{formatted_results}
+
+HÃY TRẢ LỜI:
+- Ngắn gọn, súc tích
+- Dựa trên thông tin tìm kiếm
+- Thân thiện, hữu ích
+- Sử dụng emoji phù hợp
+"""
+                
+                try:
+                    response = self.model.generate_content(prompt, stream=True)
+                    for chunk in response:
+                        if chunk.text:
+                            yield {'type': 'text', 'content': chunk.text}
+                except Exception as e:
+                    logger.error(f"Streaming error: {str(e)}")
+                    yield {'type': 'text', 'content': f"Xin lỗi, có lỗi khi xử lý câu hỏi: {str(e)}"}
+            else:
+                # Fallback
+                answer = f"Đây là thông tin về '{message}':\n\n{formatted_results}"
+                for word in answer.split(' '):
+                    yield {'type': 'text', 'content': word + ' '}
+                    time.sleep(0.02)
+                    
+        except Exception as e:
+            logger.error(f"Ask mode streaming error: {str(e)}")
+            yield {'type': 'text', 'content': "Xin lỗi, có lỗi khi tìm kiếm thông tin."}
+    
+    def _handle_edit_plan_mode_stream(self, message: str, current_plan: Optional[Dict]):
+        """Streaming version of edit plan mode handler"""
+        if not current_plan:
+            yield {'type': 'text', 'content': '⚠️ Không có kế hoạch nào để chỉnh sửa. Hãy tạo kế hoạch mới trước nhé!'}
+            return
+        
+        yield {'type': 'thinking', 'content': 'analyzing_plan'}
+        
+        # For now, yield a simple response
+        # Full edit implementation would be more complex
+        response = f"📝 Tôi đã ghi nhận yêu cầu chỉnh sửa: '{message}'\n\n⚙️ Tính năng tự động chỉnh sửa kế hoạch đang được hoàn thiện.\n\nHiện tại bạn có thể:\n• Tự chỉnh sửa bằng nút '✏️ Chỉnh sửa' trên trang chi tiết kế hoạch\n• Hoặc yêu cầu tạo kế hoạch mới với @plan"
+        
+        for word in response.split(' '):
+            yield {'type': 'text', 'content': word + ' '}
+            time.sleep(0.02)
+    
+    def _handle_plan_mode_stream(self, message: str, requirements: Optional[Dict] = None):
+        """Streaming version of plan mode handler"""
+        try:
+            yield {'type': 'thinking', 'content': 'extracting_requirements'}
+            
+            # Use requirements from intent analysis or extract
+            if not requirements:
+                requirements = self._extract_requirements(message)
+            
+            # Check if ready to plan
+            has_destination = requirements.get('destination') is not None
+            has_duration = requirements.get('duration_days') is not None
+            has_budget = requirements.get('budget') is not None
+            ready_to_plan = has_destination and has_duration and has_budget
+            
+            if not ready_to_plan:
+                # Ask for missing information
+                missing = requirements.get('missing_fields', [])
+                if not has_destination and not has_duration and not has_budget:
+                    response = "Để tạo kế hoạch du lịch hoàn chỉnh, tôi cần bạn cho biết:\n\n"
+                    response += "📍 **Điểm đến**: Bạn muốn đi đâu?\n"
+                    response += "📅 **Số ngày**: Bạn dự định đi bao nhiêu ngày?\n"
+                    response += "💰 **Ngân sách**: Bạn có ngân sách khoảng bao nhiêu?\n"
+                    response += "📅 **Ngày bắt đầu** (tùy chọn): Bạn muốn đi vào ngày nào? (VD: 20/12/2025)\n"
+                    response += "🎯 **Sở thích** (tùy chọn): Bạn thích hoạt động gì? (VD: tham quan, ẩm thực, mạo hiểm...)\n\n"
+                    response += "💡 Ví dụ: *'Tôi muốn đi Vũng Tàu 2 ngày, ngân sách 4.3 triệu, thích ăn hải sản'*"
+                else:
+                    response = get_response_template('missing_info', missing_fields=format_missing_fields(missing))
+                
+                for word in response.split(' '):
+                    yield {'type': 'text', 'content': word + ' '}
+                    time.sleep(0.02)
+                return
+            
+            # Ready to plan - generate itinerary
+            yield {'type': 'thinking', 'content': 'searching'}
+            
+            # Search for destination
+            search_results = self._search_for_destination(
+                requirements['destination'],
+                requirements.get('preferences')
+            )
+            
+            yield {'type': 'thinking', 'content': 'creating_plan'}
+            
+            # Generate itinerary
+            plan_data = self._generate_itinerary(requirements, search_results)
+            
+            # Yield plan data
+            yield {'type': 'plan', 'content': plan_data}
+            
+            # Stream success message
+            response = get_response_template(
+                'plan_ready',
+                duration_days=requirements['duration_days'],
+                total_cost=self._format_currency(plan_data.get('total_cost', 0))
+            )
+            
+            for word in response.split(' '):
+                yield {'type': 'text', 'content': word + ' '}
+                time.sleep(0.02)
+            
+        except Exception as e:
+            logger.error(f"Plan mode streaming error: {str(e)}")
+            yield {'type': 'text', 'content': f"Xin lỗi, có lỗi khi tạo kế hoạch: {str(e)}"}
+    
     def _analyze_user_intent(self, message: str, current_plan: Optional[Dict] = None) -> Dict:
         """
         Use LLM to analyze user intent and determine appropriate mode and response
@@ -188,10 +369,10 @@ QUY TẮC:
     "destination": "tên điểm đến" hoặc null,
     "duration_days": số ngày (int) hoặc null,
     "budget": ngân sách (số VND, VD: 5000000 cho "5 triệu") hoặc null,
-    "start_date": "YYYY-MM-DD" (VD: "2025-12-20" cho "ngày 20/12/2025") hoặc null,
-    "preferences": "sở thích" hoặc null,
-    "ready_to_plan": true/false (true CHỈ KHI có đủ: destination, duration_days, budget VÀ start_date),
-    "missing_fields": ["destination", "duration_days", "budget", "start_date", "preferences"] - các trường còn thiếu
+    "start_date": "YYYY-MM-DD" (VD: "2025-12-20" cho "ngày 20/12/2025") hoặc null (OPTIONAL - sẽ tự động gán nếu không có),
+    "preferences": "sở thích" hoặc null (OPTIONAL),
+    "ready_to_plan": true/false (true CHỈ KHI có đủ: destination, duration_days, budget),
+    "missing_fields": ["destination", "duration_days", "budget"] - các trường BẮT BUỘC còn thiếu (start_date và preferences là OPTIONAL)
   }}
 
 HƯỚNG DẪN EXTRACT:
@@ -203,7 +384,8 @@ HƯỚNG DẪN EXTRACT:
 VÍ DỤ:
 - "Tôi muốn đi Đà Lạt 3 ngày ngày 20/12/2025 ngân sách 5 triệu" → mode=plan, requirements={{destination:"Đà Lạt", duration_days:3, budget:5000000, start_date:"2025-12-20", preferences:null, ready_to_plan:true, missing_fields:["preferences"]}}
 - "Tôi muốn đi Đà Lạt 3 ngày 2 đêm, ngày 11/11/2025, ngân sách 5 triệu" → mode=plan, requirements={{destination:"Đà Lạt", duration_days:3, budget:5000000, start_date:"2025-11-11", preferences:null, ready_to_plan:true, missing_fields:["preferences"]}}
-- "Đi 3 ngày, ngày 11/11/2025, 5tr" → mode=plan, requirements={{destination:null, duration_days:3, budget:5000000, start_date:"2025-11-11", preferences:null, ready_to_plan:false, missing_fields:["destination","preferences"]}}
+- "Tôi muốn đi Vũng Tàu 2 ngày ngân sách 4.3 triệu" → mode=plan, requirements={{destination:"Vũng Tàu", duration_days:2, budget:4300000, start_date:null, preferences:null, ready_to_plan:true, missing_fields:["start_date","preferences"]}}
+- "Đi 3 ngày, ngày 11/11/2025, 5tr" → mode=plan, requirements={{destination:null, duration_days:3, budget:5000000, start_date:"2025-11-11", preferences:null, ready_to_plan:false, missing_fields:["destination"]}}
 - "Hà Nội có gì hay?" → mode=ask, confidence=high
 - "Thêm 1 ngày nữa" (có plan) → mode=edit_plan, confidence=high
 - "Xin chào" → mode=chat, direct_response=true, response="Xin chào! Tôi là trợ lý du lịch..."
@@ -643,29 +825,31 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
                 logger.info(f"✅ Requirements extracted: {requirements}")
             
             # Check if we have MINIMUM required info to create plan
-            # CHANGED: Now requires destination, duration_days, budget AND start_date
+            # CHANGED: Only requires destination, duration_days, budget (start_date is optional)
             has_destination = requirements.get('destination') is not None
             has_duration = requirements.get('duration_days') is not None
             has_budget = requirements.get('budget') is not None
             has_start_date = requirements.get('start_date') is not None
             
-            ready_to_plan = has_destination and has_duration and has_budget and has_start_date
+            # Ready to plan if we have destination, duration, and budget (start_date will be auto-generated if missing)
+            ready_to_plan = has_destination and has_duration and has_budget
             
             # Update requirements with corrected ready_to_plan status
             requirements['ready_to_plan'] = ready_to_plan
             
             # Recalculate missing_fields to ensure accuracy
-            required_core_fields = ['destination', 'duration_days', 'budget', 'start_date']
-            optional_fields = ['preferences']
+            required_core_fields = ['destination', 'duration_days', 'budget']
+            optional_fields = ['start_date', 'preferences']
             
             missing_fields = []
             for field in required_core_fields:
                 if not requirements.get(field):
                     missing_fields.append(field)
             
-            # Preferences is optional, but we still track it
-            if not requirements.get('preferences'):
-                missing_fields.append('preferences')
+            # Optional fields: track them but don't block plan creation
+            for field in optional_fields:
+                if not requirements.get(field):
+                    missing_fields.append(field)
             
             requirements['missing_fields'] = missing_fields
             
@@ -731,14 +915,14 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
                 logger.info(f"   Missing fields: {missing}")
                 
                 # Create a more specific message based on what's missing
-                if not has_destination and not has_duration and not has_budget and not has_start_date:
+                if not has_destination and not has_duration and not has_budget:
                     response_text = "Để tạo kế hoạch du lịch hoàn chỉnh, tôi cần bạn cho biết:\n\n"
                     response_text += "📍 **Điểm đến**: Bạn muốn đi đâu?\n"
                     response_text += "📅 **Số ngày**: Bạn dự định đi bao nhiêu ngày?\n"
-                    response_text += "📅 **Ngày bắt đầu**: Bạn muốn đi vào ngày nào? (VD: 20/12/2025)\n"
                     response_text += "💰 **Ngân sách**: Bạn có ngân sách khoảng bao nhiêu?\n"
+                    response_text += "📅 **Ngày bắt đầu** (tùy chọn): Bạn muốn đi vào ngày nào? (VD: 20/12/2025)\n"
                     response_text += "🎯 **Sở thích** (tùy chọn): Bạn thích hoạt động gì? (VD: tham quan, ẩm thực, mạo hiểm...)\n\n"
-                    response_text += "💡 Ví dụ: *'Tôi muốn đi Đà Lạt 3 ngày, ngày 20/12/2025, ngân sách 5 triệu, thích thiên nhiên và ẩm thực'*"
+                    response_text += "💡 Ví dụ: *'Tôi muốn đi Vũng Tàu 2 ngày, ngân sách 4.3 triệu, thích ăn hải sản'*"
                 else:
                     response_text = get_response_template(
                         'missing_info',
@@ -914,8 +1098,8 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
             if keyword in text_lower:
                 preferences.append(pref)
         
-        # Check if ready - NOW requires destination, duration_days, budget AND start_date
-        ready = destination is not None and duration_days is not None and budget is not None and start_date is not None
+        # Check if ready - requires destination, duration_days, budget (start_date is optional)
+        ready = destination is not None and duration_days is not None and budget is not None
         
         missing = []
         if not destination:
@@ -924,6 +1108,7 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
             missing.append('duration_days')
         if not budget:
             missing.append('budget')
+        # Optional fields
         if not start_date:
             missing.append('start_date')
         if not preferences:
@@ -1062,13 +1247,18 @@ CHỈ TRẢ VỀ JSON NGẮN GỌN, KHÔNG TRẢ VỀ TOÀN BỘ KẾ HOẠCH.""
             start_date = requirements.get('start_date')
             duration_days = requirements.get('duration_days', 3)
             
-            if start_date:
-                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
-                end_dt = start_dt + timedelta(days=duration_days - 1)
-                end_date = end_dt.strftime('%Y-%m-%d')
-            else:
-                start_date = None
-                end_date = None
+            # If no start_date provided, default to 7 days from now
+            if not start_date:
+                default_start = datetime.now() + timedelta(days=7)
+                start_date = default_start.strftime('%Y-%m-%d')
+                logger.info(f"   📅 No start_date provided, using default: {start_date}")
+            
+            # Calculate end_date
+            start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+            end_dt = start_dt + timedelta(days=duration_days - 1)
+            end_date = end_dt.strftime('%Y-%m-%d')
+            
+            logger.info(f"   📅 Trip dates: {start_date} → {end_date} ({duration_days} days)")
             
             plan_data = {
                 'plan_name': plan_outline.get('plan_name', f"Khám phá {requirements.get('destination', 'Việt Nam')}"),

@@ -6,6 +6,7 @@
 let currentPlan = null;
 let currentDay = 1;
 let currentTab = 'itinerary'; // Track active tab
+let googleMapsApiKey = ''; // Store API key
 
 // Get plan ID from URL
 function getPlanIdFromUrl() {
@@ -14,8 +15,28 @@ function getPlanIdFromUrl() {
     return match ? parseInt(match[1]) : null;
 }
 
+// Load Google Maps API key from backend
+async function loadGoogleMapsApiKey() {
+    try {
+        const response = await fetch('/api/config/google-maps-key');
+        const data = await response.json();
+        
+        if (data.success && data.api_key) {
+            googleMapsApiKey = data.api_key;
+            console.log('Google Maps API key loaded successfully');
+        } else {
+            console.warn('Failed to load Google Maps API key');
+        }
+    } catch (error) {
+        console.error('Error loading Google Maps API key:', error);
+    }
+}
+
 // Load plan on page load
 window.addEventListener('DOMContentLoaded', () => {
+    // Load Google Maps API key first
+    loadGoogleMapsApiKey();
+    
     const planId = getPlanIdFromUrl();
     if (planId) {
         loadPlanDetail(planId);
@@ -1358,7 +1379,10 @@ function displayDay(dayNum, plan) {
     const subheading = document.getElementById('page-subheading');
     
     if (heading) {
-        heading.textContent = `Ngày ${dayNum}: ${dayData.title || 'Chi tiết lịch trình'}`;
+        let title = dayData.title || 'Chi tiết lịch trình';
+        // Remove duplicate "Ngày X: " prefix if it exists
+        title = title.replace(/^Ngày\s+\d+:\s*/i, '');
+        heading.textContent = `Ngày ${dayNum}: ${title}`;
     }
     
     if (subheading) {
@@ -1444,7 +1468,10 @@ function renderTimeline(dayData) {
         html += `
             <div class="flex-1 pb-8">
                 <p class="text-sm font-medium text-[#617c89] dark:text-gray-400">${time}</p>
-                <p class="text-lg font-semibold text-[#111618] dark:text-white">${title}</p>
+                <div class="flex items-center gap-2">
+                    <p class="text-lg font-semibold text-[#111618] dark:text-white">${title}</p>
+                    ${location ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-primary/80 transition-colors" title="Xem trên Google Maps"><span class="material-symbols-outlined text-xl">map</span></a>` : ''}
+                </div>
                 ${description ? `<p class="text-base text-[#617c89] dark:text-gray-400 mt-1">${description}</p>` : ''}
                 ${cost ? `<p class="text-sm font-medium text-green-600 mt-2">Chi phí: ${formatCurrency(cost)}</p>` : ''}
                 ${location ? `<p class="text-sm text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1"><span class="material-symbols-outlined text-sm">location_on</span>${location}</p>` : ''}
@@ -1518,12 +1545,63 @@ function showError(message) {
     }
 }
 
-// Update map image
+// Update map with Google Maps Embed showing route
 function updateMapImage(destination) {
     const mapImage = document.getElementById('map-image');
-    if (mapImage) {
+    if (!mapImage) return;
+    
+    // Get current day data to extract locations
+    const itinerary = typeof currentPlan.itinerary === 'string' ? JSON.parse(currentPlan.itinerary) : currentPlan.itinerary;
+    if (!Array.isArray(itinerary)) return;
+    
+    const dayData = itinerary.find(d => (d.day || itinerary.indexOf(d) + 1) === currentDay);
+    if (!dayData) return;
+    
+    const activities = dayData.activities || [];
+    const locations = activities
+        .filter(act => act.location)
+        .map(act => act.location);
+    
+    if (locations.length === 0) {
+        // No locations, show static image
         mapImage.style.backgroundImage = `url("${getDestinationImage(destination)}")`;
+        mapImage.innerHTML = '';
+        return;
     }
+    
+    // Build Google Maps Embed URL with directions
+    let embedUrl = `https://www.google.com/maps/embed/v1/directions?key=${googleMapsApiKey}`;
+    
+    if (locations.length === 1) {
+        // Single location - show place mode
+        embedUrl = `https://www.google.com/maps/embed/v1/place?key=${googleMapsApiKey}&q=${encodeURIComponent(locations[0])}`;
+    } else {
+        // Multiple locations - show directions
+        embedUrl += `&origin=${encodeURIComponent(locations[0])}`;
+        embedUrl += `&destination=${encodeURIComponent(locations[locations.length - 1])}`;
+        
+        // Add waypoints for intermediate locations
+        if (locations.length > 2) {
+            const waypoints = locations.slice(1, -1).join('|');
+            embedUrl += `&waypoints=${encodeURIComponent(waypoints)}`;
+        }
+        
+        embedUrl += '&mode=driving'; // or walking, transit
+    }
+    
+    // Clear background image and set iframe
+    mapImage.style.backgroundImage = '';
+    mapImage.innerHTML = `
+        <iframe
+            width="100%"
+            height="100%"
+            style="border:0; border-radius: 0.75rem;"
+            loading="lazy"
+            allowfullscreen
+            referrerpolicy="no-referrer-when-downgrade"
+            src="${embedUrl}">
+        </iframe>
+    `;
 }
 
 // Update notes

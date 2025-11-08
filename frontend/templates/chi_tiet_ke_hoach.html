@@ -102,6 +102,59 @@
             opacity: 1;
             visibility: visible;
         }
+        
+        /* Custom scrollbar styles - hide scrollbar but keep functionality */
+        .custom-scroll {
+            overflow-y: auto;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+        }
+        
+        .custom-scroll::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+        
+        /* Fixed layout for sidebar and scrollable main content */
+        .layout-container {
+            height: calc(100vh - 89px); /* Subtract header height (py-4 = 32px + content ~57px) */
+            overflow: hidden;
+        }
+        
+        .sidebar-fixed {
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            min-height: 0; /* Important for flex scrolling */
+        }
+        
+        .sidebar-content::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .sidebar-footer {
+            flex-shrink: 0;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 1rem;
+        }
+        
+        .main-scrollable {
+            height: 100%;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        
+        .main-scrollable::-webkit-scrollbar {
+            display: none;
+        }
     </style>
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display">
@@ -182,10 +235,10 @@
 <div id="drawerOverlay" class="drawer-overlay"></div>
 
 <div class="relative flex min-h-screen w-full flex-col group/design-root overflow-x-hidden">
-<div class="flex flex-grow">
+<div class="flex flex-grow layout-container">
 <!-- SideNavBar -->
-<aside class="w-72 bg-white dark:bg-background-dark p-4 flex flex-col justify-between border-r border-[#dbe2e6] dark:border-gray-700">
-<div class="flex flex-col gap-4">
+<aside class="w-72 bg-white dark:bg-background-dark flex flex-col border-r border-[#dbe2e6] dark:border-gray-700 sidebar-fixed">
+<div class="flex flex-col gap-4 sidebar-content custom-scroll p-4 pb-2">
 <div class="flex gap-3 items-center" id="plan-header">
 <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12" id="plan-avatar"></div>
 <div class="flex flex-col">
@@ -193,11 +246,11 @@
 <p class="text-[#617c89] dark:text-gray-400 text-sm font-normal leading-normal" id="plan-subtitle">Đang tải...</p>
 </div>
 </div>
-<div class="flex flex-col gap-2 mt-4" id="day-navigation">
+<div class="flex flex-col gap-2 mt-2" id="day-navigation">
 <!-- Day links will be generated dynamically -->
 </div>
 </div>
-<div class="flex flex-col gap-2">
+<div class="flex flex-col gap-2 sidebar-footer px-4 pb-4">
 <button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] gap-2" id="download-button">
 <span class="material-symbols-outlined">download</span>
 <span class="truncate">Tải xuống PDF</span>
@@ -213,7 +266,7 @@
 </div>
 </aside>
 <!-- Main Content -->
-<main class="flex-1 p-8 overflow-y-auto">
+<main class="flex-1 p-8 main-scrollable custom-scroll">
 <div class="layout-content-container flex flex-col max-w-4xl mx-auto">
 <!-- PageHeading -->
 <div class="flex flex-wrap justify-between gap-4 items-start">

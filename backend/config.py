@@ -69,6 +69,9 @@ class Config:
     VERBOSE_LOGGING = os.getenv('VERBOSE_LOGGING', 'True').lower() == 'true'
     RAPIDAPI_KEY = os.getenv('RAPIDAPI_KEY', 'fe30b4f590msh6817e6a304fb995p1382dejsn50ae5d7c997d')
     
+    # Google Maps API Key
+    GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', 'AIzaSyBC6GFXWXE6oJn79RlYACnUxgwD6zX0qJE')
+    
     @staticmethod
     def init_app(app):
         """Initialize application with config"""

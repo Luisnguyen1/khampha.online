@@ -204,15 +204,13 @@ async function handleSendMessage() {
     const message = messageInput?.value.trim();
     if (!message) return;
 
-    // Send message as-is, let backend LLM decide the mode
-    // No need to add @plan prefix automatically
     console.log(`Sending message:`, message);
 
     // Disable input and button
     if (messageInput) messageInput.disabled = true;
     if (sendButton) sendButton.disabled = true;
 
-    // Add user message (show original message without prefix)
+    // Add user message
     addUserMessage(message);
 
     // Clear input
@@ -223,14 +221,21 @@ async function handleSendMessage() {
     // Hide dropdown if visible
     hideModeDropdown();
 
-    // Show loading
-    const loadingMsg = addLoadingMessage();
+    // Show thinking message
+    const thinkingMsg = addThinkingMessage();
+
+    // Use streaming API
+    let streamingMsg = null;
+    let fullResponse = '';
+    let planData = null;
+    let hasPlan = false;
+    let conversationSessionId = currentConversationId;
 
     try {
         // Prepare request data
         const requestData = {
-            message: message,  // Send original message, let LLM analyze intent
-            conversation_session_id: currentConversationId  // Send current conversation session ID
+            message: message,
+            conversation_session_id: currentConversationId
         };
 
         // Include current plan if in edit mode
@@ -240,8 +245,8 @@ async function handleSendMessage() {
 
         console.log('Request data:', requestData);
 
-        // Send to API
-        const response = await fetch('/api/chat', {
+        // Create EventSource for streaming
+        const response = await fetch('/api/chat-stream', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -249,47 +254,118 @@ async function handleSendMessage() {
             body: JSON.stringify(requestData)
         });
 
-        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-        // Remove loading
-        loadingMsg.remove();
-        if (data.success) {
-            // Add bot response
-            addBotMessage(data.response);
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
 
-            // Update conversation ID from response (if returned by server)
-            if (data.conversation_session_id) {
-                currentConversationId = data.conversation_session_id;
-            }
+        while (true) {
+            const { done, value } = await reader.read();
+            
+            if (done) break;
 
-            // If has plan, update plan view and store it
-            if (data.has_plan && data.plan_data) {
-                currentPlan = data.plan_data;  // Store for edit mode
-                updatePlanView(data.plan_data);
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n\n');
+            buffer = lines.pop() || '';
 
-                // Add action buttons after bot message if plan_id exists
-                if (data.plan_id) {
-                    addPlanActionButtons(data.plan_id);
+            for (const line of lines) {
+                if (!line.trim()) continue;
+
+                const eventMatch = line.match(/^event: (.+)$/m);
+                const dataMatch = line.match(/^data: (.+)$/m);
+
+                if (eventMatch && dataMatch) {
+                    const eventType = eventMatch[1];
+                    const eventData = dataMatch[1];
+
+                    try {
+                        const data = JSON.parse(eventData);
+
+                        if (eventType === 'thinking') {
+                            // Update thinking message
+                            updateThinkingMessage(thinkingMsg, data.status);
+                        } else if (eventType === 'message') {
+                            // Remove thinking message if still there
+                            if (thinkingMsg && thinkingMsg.parentNode) {
+                                thinkingMsg.remove();
+                            }
+
+                            // Create streaming message if not exists
+                            if (!streamingMsg) {
+                                streamingMsg = createStreamingBotMessage();
+                            }
+
+                            // Append text chunk
+                            const text = data.text || '';
+                            fullResponse += text;
+                            appendToStreamingMessage(streamingMsg, text);
+                        } else if (eventType === 'plan') {
+                            // Plan data received
+                            hasPlan = true;
+                            planData = data;
+                        } else if (eventType === 'done') {
+                            // Stream completed
+                            conversationSessionId = data.conversation_session_id;
+                            
+                            // Update conversation ID
+                            if (conversationSessionId) {
+                                currentConversationId = conversationSessionId;
+                            }
+
+                            // If has plan, update plan view
+                            if (hasPlan && planData) {
+                                currentPlan = planData;
+                                updatePlanView(planData);
+
+                                // Add action buttons if plan has ID
+                                if (planData.id) {
+                                    addPlanActionButtons(planData.id);
+                                }
+                            }
+
+                            // Update header buttons
+                            updateHeaderButtons();
+
+                            // Update session list
+                            loadChatSessions();
+
+                            // Auto-save session title if first message
+                            if (currentConversationId && chatMessagesContainer.children.length === 4) {
+                                autoSaveSessionTitle(currentConversationId, message);
+                            }
+                        } else if (eventType === 'error') {
+                            console.error('Streaming error:', data.error);
+                            if (thinkingMsg && thinkingMsg.parentNode) {
+                                thinkingMsg.remove();
+                            }
+                            addErrorMessage(data.error || 'Có lỗi xảy ra');
+                        }
+                    } catch (parseError) {
+                        console.error('Error parsing event data:', parseError, eventData);
+                    }
                 }
             }
-
-            // Update header buttons based on whether we have a plan
-            updateHeaderButtons();
-
-            // Update session list after sending message
-            loadChatSessions();
-
-            // Auto-save session title if this is the first message in a new session
-            if (currentConversationId && chatMessagesContainer.children.length === 4) {
-                // 4 children = welcome message (2) + user message (1) + bot message (1)
-                autoSaveSessionTitle(currentConversationId, message);
-            }
-        } else {
-            addErrorMessage(data.error || 'Không thể gửi tin nhắn');
         }
+
+        // Remove thinking message if still there
+        if (thinkingMsg && thinkingMsg.parentNode) {
+            thinkingMsg.remove();
+        }
+
     } catch (error) {
         console.error('Error sending message:', error);
-        loadingMsg.remove();
+        
+        // Remove thinking/streaming messages
+        if (thinkingMsg && thinkingMsg.parentNode) {
+            thinkingMsg.remove();
+        }
+        if (streamingMsg && streamingMsg.parentNode) {
+            streamingMsg.remove();
+        }
+        
         addErrorMessage('Lỗi kết nối. Vui lòng thử lại.');
     } finally {
         // Re-enable input and button
@@ -452,6 +528,88 @@ function addLoadingMessage() {
     chatMessagesContainer?.appendChild(msgDiv);
     scrollToBottom();
     return msgDiv;
+}
+
+// Add thinking message with status
+function addThinkingMessage() {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'flex items-end gap-3 thinking-message';
+    msgDiv.innerHTML = `
+        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-10 shrink-0" 
+             style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuASndgVA3RbX1H4yCbbqk8hsJujYw-P6pZI-uQr7cNE6Fya18CrfnQF3Q6u5lkHGOdbnxRhwJZDcIr3QYn2d9_fHpzc12fDYZTMAQJ7TptH7Pyu-rlqSErcQwCOM7T7182tN0XX_l_KuPUmWhBcT3Qsf6Y1drq5VInxput-tgaNfjrS50WHYfdtTuf2Ofxb432HdB0uwEupfdrgBaK8ptf5_sLoNoRi-VRHoMj3O_yZSs2pThNsHrNSU7onQN-hig4FR913Omzgito");'></div>
+        <div class="flex flex-1 flex-col gap-1 items-start">
+            <p class="text-xs text-gray-500">TravelBot</p>
+            <div class="thinking-bubble rounded-xl px-4 py-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-700">
+                <div class="flex items-center gap-2">
+                    <div class="thinking-spinner">
+                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                        <div class="w-2 h-2 bg-purple-500 rounded-full animate-bounce [animation-delay:0.1s]"></div>
+                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                    </div>
+                    <span class="thinking-text text-sm text-gray-600 dark:text-gray-300 font-medium">Đang phân tích...</span>
+                </div>
+            </div>
+        </div>
+    `;
+    chatMessagesContainer?.appendChild(msgDiv);
+    scrollToBottom();
+    return msgDiv;
+}
+
+// Update thinking message status
+function updateThinkingMessage(msgElement, status) {
+    const statusMap = {
+        'analyzing': '🤔 Đang phân tích yêu cầu...',
+        'processing': '⚙️ Đang xử lý...',
+        'searching': '🔍 Đang tìm kiếm thông tin...',
+        'extracting_requirements': '📝 Đang xác định yêu cầu...',
+        'creating_plan': '🗺️ Đang tạo kế hoạch...',
+        'generating': '✨ Đang tạo câu trả lời...',
+        'analyzing_plan': '📋 Đang phân tích kế hoạch...'
+    };
+    
+    const statusText = statusMap[status] || '⏳ Đang xử lý...';
+    const textElement = msgElement.querySelector('.thinking-text');
+    if (textElement) {
+        textElement.textContent = statusText;
+    }
+}
+
+// Create streaming bot message element
+function createStreamingBotMessage() {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'flex items-end gap-3';
+    msgDiv.innerHTML = `
+        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-10 shrink-0" 
+             style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuASndgVA3RbX1H4yCbbqk8hsJujYw-P6pZI-uQr7cNE6Fya18CrfnQF3Q6u5lkHGOdbnxRhwJZDcIr3QYn2d9_fHpzc12fDYZTMAQJ7TptH7Pyu-rlqSErcQwCOM7T7182tN0XX_l_KuPUmWhBcT3Qsf6Y1drq5VInxput-tgaNfjrS50WHYfdtTuf2Ofxb432HdB0uwEupfdrgBaK8ptf5_sLoNoRi-VRHoMj3O_yZSs2pThNsHrNSU7onQN-hig4FR913Omzgito");'></div>
+        <div class="flex flex-1 flex-col gap-1 items-start">
+            <p class="text-xs text-gray-500">TravelBot</p>
+            <div class="markdown-content text-base font-normal leading-normal max-w-[480px] rounded-xl px-4 py-3 bg-gray-100 dark:bg-gray-700 streaming-content"></div>
+        </div>
+    `;
+    chatMessagesContainer?.appendChild(msgDiv);
+    scrollToBottom();
+    return msgDiv;
+}
+
+// Append text to streaming message
+function appendToStreamingMessage(msgElement, text) {
+    const contentDiv = msgElement.querySelector('.streaming-content');
+    if (contentDiv) {
+        // Accumulate text and re-render with markdown
+        const currentText = contentDiv.getAttribute('data-raw-text') || '';
+        const newText = currentText + text;
+        contentDiv.setAttribute('data-raw-text', newText);
+        
+        // Render markdown
+        if (typeof marked !== 'undefined') {
+            contentDiv.innerHTML = marked.parse(newText);
+        } else {
+            contentDiv.textContent = newText;
+        }
+        
+        scrollToBottom();
+    }
 }
 
 // Add error message
