@@ -132,6 +132,10 @@
                     👤 <span data-i18n="nav.profile">Hồ sơ</span>
                 </a>
                 {% endif %}
+                <button id="settingsBtn" class="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <span class="material-symbols-outlined">settings</span>
+                    <span data-i18n="nav.settings">Cài đặt</span>
+                </button>
             </nav>
             
             <!-- Mobile Hamburger Button -->
@@ -176,6 +180,10 @@
             <span data-i18n="nav.profile">Hồ sơ</span>
         </a>
         {% endif %}
+        <button id="mobileSettingsBtn" class="mobile-nav-item dark:text-gray-300 dark:hover:bg-gray-700 w-full text-left">
+            <span class="material-symbols-outlined">settings</span>
+            <span data-i18n="nav.settings">Cài đặt</span>
+        </button>
     </nav>
 </div>
 
@@ -248,6 +256,89 @@
 </div>
 </div>
 
+<!-- Settings Modal -->
+<div id="settingsModal" class="fixed inset-0 bg-black/50 z-[10001] hidden items-center justify-center p-4">
+<div class="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+<!-- Modal Header -->
+<div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 flex justify-between items-center">
+<h2 class="text-2xl font-bold text-gray-900 dark:text-white">Cài đặt</h2>
+<button id="closeSettingsModal" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-400">close</span>
+</button>
+</div>
+<!-- Modal Content -->
+<div class="p-6 md:p-8 space-y-6">
+<!-- Language Settings -->
+<div class="border-b border-gray-200 dark:border-gray-700 pb-6">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary text-2xl">language</span>
+<h3 class="text-lg font-semibold text-gray-900 dark:text-white">Ngôn ngữ</h3>
+</div>
+<div class="space-y-3">
+<label class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+<input type="radio" name="language" value="vi" checked class="w-4 h-4 text-primary focus:ring-primary">
+<div class="flex items-center gap-2">
+<span class="text-2xl">🇻🇳</span>
+<span class="text-gray-900 dark:text-white">Tiếng Việt</span>
+</div>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+<input type="radio" name="language" value="en" class="w-4 h-4 text-primary focus:ring-primary">
+<div class="flex items-center gap-2">
+<span class="text-2xl">🇬🇧</span>
+<span class="text-gray-900 dark:text-white">English</span>
+</div>
+</label>
+<label class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+<input type="radio" name="language" value="ja" class="w-4 h-4 text-primary focus:ring-primary">
+<div class="flex items-center gap-2">
+<span class="text-2xl">🇯🇵</span>
+<span class="text-gray-900 dark:text-white">日本語</span>
+</div>
+</label>
+</div>
+</div>
+
+<!-- Theme Settings -->
+<div class="border-b border-gray-200 dark:border-gray-700 pb-6">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary text-2xl">palette</span>
+<h3 class="text-lg font-semibold text-gray-900 dark:text-white">Giao diện</h3>
+</div>
+<div class="grid grid-cols-3 gap-3">
+<label class="flex flex-col items-center gap-2 p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-primary cursor-pointer transition-colors">
+<input type="radio" name="theme" value="light" class="sr-only theme-radio">
+<span class="material-symbols-outlined text-3xl text-yellow-600 dark:text-yellow-500">light_mode</span>
+<span class="text-sm font-medium text-gray-900 dark:text-white">Sáng</span>
+</label>
+<label class="flex flex-col items-center gap-2 p-4 rounded-lg border-2 border-primary cursor-pointer transition-colors">
+<input type="radio" name="theme" value="dark" checked class="sr-only theme-radio">
+<span class="material-symbols-outlined text-3xl text-indigo-600 dark:text-indigo-400">dark_mode</span>
+<span class="text-sm font-medium text-gray-900 dark:text-white">Tối</span>
+</label>
+<label class="flex flex-col items-center gap-2 p-4 rounded-lg border-2 border-gray-200 dark:border-gray-700 hover:border-primary cursor-pointer transition-colors">
+<input type="radio" name="theme" value="auto" class="sr-only theme-radio">
+<span class="material-symbols-outlined text-3xl text-blue-600 dark:text-blue-400">brightness_auto</span>
+<span class="text-sm font-medium text-gray-900 dark:text-white">Tự động</span>
+</label>
+</div>
+</div>
+</div>
+
+<!-- Modal Footer -->
+<div class="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-6">
+<div class="flex gap-3">
+<button id="resetSettingsBtn" class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+Đặt lại mặc định
+</button>
+<button id="saveSettingsBtn" class="flex-1 px-4 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-primary/90 transition-colors">
+Lưu thay đổi
+</button>
+</div>
+</div>
+</div>
+</div>
+
 <!-- Mobile Navigation JS -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -292,6 +383,86 @@
                 closeDrawer();
             }
         });
+        
+        // Settings Modal
+        const settingsBtn = document.getElementById('settingsBtn');
+        const mobileSettingsBtn = document.getElementById('mobileSettingsBtn');
+        const settingsModal = document.getElementById('settingsModal');
+        const closeSettingsModal = document.getElementById('closeSettingsModal');
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        const resetSettingsBtn = document.getElementById('resetSettingsBtn');
+        
+        function openSettings() {
+            settingsModal.classList.remove('hidden');
+            settingsModal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+            closeDrawer(); // Close drawer when opening settings
+            
+            // Load current settings
+            if (typeof loadCurrentSettings === 'function') {
+                loadCurrentSettings();
+            }
+        }
+        
+        function closeSettings() {
+            settingsModal.classList.add('hidden');
+            settingsModal.classList.remove('flex');
+            document.body.style.overflow = '';
+        }
+        
+        if (settingsBtn) {
+            settingsBtn.addEventListener('click', openSettings);
+        }
+        
+        if (mobileSettingsBtn) {
+            mobileSettingsBtn.addEventListener('click', openSettings);
+        }
+        
+        if (closeSettingsModal) {
+            closeSettingsModal.addEventListener('click', closeSettings);
+        }
+        
+        if (saveSettingsBtn) {
+            saveSettingsBtn.addEventListener('click', function() {
+                if (typeof saveSettings === 'function') {
+                    saveSettings();
+                }
+            });
+        }
+        
+        if (resetSettingsBtn) {
+            resetSettingsBtn.addEventListener('click', function() {
+                if (typeof resetSettings === 'function') {
+                    resetSettings();
+                }
+            });
+        }
+        
+        // Theme radio buttons visual feedback
+        const themeRadios = document.querySelectorAll('input[name="theme"]');
+        themeRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Remove border-primary from all labels
+                document.querySelectorAll('input[name="theme"]').forEach(r => {
+                    r.closest('label').classList.remove('border-primary');
+                    r.closest('label').classList.add('border-gray-200', 'dark:border-gray-700');
+                });
+                // Add border-primary to selected label
+                if (this.checked) {
+                    this.closest('label').classList.remove('border-gray-200', 'dark:border-gray-700');
+                    this.closest('label').classList.add('border-primary');
+                }
+            });
+        });
+        
+        // Close modal when clicking outside
+        if (settingsModal) {
+            settingsModal.addEventListener('click', function(e) {
+                if (e.target === settingsModal) {
+                    closeSettings();
+                }
+            });
+        }
     });
 </script>
 
