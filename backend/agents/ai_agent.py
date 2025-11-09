@@ -601,6 +601,7 @@ HÃY TRẢ LỜI:
 - Dựa trên thông tin tìm kiếm
 - Thân thiện, hữu ích
 - Sử dụng emoji phù hợp
+- Hôm nay là ngày {datetime.now().strftime('%d/%m/%Y')}
 """
                     logger.debug(prompt)
                     
