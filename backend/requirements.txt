@@ -20,3 +20,8 @@ werkzeug==3.0.0
 google-auth-oauthlib
 google-auth-httplib2
 google-api-python-client
+
+# PDF Generation
+weasyprint==61.2
+pillow==10.1.0
+pydyf==0.10.0

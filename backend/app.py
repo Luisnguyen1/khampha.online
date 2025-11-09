@@ -1,9 +1,10 @@
 """
 Main Flask application for khappha.online
 """
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, Response, stream_with_context
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, Response, stream_with_context, send_file
 from flask_cors import CORS
 from flask_session import Session
+from io import BytesIO
 import os
 import uuid
 import json
@@ -13,6 +14,7 @@ from datetime import datetime
 from config import config, Config
 from database.db_manager import DatabaseManager
 from agents.ai_agent import TravelAgent
+from utils.pdf_generator import TravelPlanPDFGenerator
 from utils.auth import (
     validate_email, 
     validate_username, 
@@ -1266,6 +1268,55 @@ def delete_plan_flight(plan_id, flight_id):
         return jsonify({
             'success': False,
             'error': str(e)
+        }), 500
+
+
+@app.route('/api/plans/<int:plan_id>/download-pdf', methods=['GET'])
+def download_plan_pdf(plan_id):
+    """Download travel plan as PDF"""
+    try:
+        # Get plan data
+        plan = db.get_plan(plan_id)
+        
+        if not plan:
+            return jsonify({
+                'success': False,
+                'error': 'Plan not found'
+            }), 404
+        
+        # Get hotel and flights data
+        hotel = db.get_plan_hotel(plan_id)
+        flights = db.get_plan_flights(plan_id)
+        
+        # Convert plan to dict if necessary
+        if hasattr(plan, 'to_dict'):
+            plan_dict = plan.to_dict()
+        else:
+            plan_dict = plan
+        
+        # Generate PDF
+        pdf_generator = TravelPlanPDFGenerator()
+        pdf_bytes = pdf_generator.generate_pdf(plan_dict, hotel, flights)
+        
+        # Create filename
+        plan_name = plan_dict.get('plan_name') or plan_dict.get('destination', 'plan')
+        filename = f"{plan_name.replace(' ', '_')}.pdf"
+        
+        # Return PDF as download
+        return send_file(
+            BytesIO(pdf_bytes),
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=filename
+        )
+        
+    except Exception as e:
+        app.logger.error(f"Error generating PDF: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': f'Failed to generate PDF: {str(e)}'
         }), 500
 
 

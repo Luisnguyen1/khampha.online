@@ -1741,8 +1741,53 @@ if (editButton) {
 // Download PDF button
 const downloadButton = document.getElementById('download-button');
 if (downloadButton) {
-    downloadButton.addEventListener('click', () => {
-        alert('Tính năng tải PDF sẽ được cập nhật sớm!');
+    downloadButton.addEventListener('click', async () => {
+        const planId = getPlanIdFromUrl();
+        if (!planId) {
+            alert('Không tìm thấy ID kế hoạch!');
+            return;
+        }
+        
+        try {
+            // Show loading state
+            downloadButton.disabled = true;
+            const originalHTML = downloadButton.innerHTML;
+            downloadButton.innerHTML = '<span class="material-symbols-outlined animate-spin">progress_activity</span><span class="truncate">Đang tạo PDF...</span>';
+            
+            // Call API to download PDF
+            const response = await fetch(`/api/plans/${planId}/download-pdf`);
+            
+            if (!response.ok) {
+                throw new Error('Không thể tải PDF');
+            }
+            
+            // Get PDF blob
+            const blob = await response.blob();
+            
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentPlan?.plan_name || 'ke-hoach-du-lich'}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            
+            // Cleanup
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            // Reset button
+            downloadButton.innerHTML = originalHTML;
+            downloadButton.disabled = false;
+            
+        } catch (error) {
+            console.error('Error downloading PDF:', error);
+            alert('Có lỗi khi tải PDF. Vui lòng thử lại!');
+            
+            // Reset button
+            downloadButton.innerHTML = '<span class="material-symbols-outlined">download</span><span class="truncate">Tải xuống PDF</span>';
+            downloadButton.disabled = false;
+        }
     });
 }
 
