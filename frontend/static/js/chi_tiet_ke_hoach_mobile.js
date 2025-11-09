@@ -1,6 +1,30 @@
 /**
  * Mobile optimizations for chi_tiet_ke_hoach page
+ * Enhanced with better touch interactions and animations
  */
+
+// Mobile viewport height fix
+function setMobileViewportHeight() {
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+
+// Call on load and resize
+window.addEventListener('load', setMobileViewportHeight);
+window.addEventListener('resize', setMobileViewportHeight);
+
+// Prevent body scroll when drawer is open
+function toggleBodyScroll(lock) {
+    if (lock) {
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+    } else {
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+    }
+}
 
 // Sync mobile sidebar with desktop sidebar
 function syncMobileSidebar(plan) {
@@ -89,7 +113,45 @@ function closeSidebarDrawer() {
     
     if (drawer) drawer.classList.remove('drawer-open');
     if (overlay) overlay.classList.remove('overlay-visible');
-    document.body.style.overflow = '';
+    toggleBodyScroll(false);
+}
+
+// Open sidebar drawer helper
+function openSidebarDrawer() {
+    const drawer = document.getElementById('mobileSidebarDrawer');
+    const overlay = document.getElementById('drawerOverlay');
+    
+    if (drawer) drawer.classList.add('drawer-open');
+    if (overlay) overlay.classList.add('overlay-visible');
+    toggleBodyScroll(true);
+}
+
+// Swipe gesture support for closing drawer
+let touchStartX = 0;
+let touchEndX = 0;
+
+function handleDrawerSwipe() {
+    const drawer = document.getElementById('mobileSidebarDrawer');
+    if (!drawer) return;
+    
+    drawer.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    
+    drawer.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipeGesture();
+    }, { passive: true });
+}
+
+function handleSwipeGesture() {
+    const swipeThreshold = 50;
+    const swipeDistance = touchEndX - touchStartX;
+    
+    // Swipe left to close
+    if (swipeDistance < -swipeThreshold) {
+        closeSidebarDrawer();
+    }
 }
 
 // Hook into existing renderPlanDetail function
@@ -109,4 +171,73 @@ document.addEventListener('DOMContentLoaded', function() {
         syncMobileSidebar(window.currentPlan);
         syncMobileDayNavigation(window.currentPlan);
     }
+    
+    // Initialize swipe gestures
+    handleDrawerSwipe();
+    
+    // Setup FAB sidebar button
+    const fabSidebarBtn = document.getElementById('fabSidebarBtn');
+    if (fabSidebarBtn) {
+        fabSidebarBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openSidebarDrawer();
+        });
+    }
+    
+    // Setup FAB main button
+    const fabMainBtn = document.getElementById('fabMainBtn');
+    const fabMenu = document.getElementById('fabMenu');
+    
+    if (fabMainBtn && fabMenu) {
+        fabMainBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fabMenu.classList.toggle('active');
+            fabMainBtn.classList.toggle('active');
+        });
+        
+        // Close FAB menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!fabMenu.contains(e.target) && e.target !== fabMainBtn) {
+                fabMenu.classList.remove('active');
+                fabMainBtn.classList.remove('active');
+            }
+        });
+    }
+    
+    // Setup overlay click to close drawers
+    const overlay = document.getElementById('drawerOverlay');
+    if (overlay) {
+        overlay.addEventListener('click', () => {
+            closeSidebarDrawer();
+        });
+    }
+    
+    // Smooth scroll to active day on mobile
+    const activeDayLink = document.querySelector('.day-link.active');
+    if (activeDayLink && window.innerWidth <= 768) {
+        setTimeout(() => {
+            activeDayLink.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 300);
+    }
+    
+    // Touch-friendly tab scrolling
+    const tabNav = document.querySelector('nav.flex.gap-6');
+    if (tabNav && window.innerWidth <= 768) {
+        const activeTab = tabNav.querySelector('.border-primary');
+        if (activeTab) {
+            activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+    }
+    
+    // Prevent zoom on double tap for specific elements
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', (e) => {
+        const now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+                e.preventDefault();
+            }
+        }
+        lastTouchEnd = now;
+    }, false);
 });
