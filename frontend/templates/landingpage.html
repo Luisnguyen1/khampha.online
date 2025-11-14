@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html class="light" lang="vi"><head>
+<html class="light" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>khampha.online - Lập Kế Hoạch Du Lịch Trong 30 Giây Với AI</title>
-<meta name="description" content="Trợ lý AI du lịch thông minh giúp bạn tạo lịch trình chi tiết, tìm vé máy bay và khách sạn giá tốt chỉ trong 30 giây. Miễn phí 100%, hỗ trợ tiếng Việt, dữ liệu thời gian thực."/>
-<meta property="og:title" content="khampha.online - Lập Kế Hoạch Du Lịch Trong 30 Giây Với AI"/>
-<meta property="og:description" content="Trợ lý AI du lịch thông minh. Miễn phí 100% • Tiếng Việt • Dữ liệu thời gian thực"/>
+<title data-i18n="meta.title">khampha.online - Plan Your Trip in 30 Seconds With AI</title>
+<meta name="description" data-i18n="meta.description" content="Smart AI travel assistant helps you create detailed itineraries, find flights and hotels at the best prices in just 30 seconds. 100% free, multi-language support, real-time data."/>
+<meta property="og:title" data-i18n="meta.og_title" content="khampha.online - Plan Your Trip in 30 Seconds With AI"/>
+<meta property="og:description" data-i18n="meta.og_description" content="Smart AI travel assistant. 100% Free • Multi-language • Real-time data"/>
 <meta property="og:type" content="website"/>
 <meta property="og:url" content="https://khampha.online"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -55,13 +55,30 @@
       </button>
     </div>
     <nav class="flex flex-col p-4 space-y-4">
-      <a class="text-[#111618] dark:text-white hover:text-primary font-medium py-2" href="#">Trang chủ</a>
-      <a class="text-[#111618] dark:text-white hover:text-primary font-medium py-2" href="#features">Tính năng</a>
-      <a class="text-[#111618] dark:text-white hover:text-primary font-medium py-2" href="#how-it-works">Cách hoạt động</a>
-      <a class="text-[#111618] dark:text-white hover:text-primary font-medium py-2" href="#use-cases">Ví dụ thực tế</a>
-      <a class="text-[#111618] dark:text-white hover:text-primary font-medium py-2" href="#contact">Liên hệ</a>
-      <a class="text-[#111618] dark:text-white hover:text-primary font-medium py-2" href="/login">Đăng nhập</a>
-      <a class="bg-primary text-white px-4 py-3 rounded-lg hover:bg-blue-600 font-medium text-center" href="/register">Đăng ký</a>
+      <a class="text-[#111618] dark:text-white hover:text-primary font-medium py-2" href="#" data-i18n="nav.home">Home</a>
+      <a class="text-[#111618] dark:text-white hover:text-primary font-medium py-2" href="#features" data-i18n="nav.features">Features</a>
+      <a class="text-[#111618] dark:text-white hover:text-primary font-medium py-2" href="#how-it-works" data-i18n="nav.how_it_works">How it works</a>
+      <a class="text-[#111618] dark:text-white hover:text-primary font-medium py-2" href="#use-cases" data-i18n="nav.use_cases">Examples</a>
+      <a class="text-[#111618] dark:text-white hover:text-primary font-medium py-2" href="#contact" data-i18n="nav.contact">Contact</a>
+      <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2">
+        <p class="text-xs text-gray-500 dark:text-gray-400 mb-2 px-2" data-i18n="nav.language">Language</p>
+        <div class="flex flex-col space-y-2">
+          <button class="lang-option text-left px-2 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2" data-lang="en">
+            <span class="text-xl">🇺🇸</span>
+            <span class="text-sm font-medium">English</span>
+          </button>
+          <button class="lang-option text-left px-2 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2" data-lang="ja">
+            <span class="text-xl">🇯🇵</span>
+            <span class="text-sm font-medium">日本語</span>
+          </button>
+          <button class="lang-option text-left px-2 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2" data-lang="vi">
+            <span class="text-xl">🇻🇳</span>
+            <span class="text-sm font-medium">Tiếng Việt</span>
+          </button>
+        </div>
+      </div>
+      <a class="text-[#111618] dark:text-white hover:text-primary font-medium py-2" href="/login" data-i18n="nav.login">Login</a>
+      <a class="bg-primary text-white px-4 py-3 rounded-lg hover:bg-blue-600 font-medium text-center" href="/register" data-i18n="nav.register">Sign up</a>
     </nav>
   </div>
 </div>
@@ -69,19 +86,40 @@
 <div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
 <div class="layout-container flex h-full grow flex-col">
 <header class="sticky top-0 z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-sm">
-<div class="px-4 md:px-10 lg:px-40 mx-auto flex h-16 max-w-[1280px] items-center justify-between">
+<div class="px-4 md:px-10 lg:px-40 mx-auto flex h-16 max-w-[2400px] items-center justify-between">
 <a class="flex items-center gap-2" href="#">
 <span class="material-symbols-outlined text-primary text-3xl">travel_explore</span>
 <span class="text-lg font-bold">khampha.online</span>
 </a>
                 <nav class="hidden md:flex items-center gap-6">
-<a class="text-[#111618] dark:text-white hover:text-primary font-medium transition-colors" href="#">Trang chủ</a>
-<a class="text-[#111618] dark:text-white hover:text-primary font-medium transition-colors" href="#features">Tính năng</a>
-<a class="text-[#111618] dark:text-white hover:text-primary font-medium transition-colors" href="#how-it-works">Cách hoạt động</a>
-<a class="text-[#111618] dark:text-white hover:text-primary font-medium transition-colors" href="#use-cases">Ví dụ thực tế</a>
-<a class="text-[#111618] dark:text-white hover:text-primary font-medium transition-colors" href="#contact">Liên hệ</a>
-<a class="text-[#111618] dark:text-white hover:text-primary font-medium transition-colors" href="/login">Đăng nhập</a>
-<a class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-600 font-medium transition-colors" href="/register">Đăng ký</a>
+<a class="text-[#111618] dark:text-white hover:text-primary font-medium transition-colors" href="#" data-i18n="nav.home">Home</a>
+<a class="text-[#111618] dark:text-white hover:text-primary font-medium transition-colors" href="#features" data-i18n="nav.features">Features</a>
+<a class="text-[#111618] dark:text-white hover:text-primary font-medium transition-colors" href="#how-it-works" data-i18n="nav.how_it_works">How it works</a>
+<a class="text-[#111618] dark:text-white hover:text-primary font-medium transition-colors" href="#use-cases" data-i18n="nav.use_cases">Examples</a>
+<a class="text-[#111618] dark:text-white hover:text-primary font-medium transition-colors" href="#contact" data-i18n="nav.contact">Contact</a>
+<div class="relative language-selector">
+<button id="lang-toggle" class="flex items-center gap-1 text-[#111618] dark:text-white hover:text-primary font-medium transition-colors px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">
+<span class="material-symbols-outlined text-xl">language</span>
+<span id="current-lang" class="uppercase text-sm font-bold">EN</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<div id="lang-dropdown" class="hidden absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden z-50">
+<button class="lang-option w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2" data-lang="en">
+<span class="text-xl">🇺🇸</span>
+<span class="text-sm font-medium">English</span>
+</button>
+<button class="lang-option w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2" data-lang="ja">
+<span class="text-xl">🇯🇵</span>
+<span class="text-sm font-medium">日本語</span>
+</button>
+<button class="lang-option w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2" data-lang="vi">
+<span class="text-xl">🇻🇳</span>
+<span class="text-sm font-medium">Tiếng Việt</span>
+</button>
+</div>
+</div>
+<a class="text-[#111618] dark:text-white hover:text-primary font-medium transition-colors" href="/login" data-i18n="nav.login">Login</a>
+<a class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-600 font-medium transition-colors" href="/register" data-i18n="nav.register">Sign up</a>
 </nav>
 <button id="open-menu" class="md:hidden flex items-center justify-center p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
 <span class="material-symbols-outlined">menu</span>
@@ -96,37 +134,37 @@
 <div class="flex flex-col gap-4 text-center max-w-4xl">
 <div class="inline-flex items-center justify-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-white text-sm font-medium mb-2">
 <span class="material-symbols-outlined text-xl">verified</span>
-<span>Miễn phí 100% • Tiếng Việt • Dữ liệu thời gian thực</span>
+<span data-i18n="hero.badge">100% Free • Multi-language • Real-time data</span>
 </div>
-<h1 class="text-white text-4xl md:text-5xl lg:text-6xl font-black leading-tight tracking-[-0.033em]">
-Lên kế hoạch du lịch trong <span class="text-yellow-300">30 giây</span> với AI
+<h1 class="text-white text-4xl md:text-5xl lg:text-6xl font-black leading-tight tracking-[-0.033em]" data-i18n="hero.title">
+Plan your trip in <span class="text-yellow-300">30 seconds</span> with AI
 </h1>
-<h2 class="text-white text-lg md:text-xl font-normal leading-normal max-w-2xl mx-auto">
-Chỉ cần trò chuyện với AI, nhận ngay lịch trình chi tiết + giá vé máy bay + khách sạn tốt nhất
+<h2 class="text-white text-lg md:text-xl font-normal leading-normal max-w-2xl mx-auto" data-i18n="hero.subtitle">
+Just chat with AI, get detailed itinerary + flight prices + best hotels instantly
 </h2>
 </div>
 <div class="flex flex-col sm:flex-row gap-4 items-center justify-center w-full max-w-md">
 <a href="/login" class="flex w-full sm:w-auto min-w-[160px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl h-12 md:h-14 px-6 md:px-8 bg-white text-primary text-base md:text-lg font-bold leading-normal tracking-[0.015em] hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg">
 <span class="material-symbols-outlined">rocket_launch</span>
-<span class="truncate">Dùng thử ngay</span>
+<span class="truncate" data-i18n="hero.cta_primary">Try now</span>
 </a>
 <a href="#how-it-works" class="flex w-full sm:w-auto min-w-[160px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl h-12 md:h-14 px-6 md:px-8 bg-white/10 backdrop-blur-sm border-2 border-white text-white text-base md:text-lg font-bold leading-normal tracking-[0.015em] hover:bg-white/20 transition-all">
 <span class="material-symbols-outlined">play_circle</span>
-<span class="truncate">Xem demo</span>
+<span class="truncate" data-i18n="hero.cta_secondary">Watch demo</span>
 </a>
 </div>
 <div class="flex flex-wrap items-center justify-center gap-6 md:gap-12 mt-6 text-white">
 <div class="flex flex-col items-center">
 <div class="text-3xl md:text-4xl font-bold">30s</div>
-<div class="text-sm opacity-90">Tạo kế hoạch</div>
+<div class="text-sm opacity-90" data-i18n="hero.stat_1">Create plan</div>
 </div>
 <div class="flex flex-col items-center">
 <div class="text-3xl md:text-4xl font-bold">100%</div>
-<div class="text-sm opacity-90">Miễn phí</div>
+<div class="text-sm opacity-90" data-i18n="hero.stat_2">Free</div>
 </div>
 <div class="flex flex-col items-center">
 <div class="text-3xl md:text-4xl font-bold">24/7</div>
-<div class="text-sm opacity-90">Hỗ trợ AI</div>
+<div class="text-sm opacity-90" data-i18n="hero.stat_3">AI Support</div>
 </div>
 </div>
 </div>
@@ -138,8 +176,8 @@ Chỉ cần trò chuyện với AI, nhận ngay lịch trình chi tiết + giá 
 <div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-16 bg-gradient-to-b from-white to-gray-50 dark:from-background-dark dark:to-gray-900" id="features">
 <div class="layout-content-container flex flex-col max-w-[1200px] flex-1">
 <div class="flex flex-col gap-4 text-center items-center mb-12">
-<h2 class="text-[#111618] dark:text-white text-3xl md:text-4xl font-bold leading-tight">Tất cả trong một nền tảng</h2>
-<p class="text-[#617c89] dark:text-gray-300 text-lg max-w-2xl">Từ lên kế hoạch đến đặt vé, mọi thứ bạn cần cho chuyến đi hoàn hảo</p>
+<h2 class="text-[#111618] dark:text-white text-3xl md:text-4xl font-bold leading-tight" data-i18n="features.title">All-in-one platform</h2>
+<p class="text-[#617c89] dark:text-gray-300 text-lg max-w-2xl" data-i18n="features.subtitle">From planning to booking, everything you need for the perfect trip</p>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
 <!-- Feature Card 1 -->
@@ -147,10 +185,10 @@ Chỉ cần trò chuyện với AI, nhận ngay lịch trình chi tiết + giá 
 <div class="flex items-center justify-center w-14 h-14 bg-primary/10 rounded-lg mb-4 group-hover:bg-primary/20 transition-colors">
 <span class="material-symbols-outlined text-primary text-3xl">smart_toy</span>
 </div>
-<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2">AI Chat Tiếng Việt</h3>
-<p class="text-[#617c89] dark:text-gray-300 text-sm mb-4">Trò chuyện tự nhiên bằng tiếng Việt với AI được tối ưu riêng cho du lịch Việt Nam. Hiểu địa danh, ngân sách VNĐ và văn hóa bản địa.</p>
+<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2" data-i18n="features.card1.title">Multi-language AI Chat</h3>
+<p class="text-[#617c89] dark:text-gray-300 text-sm mb-4" data-i18n="features.card1.desc">Chat naturally with AI optimized for travel. Understands destinations, budgets, and local culture.</p>
 <a href="#how-it-works" class="text-primary font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
-Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward</span>
+<span data-i18n="features.learn_more">Learn more</span> <span class="material-symbols-outlined text-lg">arrow_forward</span>
 </a>
 </div>
 
@@ -159,10 +197,10 @@ Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward<
 <div class="flex items-center justify-center w-14 h-14 bg-primary/10 rounded-lg mb-4 group-hover:bg-primary/20 transition-colors">
 <span class="material-symbols-outlined text-primary text-3xl">event_note</span>
 </div>
-<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2">Tạo Lịch Trình Tự Động</h3>
-<p class="text-[#617c89] dark:text-gray-300 text-sm mb-4">Nhận lịch trình chi tiết theo giờ, từng ngày với địa điểm cụ thể, chi phí ước tính và tips hữu ích chỉ trong 30 giây.</p>
+<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2" data-i18n="features.card2.title">Auto Itinerary Generator</h3>
+<p class="text-[#617c89] dark:text-gray-300 text-sm mb-4" data-i18n="features.card2.desc">Get detailed hourly itineraries with specific locations, cost estimates, and useful tips in just 30 seconds.</p>
 <a href="#how-it-works" class="text-primary font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
-Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward</span>
+<span data-i18n="features.learn_more">Learn more</span> <span class="material-symbols-outlined text-lg">arrow_forward</span>
 </a>
 </div>
 
@@ -171,10 +209,10 @@ Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward<
 <div class="flex items-center justify-center w-14 h-14 bg-primary/10 rounded-lg mb-4 group-hover:bg-primary/20 transition-colors">
 <span class="material-symbols-outlined text-primary text-3xl">flight</span>
 </div>
-<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2">Tìm Vé Máy Bay</h3>
-<p class="text-[#617c89] dark:text-gray-300 text-sm mb-4">Tích hợp Agoda API để tìm kiếm vé máy bay với giá tốt nhất, so sánh nhiều hãng, lọc theo sở thích ngay trong chat.</p>
+<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2" data-i18n="features.card3.title">Find Flights</h3>
+<p class="text-[#617c89] dark:text-gray-300 text-sm mb-4" data-i18n="features.card3.desc">Integrated with Agoda API to find the best flight prices, compare airlines, and filter by preferences right in chat.</p>
 <a href="#how-it-works" class="text-primary font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
-Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward</span>
+<span data-i18n="features.learn_more">Learn more</span> <span class="material-symbols-outlined text-lg">arrow_forward</span>
 </a>
 </div>
 
@@ -183,10 +221,10 @@ Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward<
 <div class="flex items-center justify-center w-14 h-14 bg-primary/10 rounded-lg mb-4 group-hover:bg-primary/20 transition-colors">
 <span class="material-symbols-outlined text-primary text-3xl">hotel</span>
 </div>
-<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2">Tìm Khách Sạn</h3>
-<p class="text-[#617c89] dark:text-gray-300 text-sm mb-4">Khám phá khách sạn phù hợp với đánh giá thực, hình ảnh đẹp, giá cả minh bạch và ưu đãi độc quyền từ Agoda.</p>
+<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2" data-i18n="features.card4.title">Find Hotels</h3>
+<p class="text-[#617c89] dark:text-gray-300 text-sm mb-4" data-i18n="features.card4.desc">Discover hotels with real reviews, beautiful images, transparent pricing, and exclusive deals from Agoda.</p>
 <a href="#how-it-works" class="text-primary font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
-Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward</span>
+<span data-i18n="features.learn_more">Learn more</span> <span class="material-symbols-outlined text-lg">arrow_forward</span>
 </a>
 </div>
 
@@ -195,10 +233,10 @@ Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward<
 <div class="flex items-center justify-center w-14 h-14 bg-primary/10 rounded-lg mb-4 group-hover:bg-primary/20 transition-colors">
 <span class="material-symbols-outlined text-primary text-3xl">explore</span>
 </div>
-<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2">Khám Phá Điểm Đến</h3>
-<p class="text-[#617c89] dark:text-gray-300 text-sm mb-4">Vuốt qua 20 địa danh đẹp nhất Việt Nam với giao diện Tinder-style. Thích nơi nào? Chạm để tạo kế hoạch ngay!</p>
+<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2" data-i18n="features.card5.title">Discover Destinations</h3>
+<p class="text-[#617c89] dark:text-gray-300 text-sm mb-4" data-i18n="features.card5.desc">Swipe through beautiful destinations with Tinder-style interface. Like a place? Tap to create a plan instantly!</p>
 <a href="#how-it-works" class="text-primary font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
-Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward</span>
+<span data-i18n="features.learn_more">Learn more</span> <span class="material-symbols-outlined text-lg">arrow_forward</span>
 </a>
 </div>
 
@@ -207,10 +245,10 @@ Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward<
 <div class="flex items-center justify-center w-14 h-14 bg-primary/10 rounded-lg mb-4 group-hover:bg-primary/20 transition-colors">
 <span class="material-symbols-outlined text-primary text-3xl">folder_open</span>
 </div>
-<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2">Quản Lý Kế Hoạch</h3>
-<p class="text-[#617c89] dark:text-gray-300 text-sm mb-4">Lưu, chỉnh sửa và theo dõi tất cả kế hoạch du lịch ở một nơi. Đánh dấu yêu thích, chia sẻ với bạn bè dễ dàng.</p>
+<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2" data-i18n="features.card6.title">Manage Plans</h3>
+<p class="text-[#617c89] dark:text-gray-300 text-sm mb-4" data-i18n="features.card6.desc">Save, edit, and track all your travel plans in one place. Bookmark favorites and share with friends easily.</p>
 <a href="#how-it-works" class="text-primary font-medium text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
-Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward</span>
+<span data-i18n="features.learn_more">Learn more</span> <span class="material-symbols-outlined text-lg">arrow_forward</span>
 </a>
 </div>
 </div>
@@ -219,7 +257,7 @@ Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward<
 <!-- How It Works Section -->
 <div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-16" id="how-it-works">
 <div class="layout-content-container flex flex-col max-w-[1000px] flex-1">
-<h2 class="text-[#111618] dark:text-white text-3xl md:text-4xl font-bold leading-tight px-4 pb-8 text-center">Cách hoạt động</h2>
+<h2 class="text-[#111618] dark:text-white text-3xl md:text-4xl font-bold leading-tight px-4 pb-8 text-center" data-i18n="how_it_works.title">How it works</h2>
 <div class="relative flex flex-col md:flex-row items-center justify-between gap-8 px-4">
 <!-- Connector Line (Hidden on mobile) -->
 <div class="hidden md:block absolute top-20 left-0 right-0 h-1 bg-gradient-to-r from-primary via-primary to-primary opacity-20 z-0"></div>
@@ -230,8 +268,8 @@ Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward<
 <span class="material-symbols-outlined text-white text-4xl md:text-5xl">chat_bubble</span>
 </div>
 <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-200 dark:border-gray-700 w-full">
-<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2">1. Trò chuyện với AI</h3>
-<p class="text-sm text-[#617c89] dark:text-gray-300">Nói với chatbot về điểm đến, ngân sách và thời gian. Ví dụ: "Tôi muốn đi Đà Lạt 3 ngày, ngân sách 5 triệu"</p>
+<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2" data-i18n="how_it_works.step1.title">1. Chat with AI</h3>
+<p class="text-sm text-[#617c89] dark:text-gray-300" data-i18n="how_it_works.step1.desc">Tell the chatbot about your destination, budget, and duration. Example: "I want to visit Da Lat for 3 days, budget $500"</p>
 </div>
 </div>
 
@@ -241,8 +279,8 @@ Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward<
 <span class="material-symbols-outlined text-white text-4xl md:text-5xl">auto_awesome</span>
 </div>
 <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-200 dark:border-gray-700 w-full">
-<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2">2. Nhận lịch trình & giá</h3>
-<p class="text-sm text-[#617c89] dark:text-gray-300">AI tạo kế hoạch chi tiết + tìm vé máy bay và khách sạn tốt nhất. <strong class="text-primary">Chỉ mất 30 giây!</strong></p>
+<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2" data-i18n="how_it_works.step2.title">2. Get itinerary & prices</h3>
+<p class="text-sm text-[#617c89] dark:text-gray-300" data-i18n="how_it_works.step2.desc">AI creates detailed plan + finds best flights and hotels. <strong class="text-primary">Only takes 30 seconds!</strong></p>
 </div>
 </div>
 
@@ -252,8 +290,8 @@ Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward<
 <span class="material-symbols-outlined text-white text-4xl md:text-5xl">bookmark</span>
 </div>
 <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md border border-gray-200 dark:border-gray-700 w-full">
-<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2">3. Lưu & quản lý</h3>
-<p class="text-sm text-[#617c89] dark:text-gray-300">Lưu kế hoạch, chỉnh sửa bất cứ lúc nào, và chuẩn bị sẵn sàng cho chuyến đi của bạn!</p>
+<h3 class="text-xl font-bold text-[#111618] dark:text-white mb-2" data-i18n="how_it_works.step3.title">3. Save & manage</h3>
+<p class="text-sm text-[#617c89] dark:text-gray-300" data-i18n="how_it_works.step3.desc">Save your plan, edit anytime, and be ready for your trip!</p>
 </div>
 </div>
 </div>
@@ -263,14 +301,14 @@ Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward<
 <!-- USP Section -->
 <div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-16 bg-gradient-to-br from-primary/5 to-blue-50 dark:from-primary/10 dark:to-gray-900">
 <div class="layout-content-container flex flex-col max-w-[1200px] flex-1">
-<h2 class="text-[#111618] dark:text-white text-3xl md:text-4xl font-bold leading-tight px-4 pb-12 text-center">Tại sao chọn khampha.online?</h2>
+<h2 class="text-[#111618] dark:text-white text-3xl md:text-4xl font-bold leading-tight px-4 pb-12 text-center" data-i18n="usp.title">Why choose khampha.online?</h2>
 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 px-4">
 <!-- USP 1 -->
 <div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg border-l-4 border-primary">
 <div class="flex items-start gap-4">
 <div class="text-5xl">⚡</div>
 <div>
-<h3 class="text-2xl font-bold text-[#111618] dark:text-white mb-2">Nhanh gấp 100 lần</h3>
+<h3 class="text-2xl font-bold text-[#111618] dark:text-white mb-2" data-i18n="usp.card1.title">100x Faster</h3>
 <div class="flex items-center gap-4 mb-3">
 <div class="text-center">
 <div class="text-3xl font-black text-primary">30s</div>
@@ -278,11 +316,11 @@ Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward<
 </div>
 <div class="text-2xl text-[#617c89]">vs</div>
 <div class="text-center">
-<div class="text-3xl font-black text-gray-400">3 giờ</div>
-<div class="text-xs text-[#617c89] dark:text-gray-300">Tìm kiếm thủ công</div>
+<div class="text-3xl font-black text-gray-400" data-i18n="usp.card1.time">3 hours</div>
+<div class="text-xs text-[#617c89] dark:text-gray-300" data-i18n="usp.card1.manual">Manual search</div>
 </div>
 </div>
-<p class="text-[#617c89] dark:text-gray-300 text-sm">Không cần mở 20 tab, so sánh giá trên nhiều trang. AI làm hết cho bạn!</p>
+<p class="text-[#617c89] dark:text-gray-300 text-sm" data-i18n="usp.card1.desc">No need to open 20 tabs and compare prices across multiple sites. AI does it all for you!</p>
 </div>
 </div>
 </div>
@@ -290,13 +328,13 @@ Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward<
 <!-- USP 2 -->
 <div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg border-l-4 border-primary">
 <div class="flex items-start gap-4">
-<div class="text-5xl">🇻🇳</div>
+<div class="text-5xl">🌏</div>
 <div>
-<h3 class="text-2xl font-bold text-[#111618] dark:text-white mb-2">Tối ưu cho người Việt</h3>
+<h3 class="text-2xl font-bold text-[#111618] dark:text-white mb-2" data-i18n="usp.card2.title">Optimized for locals</h3>
 <ul class="space-y-2 text-sm text-[#617c89] dark:text-gray-300">
-<li class="flex items-center gap-2"><span class="text-primary">✓</span> Hiểu địa danh Việt Nam (Đà Lạt, Nha Trang, Phú Quốc...)</li>
-<li class="flex items-center gap-2"><span class="text-primary">✓</span> Ngân sách VNĐ (5 triệu, 10 triệu...)</li>
-<li class="flex items-center gap-2"><span class="text-primary">✓</span> Văn hóa & sở thích bản địa</li>
+<li class="flex items-center gap-2"><span class="text-primary">✓</span> <span data-i18n="usp.card2.item1">Understands local destinations</span></li>
+<li class="flex items-center gap-2"><span class="text-primary">✓</span> <span data-i18n="usp.card2.item2">Local currency support</span></li>
+<li class="flex items-center gap-2"><span class="text-primary">✓</span> <span data-i18n="usp.card2.item3">Culture & local preferences</span></li>
 </ul>
 </div>
 </div>
@@ -307,11 +345,11 @@ Tìm hiểu thêm <span class="material-symbols-outlined text-lg">arrow_forward<
 <div class="flex items-start gap-4">
 <div class="text-5xl">🔍</div>
 <div>
-<h3 class="text-2xl font-bold text-[#111618] dark:text-white mb-2">Dữ liệu thời gian thực</h3>
-<p class="text-[#617c89] dark:text-gray-300 text-sm mb-3">Giá vé máy bay và khách sạn <strong>live</strong> từ Agoda API. Không phải lo thông tin cũ hay sai lệch.</p>
+<h3 class="text-2xl font-bold text-[#111618] dark:text-white mb-2" data-i18n="usp.card3.title">Real-time data</h3>
+<p class="text-[#617c89] dark:text-gray-300 text-sm mb-3" data-i18n="usp.card3.desc">Flight and hotel prices <strong>live</strong> from Agoda API. No worries about outdated or incorrect information.</p>
 <div class="inline-flex items-center gap-2 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full text-green-700 dark:text-green-300 text-xs font-medium">
 <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-Cập nhật liên tục
+<span data-i18n="usp.card3.badge">Updated continuously</span>
 </div>
 </div>
 </div>
@@ -322,11 +360,11 @@ Cập nhật liên tục
 <div class="flex items-start gap-4">
 <div class="text-5xl">💯</div>
 <div>
-<h3 class="text-2xl font-bold text-[#111618] dark:text-white mb-2">Miễn phí hoàn toàn</h3>
+<h3 class="text-2xl font-bold text-[#111618] dark:text-white mb-2" data-i18n="usp.card4.title">100% Free</h3>
 <ul class="space-y-2 text-sm text-[#617c89] dark:text-gray-300">
-<li class="flex items-center gap-2"><span class="text-primary">✓</span> Không phí ẩn, không quảng cáo phiền phức</li>
-<li class="flex items-center gap-2"><span class="text-primary">✓</span> Không giới hạn số lượng kế hoạch</li>
-<li class="flex items-center gap-2"><span class="text-primary">✓</span> Tất cả tính năng đều miễn phí</li>
+<li class="flex items-center gap-2"><span class="text-primary">✓</span> <span data-i18n="usp.card4.item1">No hidden fees, no annoying ads</span></li>
+<li class="flex items-center gap-2"><span class="text-primary">✓</span> <span data-i18n="usp.card4.item2">Unlimited travel plans</span></li>
+<li class="flex items-center gap-2"><span class="text-primary">✓</span> <span data-i18n="usp.card4.item3">All features completely free</span></li>
 </ul>
 </div>
 </div>
@@ -338,8 +376,8 @@ Cập nhật liên tục
 <!-- Use Cases Section -->
 <div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-16" id="use-cases">
 <div class="layout-content-container flex flex-col max-w-[1200px] flex-1">
-<h2 class="text-[#111618] dark:text-white text-3xl md:text-4xl font-bold leading-tight px-4 pb-4 text-center">Ví dụ thực tế</h2>
-<p class="text-[#617c89] dark:text-gray-300 text-center mb-12 max-w-2xl mx-auto">Xem cách người dùng khác lên kế hoạch chuyến đi với khampha.online</p>
+<h2 class="text-[#111618] dark:text-white text-3xl md:text-4xl font-bold leading-tight px-4 pb-4 text-center" data-i18n="use_cases.title">Real examples</h2>
+<p class="text-[#617c89] dark:text-gray-300 text-center mb-12 max-w-2xl mx-auto" data-i18n="use_cases.subtitle">See how others plan their trips with khampha.online</p>
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
 <!-- Use Case 1 -->
 <div class="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow">
@@ -350,23 +388,23 @@ Cập nhật liên tục
 <div class="flex items-center gap-3 mb-4">
 <img src="https://i.pravatar.cc/80?img=1" alt="Avatar" class="w-12 h-12 rounded-full border-2 border-primary"/>
 <div>
-<h4 class="font-bold text-[#111618] dark:text-white">Gia đình 4 người</h4>
-<p class="text-sm text-[#617c89] dark:text-gray-300">Phú Quốc • 5 ngày</p>
+<h4 class="font-bold text-[#111618] dark:text-white" data-i18n="use_cases.case1.type">Family of 4</h4>
+<p class="text-sm text-[#617c89] dark:text-gray-300" data-i18n="use_cases.case1.location">Phu Quoc • 5 days</p>
 </div>
 </div>
 <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
-<div class="text-2xl font-bold text-primary mb-1">15 triệu VNĐ</div>
-<div class="text-xs text-[#617c89] dark:text-gray-300">Ngân sách tổng</div>
+<div class="text-2xl font-bold text-primary mb-1" data-i18n="use_cases.case1.budget">$600 USD</div>
+<div class="text-xs text-[#617c89] dark:text-gray-300" data-i18n="use_cases.total_budget">Total budget</div>
 <div class="mt-3 space-y-1 text-xs">
-<div class="flex justify-between"><span>Vé máy bay:</span><span class="font-medium">6.8tr</span></div>
-<div class="flex justify-between"><span>Khách sạn:</span><span class="font-medium">4.5tr</span></div>
-<div class="flex justify-between"><span>Ăn uống & vui chơi:</span><span class="font-medium">3.7tr</span></div>
+<div class="flex justify-between"><span data-i18n="use_cases.flights">Flights:</span><span class="font-medium">$272</span></div>
+<div class="flex justify-between"><span data-i18n="use_cases.hotel">Hotel:</span><span class="font-medium">$180</span></div>
+<div class="flex justify-between"><span data-i18n="use_cases.food_activities">Food & activities:</span><span class="font-medium">$148</span></div>
 </div>
 </div>
-<p class="text-sm text-[#617c89] dark:text-gray-300 mb-4 italic">"Lịch trình rất chi tiết với nhiều hoạt động phù hợp cho trẻ em. Giá khách sạn rẻ hơn tự tìm 20%!"</p>
+<p class="text-sm text-[#617c89] dark:text-gray-300 mb-4 italic" data-i18n="use_cases.case1.review">"Very detailed itinerary with many kid-friendly activities. Hotel prices 20% cheaper than finding myself!"</p>
 <a href="/login" class="flex items-center justify-center gap-2 w-full py-2 px-4 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors font-medium text-sm">
 <span class="material-symbols-outlined text-lg">visibility</span>
-Xem kế hoạch mẫu
+<span data-i18n="use_cases.view_plan">View sample plan</span>
 </a>
 </div>
 </div>
@@ -380,23 +418,23 @@ Xem kế hoạch mẫu
 <div class="flex items-center gap-3 mb-4">
 <img src="https://i.pravatar.cc/80?img=5" alt="Avatar" class="w-12 h-12 rounded-full border-2 border-primary"/>
 <div>
-<h4 class="font-bold text-[#111618] dark:text-white">Couple lãng mạn</h4>
-<p class="text-sm text-[#617c89] dark:text-gray-300">Đà Lạt • 3 ngày 2 đêm</p>
+<h4 class="font-bold text-[#111618] dark:text-white" data-i18n="use_cases.case2.type">Romantic couple</h4>
+<p class="text-sm text-[#617c89] dark:text-gray-300" data-i18n="use_cases.case2.location">Da Lat • 3 days 2 nights</p>
 </div>
 </div>
 <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
-<div class="text-2xl font-bold text-primary mb-1">6 triệu VNĐ</div>
-<div class="text-xs text-[#617c89] dark:text-gray-300">Ngân sách tổng</div>
+<div class="text-2xl font-bold text-primary mb-1" data-i18n="use_cases.case2.budget">$240 USD</div>
+<div class="text-xs text-[#617c89] dark:text-gray-300" data-i18n="use_cases.total_budget">Total budget</div>
 <div class="mt-3 space-y-1 text-xs">
-<div class="flex justify-between"><span>Homestay view đẹp:</span><span class="font-medium">2.4tr</span></div>
-<div class="flex justify-between"><span>Ăn uống cao cấp:</span><span class="font-medium">2.0tr</span></div>
-<div class="flex justify-between"><span>Tham quan & xe:</span><span class="font-medium">1.6tr</span></div>
+<div class="flex justify-between"><span data-i18n="use_cases.case2.item1">Scenic homestay:</span><span class="font-medium">$96</span></div>
+<div class="flex justify-between"><span data-i18n="use_cases.case2.item2">Fine dining:</span><span class="font-medium">$80</span></div>
+<div class="flex justify-between"><span data-i18n="use_cases.case2.item3">Tours & transport:</span><span class="font-medium">$64</span></div>
 </div>
 </div>
-<p class="text-sm text-[#617c89] dark:text-gray-300 mb-4 italic">"AI gợi ý cả quán cafe ngắm hoàng hôn và nhà hàng nướng BBQ tuyệt vời. Chuyến đi hoàn hảo!"</p>
+<p class="text-sm text-[#617c89] dark:text-gray-300 mb-4 italic" data-i18n="use_cases.case2.review">"AI suggested amazing sunset cafes and BBQ restaurants. Perfect trip!"</p>
 <a href="/login" class="flex items-center justify-center gap-2 w-full py-2 px-4 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors font-medium text-sm">
 <span class="material-symbols-outlined text-lg">visibility</span>
-Xem kế hoạch mẫu
+<span data-i18n="use_cases.view_plan">View sample plan</span>
 </a>
 </div>
 </div>
@@ -410,23 +448,23 @@ Xem kế hoạch mẫu
 <div class="flex items-center gap-3 mb-4">
 <img src="https://i.pravatar.cc/80?img=12" alt="Avatar" class="w-12 h-12 rounded-full border-2 border-primary"/>
 <div>
-<h4 class="font-bold text-[#111618] dark:text-white">Solo backpacker</h4>
-<p class="text-sm text-[#617c89] dark:text-gray-300">Sapa • 1 tuần trek</p>
+<h4 class="font-bold text-[#111618] dark:text-white" data-i18n="use_cases.case3.type">Solo backpacker</h4>
+<p class="text-sm text-[#617c89] dark:text-gray-300" data-i18n="use_cases.case3.location">Sapa • 1 week trek</p>
 </div>
 </div>
 <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
-<div class="text-2xl font-bold text-primary mb-1">3 triệu VNĐ</div>
-<div class="text-xs text-[#617c89] dark:text-gray-300">Ngân sách tổng</div>
+<div class="text-2xl font-bold text-primary mb-1" data-i18n="use_cases.case3.budget">$120 USD</div>
+<div class="text-xs text-[#617c89] dark:text-gray-300" data-i18n="use_cases.total_budget">Total budget</div>
 <div class="mt-3 space-y-1 text-xs">
-<div class="flex justify-between"><span>Hostel/Homestay:</span><span class="font-medium">1.0tr</span></div>
-<div class="flex justify-between"><span>Ăn uống bình dân:</span><span class="font-medium">0.8tr</span></div>
-<div class="flex justify-between"><span>Tour & xe:</span><span class="font-medium">1.2tr</span></div>
+<div class="flex justify-between"><span data-i18n="use_cases.case3.item1">Hostel/Homestay:</span><span class="font-medium">$40</span></div>
+<div class="flex justify-between"><span data-i18n="use_cases.case3.item2">Local food:</span><span class="font-medium">$32</span></div>
+<div class="flex justify-between"><span data-i18n="use_cases.case3.item3">Tours & transport:</span><span class="font-medium">$48</span></div>
 </div>
 </div>
-<p class="text-sm text-[#617c89] dark:text-gray-300 mb-4 italic">"Route trekking rất an toàn, có tips mua đồ địa phương và chỗ ngủ tiết kiệm. Đúng gu backpacker!"</p>
+<p class="text-sm text-[#617c89] dark:text-gray-300 mb-4 italic" data-i18n="use_cases.case3.review">"Safe trekking route with tips for buying local goods and budget accommodation. Perfect for backpackers!"</p>
 <a href="/login" class="flex items-center justify-center gap-2 w-full py-2 px-4 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors font-medium text-sm">
 <span class="material-symbols-outlined text-lg">visibility</span>
-Xem kế hoạch mẫu
+<span data-i18n="use_cases.view_plan">View sample plan</span>
 </a>
 </div>
 </div>
@@ -436,27 +474,27 @@ Xem kế hoạch mẫu
 <!-- Contact Section -->
 <div class="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-16 bg-gradient-to-b from-white to-gray-50 dark:from-background-dark dark:to-gray-900" id="contact">
 <div class="layout-content-container flex flex-col max-w-[960px] flex-1 items-center">
-<h2 class="text-[#111618] dark:text-white text-3xl md:text-4xl font-bold leading-tight px-4 pb-4 text-center">Liên hệ với chúng tôi</h2>
-<p class="text-center text-[#617c89] dark:text-gray-300 max-w-xl mb-8">Có thắc mắc? Chúng tôi luôn sẵn sàng hỗ trợ bạn!</p>
+<h2 class="text-[#111618] dark:text-white text-3xl md:text-4xl font-bold leading-tight px-4 pb-4 text-center" data-i18n="contact.title">Contact us</h2>
+<p class="text-center text-[#617c89] dark:text-gray-300 max-w-xl mb-8" data-i18n="contact.subtitle">Have questions? We're always here to help!</p>
 <div class="w-full max-w-lg bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-200 dark:border-gray-700">
 <form class="space-y-6">
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 <div>
-<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" for="contact-name">Họ và tên</label>
-<input class="w-full bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" id="contact-name" placeholder="Nguyễn Văn A" type="text" required/>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" for="contact-name" data-i18n="contact.name_label">Full name</label>
+<input class="w-full bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" id="contact-name" placeholder="John Doe" type="text" required/>
 </div>
 <div>
-<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" for="contact-email">Email</label>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" for="contact-email" data-i18n="contact.email_label">Email</label>
 <input class="w-full bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" id="contact-email" placeholder="email@example.com" type="email" required/>
 </div>
 </div>
 <div>
-<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" for="contact-message">Tin nhắn</label>
-<textarea class="w-full bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" id="contact-message" placeholder="Nội dung tin nhắn của bạn..." rows="5" required></textarea>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2" for="contact-message" data-i18n="contact.message_label">Message</label>
+<textarea class="w-full bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" id="contact-message" placeholder="Your message..." rows="5" required></textarea>
 </div>
 <button type="submit" class="w-full flex items-center justify-center gap-2 rounded-xl h-12 px-8 bg-primary text-white font-bold hover:bg-blue-600 transition-all transform hover:scale-105 shadow-lg">
 <span class="material-symbols-outlined">send</span>
-<span>Gửi tin nhắn</span>
+<span data-i18n="contact.send_button">Send message</span>
 </button>
 </form>
 </div>
@@ -465,22 +503,22 @@ Xem kế hoạch mẫu
 <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
 <span class="material-symbols-outlined text-primary text-2xl">email</span>
 </div>
-<h4 class="font-bold text-[#111618] dark:text-white mb-1">Email</h4>
+<h4 class="font-bold text-[#111618] dark:text-white mb-1" data-i18n="contact.email">Email</h4>
 <p class="text-sm text-[#617c89] dark:text-gray-300">contact@khampha.online</p>
 </div>
 <div class="flex flex-col items-center text-center p-4">
 <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
 <span class="material-symbols-outlined text-primary text-2xl">phone</span>
 </div>
-<h4 class="font-bold text-[#111618] dark:text-white mb-1">Hotline</h4>
+<h4 class="font-bold text-[#111618] dark:text-white mb-1" data-i18n="contact.hotline">Hotline</h4>
 <p class="text-sm text-[#617c89] dark:text-gray-300">1900-xxxx (8h-22h)</p>
 </div>
 <div class="flex flex-col items-center text-center p-4">
 <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
 <span class="material-symbols-outlined text-primary text-2xl">location_on</span>
 </div>
-<h4 class="font-bold text-[#111618] dark:text-white mb-1">Địa chỉ</h4>
-<p class="text-sm text-[#617c89] dark:text-gray-300">TP. Hồ Chí Minh</p>
+<h4 class="font-bold text-[#111618] dark:text-white mb-1" data-i18n="contact.address">Address</h4>
+<p class="text-sm text-[#617c89] dark:text-gray-300" data-i18n="contact.city">Ho Chi Minh City</p>
 </div>
 </div>
 </div>
@@ -496,7 +534,7 @@ Xem kế hoạch mẫu
 <span class="material-symbols-outlined text-primary text-3xl">travel_explore</span>
 <span class="text-xl font-bold">khampha.online</span>
 </div>
-<p class="text-gray-400 text-sm mb-4">Nền tảng lập kế hoạch du lịch thông minh được hỗ trợ bởi AI. Tạo lịch trình chi tiết trong 30 giây, hoàn toàn miễn phí.</p>
+<p class="text-gray-400 text-sm mb-4" data-i18n="footer.description">Smart AI-powered travel planning platform. Create detailed itineraries in 30 seconds, completely free.</p>
 <div class="flex gap-4">
 <a href="#" class="w-10 h-10 bg-gray-800 hover:bg-primary rounded-full flex items-center justify-center transition-colors" aria-label="Facebook">
 <span class="material-symbols-outlined text-xl">facebook</span>
@@ -512,23 +550,23 @@ Xem kế hoạch mẫu
 
 <!-- Quick Links -->
 <div>
-<h4 class="font-bold text-lg mb-4">Liên kết</h4>
+<h4 class="font-bold text-lg mb-4" data-i18n="footer.links">Links</h4>
 <ul class="space-y-2 text-sm">
-<li><a href="#features" class="text-gray-400 hover:text-primary transition-colors">Tính năng</a></li>
-<li><a href="#how-it-works" class="text-gray-400 hover:text-primary transition-colors">Cách hoạt động</a></li>
-<li><a href="#use-cases" class="text-gray-400 hover:text-primary transition-colors">Ví dụ thực tế</a></li>
-<li><a href="#contact" class="text-gray-400 hover:text-primary transition-colors">Liên hệ</a></li>
+<li><a href="#features" class="text-gray-400 hover:text-primary transition-colors" data-i18n="nav.features">Features</a></li>
+<li><a href="#how-it-works" class="text-gray-400 hover:text-primary transition-colors" data-i18n="nav.how_it_works">How it works</a></li>
+<li><a href="#use-cases" class="text-gray-400 hover:text-primary transition-colors" data-i18n="nav.use_cases">Examples</a></li>
+<li><a href="#contact" class="text-gray-400 hover:text-primary transition-colors" data-i18n="nav.contact">Contact</a></li>
 </ul>
 </div>
 
 <!-- Legal -->
 <div>
-<h4 class="font-bold text-lg mb-4">Pháp lý</h4>
+<h4 class="font-bold text-lg mb-4" data-i18n="footer.legal">Legal</h4>
 <ul class="space-y-2 text-sm">
-<li><a href="#" class="text-gray-400 hover:text-primary transition-colors">Điều khoản sử dụng</a></li>
-<li><a href="#" class="text-gray-400 hover:text-primary transition-colors">Chính sách bảo mật</a></li>
-<li><a href="#" class="text-gray-400 hover:text-primary transition-colors">Về chúng tôi</a></li>
-<li><a href="#" class="text-gray-400 hover:text-primary transition-colors">FAQ</a></li>
+<li><a href="#" class="text-gray-400 hover:text-primary transition-colors" data-i18n="footer.terms">Terms of Service</a></li>
+<li><a href="#" class="text-gray-400 hover:text-primary transition-colors" data-i18n="footer.privacy">Privacy Policy</a></li>
+<li><a href="#" class="text-gray-400 hover:text-primary transition-colors" data-i18n="footer.about">About Us</a></li>
+<li><a href="#" class="text-gray-400 hover:text-primary transition-colors" data-i18n="footer.faq">FAQ</a></li>
 </ul>
 </div>
 </div>
@@ -543,12 +581,12 @@ Xem kế hoạch mẫu
 <div id="sticky-cta" class="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-primary to-blue-600 text-white py-4 px-4 shadow-2xl transform translate-y-full transition-transform duration-300 z-40">
 <div class="max-w-[1200px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
 <div class="text-center sm:text-left">
-<div class="font-bold text-lg">Sẵn sàng lên kế hoạch du lịch?</div>
-<div class="text-sm opacity-90">Bắt đầu miễn phí ngay hôm nay!</div>
+<div class="font-bold text-lg" data-i18n="sticky_cta.title">Ready to plan your trip?</div>
+<div class="text-sm opacity-90" data-i18n="sticky_cta.subtitle">Start free today!</div>
 </div>
 <a href="/login" class="flex items-center justify-center gap-2 bg-white text-primary px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg min-w-[200px]">
 <span class="material-symbols-outlined">rocket_launch</span>
-<span>Bắt đầu lập kế hoạch</span>
+<span data-i18n="sticky_cta.button">Start planning</span>
 </a>
 </div>
 </div>
@@ -556,8 +594,398 @@ Xem kế hoạch mẫu
 </div>
 
 <script>
+// Language translations
+const translations = {
+  en: {
+    "meta.title": "khampha.online - Plan Your Trip in 30 Seconds With AI",
+    "meta.description": "Smart AI travel assistant helps you create detailed itineraries, find flights and hotels at the best prices in just 30 seconds. 100% free, multi-language support, real-time data.",
+    "meta.og_title": "khampha.online - Plan Your Trip in 30 Seconds With AI",
+    "meta.og_description": "Smart AI travel assistant. 100% Free • Multi-language • Real-time data",
+    "nav.home": "Home",
+    "nav.features": "Features",
+    "nav.how_it_works": "How it works",
+    "nav.use_cases": "Examples",
+    "nav.contact": "Contact",
+    "nav.login": "Login",
+    "nav.register": "Sign up",
+    "nav.language": "Language",
+    "hero.badge": "100% Free • Multi-language • Real-time data",
+    "hero.title": "Plan your trip in <span class='text-yellow-300'>30 seconds</span> with AI",
+    "hero.subtitle": "Just chat with AI, get detailed itinerary + flight prices + best hotels instantly",
+    "hero.cta_primary": "Try now",
+    "hero.cta_secondary": "Watch demo",
+    "hero.stat_1": "Create plan",
+    "hero.stat_2": "Free",
+    "hero.stat_3": "AI Support"
+  },
+  ja: {
+    "meta.title": "khampha.online - AIで30秒で旅行計画",
+    "meta.description": "スマートAI旅行アシスタントが、わずか30秒で詳細な旅程、フライト、ホテルを最適価格で提案。100%無料、多言語対応、リアルタイムデータ。",
+    "meta.og_title": "khampha.online - AIで30秒で旅行計画",
+    "meta.og_description": "スマートAI旅行アシスタント。100%無料 • 多言語対応 • リアルタイムデータ",
+    "nav.home": "ホーム",
+    "nav.features": "機能",
+    "nav.how_it_works": "使い方",
+    "nav.use_cases": "実例",
+    "nav.contact": "お問い合わせ",
+    "nav.login": "ログイン",
+    "nav.register": "登録",
+    "nav.language": "言語",
+    "hero.badge": "100%無料 • 多言語対応 • リアルタイムデータ",
+    "hero.title": "<span class='text-yellow-300'>30秒</span>でAIが旅行計画",
+    "hero.subtitle": "AIとチャットするだけで、詳細な旅程 + 航空券価格 + 最適なホテルをすぐに取得",
+    "hero.cta_primary": "今すぐ試す",
+    "hero.cta_secondary": "デモを見る",
+    "hero.stat_1": "計画作成",
+    "hero.stat_2": "無料",
+    "hero.stat_3": "AIサポート"
+  },
+  vi: {
+    "meta.title": "khampha.online - Lập Kế Hoạch Du Lịch Trong 30 Giây Với AI",
+    "meta.description": "Trợ lý AI du lịch thông minh giúp bạn tạo lịch trình chi tiết, tìm vé máy bay và khách sạn giá tốt chỉ trong 30 giây. Miễn phí 100%, hỗ trợ tiếng Việt, dữ liệu thời gian thực.",
+    "meta.og_title": "khampha.online - Lập Kế Hoạch Du Lịch Trong 30 Giây Với AI",
+    "meta.og_description": "Trợ lý AI du lịch thông minh. Miễn phí 100% • Tiếng Việt • Dữ liệu thời gian thực",
+    "nav.home": "Trang chủ",
+    "nav.features": "Tính năng",
+    "nav.how_it_works": "Cách hoạt động",
+    "nav.use_cases": "Ví dụ thực tế",
+    "nav.contact": "Liên hệ",
+    "nav.login": "Đăng nhập",
+    "nav.register": "Đăng ký",
+    "nav.language": "Ngôn ngữ",
+    "hero.badge": "Miễn phí 100% • Tiếng Việt • Dữ liệu thời gian thực",
+    "hero.title": "Lên kế hoạch du lịch trong <span class='text-yellow-300'>30 giây</span> với AI",
+    "hero.subtitle": "Chỉ cần trò chuyện với AI, nhận ngay lịch trình chi tiết + giá vé máy bay + khách sạn tốt nhất",
+    "hero.cta_primary": "Dùng thử ngay",
+    "hero.cta_secondary": "Xem demo",
+    "hero.stat_1": "Tạo kế hoạch",
+    "hero.stat_2": "Miễn phí",
+    "hero.stat_3": "Hỗ trợ AI",
+    "features.title": "Tất cả trong một nền tảng",
+    "features.subtitle": "Từ lên kế hoạch đến đặt vé, mọi thứ bạn cần cho chuyến đi hoàn hảo",
+    "features.card1.title": "AI Chat Tiếng Việt",
+    "features.card1.desc": "Trò chuyện tự nhiên bằng tiếng Việt với AI được tối ưu riêng cho du lịch Việt Nam. Hiểu địa danh, ngân sách VNĐ và văn hóa bản địa.",
+    "features.card2.title": "Tạo Lịch Trình Tự Động",
+    "features.card2.desc": "Nhận lịch trình chi tiết theo giờ, từng ngày với địa điểm cụ thể, chi phí ước tính và tips hữu ích chỉ trong 30 giây.",
+    "features.card3.title": "Tìm Vé Máy Bay",
+    "features.card3.desc": "Tích hợp Agoda API để tìm kiếm vé máy bay với giá tốt nhất, so sánh nhiều hãng, lọc theo sở thích ngay trong chat.",
+    "features.card4.title": "Tìm Khách Sạn",
+    "features.card4.desc": "Khám phá khách sạn phù hợp với đánh giá thực, hình ảnh đẹp, giá cả minh bạch và ưu đãi độc quyền từ Agoda.",
+    "features.card5.title": "Khám Phá Điểm Đến",
+    "features.card5.desc": "Vuốt qua 20 địa danh đẹp nhất Việt Nam với giao diện Tinder-style. Thích nơi nào? Chạm để tạo kế hoạch ngay!",
+    "features.card6.title": "Quản Lý Kế Hoạch",
+    "features.card6.desc": "Lưu, chỉnh sửa và theo dõi tất cả kế hoạch du lịch ở một nơi. Đánh dấu yêu thích, chia sẻ với bạn bè dễ dàng.",
+    "features.learn_more": "Tìm hiểu thêm",
+    "how_it_works.title": "Cách hoạt động",
+    "how_it_works.step1.title": "1. Trò chuyện với AI",
+    "how_it_works.step1.desc": "Nói với chatbot về điểm đến, ngân sách và thời gian. Ví dụ: \"Tôi muốn đi Đà Lạt 3 ngày, ngân sách 5 triệu\"",
+    "how_it_works.step2.title": "2. Nhận lịch trình & giá",
+    "how_it_works.step2.desc": "AI tạo kế hoạch chi tiết + tìm vé máy bay và khách sạn tốt nhất. <strong class='text-primary'>Chỉ mất 30 giây!</strong>",
+    "how_it_works.step3.title": "3. Lưu & quản lý",
+    "how_it_works.step3.desc": "Lưu kế hoạch, chỉnh sửa bất cứ lúc nào, và chuẩn bị sẵn sàng cho chuyến đi của bạn!",
+    "usp.title": "Tại sao chọn khampha.online?",
+    "usp.card1.title": "Nhanh gấp 100 lần",
+    "usp.card1.time": "3 giờ",
+    "usp.card1.manual": "Tìm kiếm thủ công",
+    "usp.card1.desc": "Không cần mở 20 tab, so sánh giá trên nhiều trang. AI làm hết cho bạn!",
+    "usp.card2.title": "Tối ưu cho người Việt",
+    "usp.card2.item1": "Hiểu địa danh Việt Nam (Đà Lạt, Nha Trang, Phú Quốc...)",
+    "usp.card2.item2": "Ngân sách VNĐ (5 triệu, 10 triệu...)",
+    "usp.card2.item3": "Văn hóa & sở thích bản địa",
+    "usp.card3.title": "Dữ liệu thời gian thực",
+    "usp.card3.desc": "Giá vé máy bay và khách sạn <strong>live</strong> từ Agoda API. Không phải lo thông tin cũ hay sai lệch.",
+    "usp.card3.badge": "Cập nhật liên tục",
+    "usp.card4.title": "Miễn phí hoàn toàn",
+    "usp.card4.item1": "Không phí ẩn, không quảng cáo phiền phức",
+    "usp.card4.item2": "Không giới hạn số lượng kế hoạch",
+    "usp.card4.item3": "Tất cả tính năng đều miễn phí",
+    "use_cases.title": "Ví dụ thực tế",
+    "use_cases.subtitle": "Xem cách người dùng khác lên kế hoạch chuyến đi với khampha.online",
+    "use_cases.case1.type": "Gia đình 4 người",
+    "use_cases.case1.location": "Phú Quốc • 5 ngày",
+    "use_cases.case1.budget": "15 triệu VNĐ",
+    "use_cases.case1.review": "\"Lịch trình rất chi tiết với nhiều hoạt động phù hợp cho trẻ em. Giá khách sạn rẻ hơn tự tìm 20%!\"",
+    "use_cases.case2.type": "Couple lãng mạn",
+    "use_cases.case2.location": "Đà Lạt • 3 ngày 2 đêm",
+    "use_cases.case2.budget": "6 triệu VNĐ",
+    "use_cases.case2.item1": "Homestay view đẹp:",
+    "use_cases.case2.item2": "Ăn uống cao cấp:",
+    "use_cases.case2.item3": "Tham quan & xe:",
+    "use_cases.case2.review": "\"AI gợi ý cả quán cafe ngắm hoàng hôn và nhà hàng nướng BBQ tuyệt vời. Chuyến đi hoàn hảo!\"",
+    "use_cases.case3.type": "Solo backpacker",
+    "use_cases.case3.location": "Sapa • 1 tuần trek",
+    "use_cases.case3.budget": "3 triệu VNĐ",
+    "use_cases.case3.item1": "Hostel/Homestay:",
+    "use_cases.case3.item2": "Ăn uống bình dân:",
+    "use_cases.case3.item3": "Tour & xe:",
+    "use_cases.case3.review": "\"Route trekking rất an toàn, có tips mua đồ địa phương và chỗ ngủ tiết kiệm. Đúng gu backpacker!\"",
+    "use_cases.total_budget": "Ngân sách tổng",
+    "use_cases.flights": "Vé máy bay:",
+    "use_cases.hotel": "Khách sạn:",
+    "use_cases.food_activities": "Ăn uống & vui chơi:",
+    "use_cases.view_plan": "Xem kế hoạch mẫu",
+    "contact.title": "Liên hệ với chúng tôi",
+    "contact.subtitle": "Có thắc mắc? Chúng tôi luôn sẵn sàng hỗ trợ bạn!",
+    "contact.name_label": "Họ và tên",
+    "contact.email_label": "Email",
+    "contact.message_label": "Tin nhắn",
+    "contact.send_button": "Gửi tin nhắn",
+    "contact.email": "Email",
+    "contact.hotline": "Hotline",
+    "contact.address": "Địa chỉ",
+    "contact.city": "TP. Hồ Chí Minh",
+    "footer.description": "Nền tảng lập kế hoạch du lịch thông minh được hỗ trợ bởi AI. Tạo lịch trình chi tiết trong 30 giây, hoàn toàn miễn phí.",
+    "footer.links": "Liên kết",
+    "footer.legal": "Pháp lý",
+    "footer.terms": "Điều khoản sử dụng",
+    "footer.privacy": "Chính sách bảo mật",
+    "footer.about": "Về chúng tôi",
+    "footer.faq": "FAQ",
+    "sticky_cta.title": "Sẵn sàng lên kế hoạch du lịch?",
+    "sticky_cta.subtitle": "Bắt đầu miễn phí ngay hôm nay!",
+    "sticky_cta.button": "Bắt đầu lập kế hoạch"
+  }
+};
+
+// Add translations for English
+translations.en = {
+  ...translations.en,
+  "features.title": "All-in-one platform",
+  "features.subtitle": "From planning to booking, everything you need for the perfect trip",
+  "features.card1.title": "Multi-language AI Chat",
+  "features.card1.desc": "Chat naturally with AI optimized for travel. Understands destinations, budgets, and local culture.",
+  "features.card2.title": "Auto Itinerary Generator",
+  "features.card2.desc": "Get detailed hourly itineraries with specific locations, cost estimates, and useful tips in just 30 seconds.",
+  "features.card3.title": "Find Flights",
+  "features.card3.desc": "Integrated with Agoda API to find the best flight prices, compare airlines, and filter by preferences right in chat.",
+  "features.card4.title": "Find Hotels",
+  "features.card4.desc": "Discover hotels with real reviews, beautiful images, transparent pricing, and exclusive deals from Agoda.",
+  "features.card5.title": "Discover Destinations",
+  "features.card5.desc": "Swipe through beautiful destinations with Tinder-style interface. Like a place? Tap to create a plan instantly!",
+  "features.card6.title": "Manage Plans",
+  "features.card6.desc": "Save, edit, and track all your travel plans in one place. Bookmark favorites and share with friends easily.",
+  "features.learn_more": "Learn more",
+  "how_it_works.title": "How it works",
+  "how_it_works.step1.title": "1. Chat with AI",
+  "how_it_works.step1.desc": "Tell the chatbot about your destination, budget, and duration. Example: \"I want to visit Da Lat for 3 days, budget $500\"",
+  "how_it_works.step2.title": "2. Get itinerary & prices",
+  "how_it_works.step2.desc": "AI creates detailed plan + finds best flights and hotels. <strong class='text-primary'>Only takes 30 seconds!</strong>",
+  "how_it_works.step3.title": "3. Save & manage",
+  "how_it_works.step3.desc": "Save your plan, edit anytime, and be ready for your trip!",
+  "usp.title": "Why choose khampha.online?",
+  "usp.card1.title": "100x Faster",
+  "usp.card1.time": "3 hours",
+  "usp.card1.manual": "Manual search",
+  "usp.card1.desc": "No need to open 20 tabs and compare prices across multiple sites. AI does it all for you!",
+  "usp.card2.title": "Optimized for locals",
+  "usp.card2.item1": "Understands local destinations",
+  "usp.card2.item2": "Local currency support",
+  "usp.card2.item3": "Culture & local preferences",
+  "usp.card3.title": "Real-time data",
+  "usp.card3.desc": "Flight and hotel prices <strong>live</strong> from Agoda API. No worries about outdated or incorrect information.",
+  "usp.card3.badge": "Updated continuously",
+  "usp.card4.title": "100% Free",
+  "usp.card4.item1": "No hidden fees, no annoying ads",
+  "usp.card4.item2": "Unlimited travel plans",
+  "usp.card4.item3": "All features completely free",
+  "use_cases.title": "Real examples",
+  "use_cases.subtitle": "See how others plan their trips with khampha.online",
+  "use_cases.case1.type": "Family of 4",
+  "use_cases.case1.location": "Phu Quoc • 5 days",
+  "use_cases.case1.budget": "$600 USD",
+  "use_cases.case1.review": "\"Very detailed itinerary with many kid-friendly activities. Hotel prices 20% cheaper than finding myself!\"",
+  "use_cases.case2.type": "Romantic couple",
+  "use_cases.case2.location": "Da Lat • 3 days 2 nights",
+  "use_cases.case2.budget": "$240 USD",
+  "use_cases.case2.item1": "Scenic homestay:",
+  "use_cases.case2.item2": "Fine dining:",
+  "use_cases.case2.item3": "Tours & transport:",
+  "use_cases.case2.review": "\"AI suggested amazing sunset cafes and BBQ restaurants. Perfect trip!\"",
+  "use_cases.case3.type": "Solo backpacker",
+  "use_cases.case3.location": "Sapa • 1 week trek",
+  "use_cases.case3.budget": "$120 USD",
+  "use_cases.case3.item1": "Hostel/Homestay:",
+  "use_cases.case3.item2": "Local food:",
+  "use_cases.case3.item3": "Tours & transport:",
+  "use_cases.case3.review": "\"Safe trekking route with tips for buying local goods and budget accommodation. Perfect for backpackers!\"",
+  "use_cases.total_budget": "Total budget",
+  "use_cases.flights": "Flights:",
+  "use_cases.hotel": "Hotel:",
+  "use_cases.food_activities": "Food & activities:",
+  "use_cases.view_plan": "View sample plan",
+  "contact.title": "Contact us",
+  "contact.subtitle": "Have questions? We're always here to help!",
+  "contact.name_label": "Full name",
+  "contact.email_label": "Email",
+  "contact.message_label": "Message",
+  "contact.send_button": "Send message",
+  "contact.email": "Email",
+  "contact.hotline": "Hotline",
+  "contact.address": "Address",
+  "contact.city": "Ho Chi Minh City",
+  "footer.description": "Smart AI-powered travel planning platform. Create detailed itineraries in 30 seconds, completely free.",
+  "footer.links": "Links",
+  "footer.legal": "Legal",
+  "footer.terms": "Terms of Service",
+  "footer.privacy": "Privacy Policy",
+  "footer.about": "About Us",
+  "footer.faq": "FAQ",
+  "sticky_cta.title": "Ready to plan your trip?",
+  "sticky_cta.subtitle": "Start free today!",
+  "sticky_cta.button": "Start planning"
+};
+
+// Add translations for Japanese
+translations.ja = {
+  ...translations.ja,
+  "features.title": "オールインワンプラットフォーム",
+  "features.subtitle": "計画から予約まで、完璧な旅行に必要なすべて",
+  "features.card1.title": "多言語AI チャット",
+  "features.card1.desc": "旅行に最適化されたAIと自然に会話。目的地、予算、現地文化を理解します。",
+  "features.card2.title": "自動旅程作成",
+  "features.card2.desc": "わずか30秒で、具体的な場所、費用見積もり、役立つヒント付きの詳細な時間別旅程を取得。",
+  "features.card3.title": "フライト検索",
+  "features.card3.desc": "Agoda APIと統合して最安値のフライトを検索、航空会社を比較、チャットで好みに応じてフィルタリング。",
+  "features.card4.title": "ホテル検索",
+  "features.card4.desc": "実際のレビュー、美しい画像、透明な価格設定、Agodaからの限定特典でホテルを発見。",
+  "features.card5.title": "目的地を発見",
+  "features.card5.desc": "Tinderスタイルのインターフェースで美しい目的地をスワイプ。気に入った場所は？タップしてすぐに計画作成！",
+  "features.card6.title": "プラン管理",
+  "features.card6.desc": "すべての旅行計画を1か所で保存、編集、追跡。お気に入りをブックマークして友達と簡単に共有。",
+  "features.learn_more": "詳しく見る",
+  "how_it_works.title": "使い方",
+  "how_it_works.step1.title": "1. AIとチャット",
+  "how_it_works.step1.desc": "チャットボットに目的地、予算、期間を伝えます。例：「ダラットに3日間、予算$500で行きたい」",
+  "how_it_works.step2.title": "2. 旅程と価格を取得",
+  "how_it_works.step2.desc": "AIが詳細なプランを作成 + 最適なフライトとホテルを検索。<strong class='text-primary'>わずか30秒！</strong>",
+  "how_it_works.step3.title": "3. 保存して管理",
+  "how_it_works.step3.desc": "プランを保存、いつでも編集、旅行の準備完了！",
+  "usp.title": "khampha.onlineを選ぶ理由",
+  "usp.card1.title": "100倍速い",
+  "usp.card1.time": "3時間",
+  "usp.card1.manual": "手動検索",
+  "usp.card1.desc": "20個のタブを開いて複数のサイトで価格を比較する必要はありません。AIがすべてやってくれます！",
+  "usp.card2.title": "現地向けに最適化",
+  "usp.card2.item1": "現地の目的地を理解",
+  "usp.card2.item2": "現地通貨サポート",
+  "usp.card2.item3": "文化と現地の好み",
+  "usp.card3.title": "リアルタイムデータ",
+  "usp.card3.desc": "Agoda APIからの<strong>ライブ</strong>のフライトとホテル価格。古い情報や誤った情報の心配はありません。",
+  "usp.card3.badge": "継続的に更新",
+  "usp.card4.title": "100%無料",
+  "usp.card4.item1": "隠れた料金なし、迷惑な広告なし",
+  "usp.card4.item2": "無制限の旅行プラン",
+  "usp.card4.item3": "すべての機能が完全無料",
+  "use_cases.title": "実例",
+  "use_cases.subtitle": "khampha.onlineで他の人がどのように旅行を計画しているかを見る",
+  "use_cases.case1.type": "4人家族",
+  "use_cases.case1.location": "フーコック • 5日間",
+  "use_cases.case1.budget": "$600 USD",
+  "use_cases.case1.review": "\"子供向けのアクティビティが豊富な非常に詳細な旅程。ホテル価格は自分で見つけるより20%安い！\"",
+  "use_cases.case2.type": "ロマンチックなカップル",
+  "use_cases.case2.location": "ダラット • 3日2泊",
+  "use_cases.case2.budget": "$240 USD",
+  "use_cases.case2.item1": "景色の良いホームステイ:",
+  "use_cases.case2.item2": "高級ダイニング:",
+  "use_cases.case2.item3": "ツアーと交通:",
+  "use_cases.case2.review": "\"AIが素晴らしいサンセットカフェとBBQレストランを提案してくれました。完璧な旅行！\"",
+  "use_cases.case3.type": "ソロバックパッカー",
+  "use_cases.case3.location": "サパ • 1週間トレッキング",
+  "use_cases.case3.budget": "$120 USD",
+  "use_cases.case3.item1": "ホステル/ホームステイ:",
+  "use_cases.case3.item2": "現地の食事:",
+  "use_cases.case3.item3": "ツアーと交通:",
+  "use_cases.case3.review": "\"安全なトレッキングルートで、現地の商品購入と予算の宿泊施設のヒント付き。バックパッカーに最適！\"",
+  "use_cases.total_budget": "総予算",
+  "use_cases.flights": "フライト:",
+  "use_cases.hotel": "ホテル:",
+  "use_cases.food_activities": "食事とアクティビティ:",
+  "use_cases.view_plan": "サンプルプランを見る",
+  "contact.title": "お問い合わせ",
+  "contact.subtitle": "ご質問がありますか？いつでもサポートいたします！",
+  "contact.name_label": "フルネーム",
+  "contact.email_label": "メール",
+  "contact.message_label": "メッセージ",
+  "contact.send_button": "メッセージを送信",
+  "contact.email": "メール",
+  "contact.hotline": "ホットライン",
+  "contact.address": "住所",
+  "contact.city": "ホーチミン市",
+  "footer.description": "スマートAI搭載の旅行計画プラットフォーム。30秒で詳細な旅程を作成、完全無料。",
+  "footer.links": "リンク",
+  "footer.legal": "法的情報",
+  "footer.terms": "利用規約",
+  "footer.privacy": "プライバシーポリシー",
+  "footer.about": "会社概要",
+  "footer.faq": "FAQ",
+  "sticky_cta.title": "旅行の計画準備はできましたか？",
+  "sticky_cta.subtitle": "今日から無料で始めよう！",
+  "sticky_cta.button": "計画を始める"
+};
+
+// Language switching functionality
+function setLanguage(lang) {
+  localStorage.setItem('preferredLanguage', lang);
+  document.documentElement.lang = lang;
+  
+  // Update current language display
+  const currentLangEl = document.getElementById('current-lang');
+  if (currentLangEl) {
+    currentLangEl.textContent = lang.toUpperCase();
+  }
+  
+  // Update all elements with data-i18n attribute
+  document.querySelectorAll('[data-i18n]').forEach(element => {
+    const key = element.getAttribute('data-i18n');
+    if (translations[lang] && translations[lang][key]) {
+      if (element.tagName === 'META') {
+        element.setAttribute('content', translations[lang][key]);
+      } else if (element.tagName === 'TITLE') {
+        element.textContent = translations[lang][key];
+      } else {
+        element.innerHTML = translations[lang][key];
+      }
+    }
+  });
+}
+
+// Initialize language on page load
+function initLanguage() {
+  const savedLang = localStorage.getItem('preferredLanguage') || 'en';
+  setLanguage(savedLang);
+}
+
 // Mobile Menu Functionality
 document.addEventListener('DOMContentLoaded', function() {
+  // Initialize language
+  initLanguage();
+  
+  // Language toggle for desktop
+  const langToggle = document.getElementById('lang-toggle');
+  const langDropdown = document.getElementById('lang-dropdown');
+  
+  if (langToggle && langDropdown) {
+    langToggle.addEventListener('click', function(e) {
+      e.stopPropagation();
+      langDropdown.classList.toggle('hidden');
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function() {
+      langDropdown.classList.add('hidden');
+    });
+  }
+  
+  // Language selection
+  document.querySelectorAll('.lang-option').forEach(button => {
+    button.addEventListener('click', function() {
+      const lang = this.getAttribute('data-lang');
+      setLanguage(lang);
+      if (langDropdown) {
+        langDropdown.classList.add('hidden');
+      }
+    });
+  });
   const mobileMenu = document.getElementById('mobile-menu');
   const mobileMenuPanel = document.getElementById('mobile-menu-panel');
   const openMenuBtn = document.getElementById('open-menu');

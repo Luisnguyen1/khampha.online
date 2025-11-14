@@ -49,7 +49,7 @@ class TravelAgent:
         if genai:
             genai.configure(api_key=api_key)
             self.model = genai.GenerativeModel(
-                model_name=model_name,
+                model_name="gemini-2.0-flash-lite",
                 generation_config={
                     'temperature': temperature,
                     'max_output_tokens': max_tokens,
