@@ -80,6 +80,7 @@ docker-compose.override.yml
 README.md
 LICENSE
 *.md
+!DATABASE_MIGRATION.md
 docs/
 
 # CI/CD

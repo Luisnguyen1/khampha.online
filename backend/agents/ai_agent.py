@@ -121,7 +121,7 @@ class TravelAgent:
         elif mode == 'edit_plan':
             return self._handle_edit_plan_mode(clean_message, current_plan)
         else:  # ask mode
-            return self._handle_ask_mode(clean_message)
+            return self._handle_ask_mode(clean_message, current_plan)
     
     def chat_stream(self, user_message: str, conversation_history: Optional[List[Dict]] = None, current_plan: Optional[Dict] = None):
         """
@@ -169,48 +169,100 @@ class TravelAgent:
         # Route to streaming handlers
         clean_message = intent_analysis.get('clean_message', user_message)
         
+        logger.info(f"🎯 Routing to mode: {mode}")
+        logger.info(f"   Clean message: '{clean_message}'")
+        logger.info(f"   Has current_plan: {current_plan is not None}")
+        
         if mode == 'plan':
             requirements = intent_analysis.get('requirements')
+            logger.info(f"   → Calling _handle_plan_mode_stream")
             yield from self._handle_plan_mode_stream(clean_message, requirements)
         elif mode == 'edit_plan':
+            logger.info(f"   → Calling _handle_edit_plan_mode_stream")
             yield from self._handle_edit_plan_mode_stream(clean_message, current_plan)
         else:  # ask mode
-            yield from self._handle_ask_mode_stream(clean_message)
+            logger.info(f"   → Calling _handle_ask_mode_stream")
+            yield from self._handle_ask_mode_stream(clean_message, current_plan)
     
-    def _handle_ask_mode_stream(self, message: str):
-        """Streaming version of ask mode handler"""
+    def _handle_ask_mode_stream(self, message: str, current_plan: Optional[Dict] = None):
+        """Streaming version of ask mode handler with plan context"""
+        logger.info("❓ ASK MODE STREAM - Starting")
+        logger.info(f"   Message: '{message}'")
+        logger.info(f"   Has current_plan: {current_plan is not None}")
+        
         yield {'type': 'thinking', 'content': 'searching'}
         
         try:
+            # Build enhanced search query using plan context
+            search_query = message
+            plan_context = ""
+            
+            if current_plan:
+                destination = current_plan.get('destination', '')
+                preferences = current_plan.get('preferences', '')
+                
+                logger.info(f"   📍 Plan context: destination={destination}, preferences={preferences}")
+                
+                # Enhance search query with destination context
+                if destination:
+                    # Add destination to search query for better results
+                    search_query = f"{message} {destination}"
+                    plan_context = f"\n\n**BỐI CẢNH KẾ HOẠCH:**\n- Điểm đến: {destination}\n- Số ngày: {current_plan.get('duration_days', 'N/A')}\n- Sở thích: {preferences if preferences else 'Chưa có'}"
+                    
+                    logger.info(f"   🔍 Enhanced search query: '{search_query}'")
+            
             # Search for relevant information
-            search_results = self.search.search(message, max_results=5)
+            logger.info(f"   🌐 Searching with query: '{search_query}'")
+            search_results = self.search.search(search_query, max_results=5)
             formatted_results = self.search.format_results_for_llm(search_results)
             
             yield {'type': 'thinking', 'content': 'generating'}
             
             # Generate answer using Gemini with streaming
             if self.use_gemini and self.model:
-                prompt = f"""Dựa trên câu hỏi và thông tin tìm kiếm, hãy trả lời câu hỏi một cách chi tiết, hữu ích.
+                # Build comprehensive prompt with plan context
+                prompt = f"""Bạn là trợ lý du lịch thông minh. Trả lời câu hỏi dựa trên thông tin tìm kiếm và bối cảnh kế hoạch du lịch.
 
 CÂU HỎI: {message}
+{plan_context}
 
+THÔNG TIN TÌM KIẾM:
 {formatted_results}
 
-HÃY TRẢ LỜI:
-- Ngắn gọn, súc tích
-- Dựa trên thông tin tìm kiếm
-- Thân thiện, hữu ích
-- Sử dụng emoji phù hợp
+YÊU CẦU TRẢ LỜI:
+- Tập trung vào câu hỏi của người dùng
+- Sử dụng thông tin từ kế hoạch (nếu có) để đưa ra gợi ý phù hợp với địa điểm
+- Nếu câu hỏi về món ăn/địa điểm: liệt kê cụ thể tên, địa chỉ, giá tiền
+- Ngắn gọn, thân thiện, sử dụng emoji phù hợp
+- Nếu thông tin tìm kiếm không liên quan, hãy trả lời dựa trên kiến thức về du lịch của bạn
+- Hôm nay là ngày {datetime.now().strftime('%d/%m/%Y')}
+
+VÍ DỤ TRẢ LỜI TỐT:
+"Ngoài Xôi Xéo Bà Chiểu, Hà Nội còn nhiều món ăn sáng ngon khác:
+
+🍜 **Phở:**
+- Phở Thìn (13 Lò Đúc): 40.000đ/tô
+- Phở Bát Đàn (49 Bát Đàn): 35.000đ/tô
+
+🥖 **Bánh mì:**
+- Bánh Mì P (60 Hàng Điếu): 25.000đ
+- Bánh Mì Bảo Ngọc (159 Hàng Bông): 20.000đ
+
+🍚 **Bún:**
+- Bún Chả Đắc Kim (1 Hàng Mành): 45.000đ
+- Bún Ốc Cô Huyền (11A Hàng Cháo): 35.000đ"
 """
                 
                 try:
+                    logger.info("   🤖 Calling Gemini for answer...")
                     response = self.model.generate_content(prompt, stream=True)
                     for chunk in response:
                         if chunk.text:
                             yield {'type': 'text', 'content': chunk.text}
+                    logger.info("   ✅ Answer generated successfully")
                 except Exception as e:
-                    logger.error(f"Streaming error: {str(e)}")
-                    yield {'type': 'text', 'content': f"Xin lỗi, có lỗi khi xử lý câu hỏi: {str(e)}"}
+                    logger.error(f"   ❌ Gemini streaming error: {str(e)}")
+                    yield {'type': 'text', 'content': f"⚠️ Xin lỗi, có lỗi khi xử lý câu hỏi. Vui lòng thử lại."}
             else:
                 # Fallback
                 answer = f"Đây là thông tin về '{message}':\n\n{formatted_results}"
@@ -219,24 +271,182 @@ HÃY TRẢ LỜI:
                     time.sleep(0.02)
                     
         except Exception as e:
-            logger.error(f"Ask mode streaming error: {str(e)}")
-            yield {'type': 'text', 'content': "Xin lỗi, có lỗi khi tìm kiếm thông tin."}
+            logger.error(f"   ❌ Ask mode streaming error: {str(e)}")
+            import traceback
+            logger.error(f"   Traceback: {traceback.format_exc()}")
+            yield {'type': 'text', 'content': "⚠️ Xin lỗi, có lỗi khi tìm kiếm thông tin. Vui lòng thử lại."}
+        
+        finally:
+            logger.info("   ✅ Ask mode stream completed")
     
     def _handle_edit_plan_mode_stream(self, message: str, current_plan: Optional[Dict]):
-        """Streaming version of edit plan mode handler"""
+        """Streaming version of edit plan mode handler - Actually modifies the plan"""
+        logger.info("✏️ EDIT_PLAN MODE STREAM - Starting")
+        logger.info(f"   Message: '{message}'")
+        logger.info(f"   Has current_plan: {current_plan is not None}")
+        
         if not current_plan:
+            logger.warning("   ⚠️ No current_plan provided!")
             yield {'type': 'text', 'content': '⚠️ Không có kế hoạch nào để chỉnh sửa. Hãy tạo kế hoạch mới trước nhé!'}
             return
         
-        yield {'type': 'thinking', 'content': 'analyzing_plan'}
+        logger.info(f"   Current plan: {current_plan.get('plan_name', 'N/A')} - {current_plan.get('destination', 'N/A')}")
         
-        # For now, yield a simple response
-        # Full edit implementation would be more complex
-        response = f"📝 Tôi đã ghi nhận yêu cầu chỉnh sửa: '{message}'\n\n⚙️ Tính năng tự động chỉnh sửa kế hoạch đang được hoàn thiện.\n\nHiện tại bạn có thể:\n• Tự chỉnh sửa bằng nút '✏️ Chỉnh sửa' trên trang chi tiết kế hoạch\n• Hoặc yêu cầu tạo kế hoạch mới với @plan"
+        try:
+            yield {'type': 'thinking', 'content': 'analyzing_plan'}
+            
+            # Use Gemini to understand and modify the plan
+            if self.use_gemini and self.model:
+                logger.info("   🤖 Calling Gemini to modify plan...")
+                
+                # Create a concise summary of current plan for context
+                plan_summary = {
+                    'plan_name': current_plan.get('plan_name'),
+                    'destination': current_plan.get('destination'),
+                    'duration_days': current_plan.get('duration_days'),
+                    'budget': current_plan.get('budget'),
+                    'itinerary_count': len(current_plan.get('itinerary', [])),
+                    'itinerary': current_plan.get('itinerary', [])  # Include full itinerary
+                }
+                
+                prompt = f"""Bạn là trợ lý du lịch. Người dùng muốn chỉnh sửa kế hoạch hiện tại.
+
+KẾ HOẠCH HIỆN TẠI:
+```json
+{json.dumps(plan_summary, ensure_ascii=False, indent=2)}
+```
+
+YÊU CẦU CHỈNH SỬA: {message}
+
+HÃY:
+1. Phân tích yêu cầu: Người dùng muốn thay đổi gì? (hoạt động nào, ngày nào)
+2. Tìm hoạt động cần thay đổi trong lịch trình
+3. Tạo hoạt động mới thay thế phù hợp với yêu cầu
+4. Trả về JSON với cấu trúc:
+
+{{
+  "understanding": "Tóm tắt ngắn gọn hiểu yêu cầu của người dùng",
+  "changes": [
+    {{
+      "day": 1,
+      "activity_index": 0,
+      "action": "replace",
+      "old_activity": "Tên hoạt động cũ",
+      "new_activity": {{
+        "time": "07:00",
+        "type": "breakfast",
+        "title": "Tên quán/hoạt động mới",
+        "description": "Mô tả chi tiết, địa chỉ",
+        "location": "Địa chỉ cụ thể",
+        "cost": 50000
+      }}
+    }}
+  ],
+  "explanation": "Giải thích ngắn gọn những gì đã thay đổi và lý do"
+}}
+
+LƯU Ý:
+- CHỈ thay đổi hoạt động được yêu cầu, giữ nguyên các hoạt động khác
+- Hoạt động mới phải phù hợp với ngân sách và địa điểm
+- Cung cấp địa chỉ cụ thể và giá tiền thực tế
+- CHỈ TRẢ VỀ JSON, KHÔNG TEXT KHÁC
+"""
+                
+                yield {'type': 'thinking', 'content': 'creating_plan'}
+                
+                try:
+                    # Call Gemini with retry logic
+                    max_retries = 3
+                    retry_delay = 15
+                    response_data = None
+                    
+                    for attempt in range(max_retries):
+                        try:
+                            response = self.model.generate_content(prompt)
+                            response_text = response.text.strip()
+                            logger.debug(f"   Gemini response: {response_text[:200]}...")
+                            
+                            # Parse JSON response
+                            response_data = self._parse_json_response(response_text)
+                            break  # Success
+                            
+                        except Exception as retry_error:
+                            if attempt < max_retries - 1:
+                                logger.warning(f"   ⚠️ Attempt {attempt + 1} failed: {str(retry_error)}. Retrying in {retry_delay}s...")
+                                time.sleep(retry_delay)
+                            else:
+                                logger.error(f"   ❌ All {max_retries} attempts failed")
+                                raise
+                    
+                    if not response_data or 'changes' not in response_data:
+                        logger.error("   ❌ Invalid response format from Gemini")
+                        yield {'type': 'text', 'content': '⚠️ Xin lỗi, tôi không thể xử lý yêu cầu chỉnh sửa này. Vui lòng thử lại với yêu cầu cụ thể hơn.'}
+                        return
+                    
+                    # Apply changes to current plan
+                    modified_plan = current_plan.copy()
+                    modified_plan['itinerary'] = json.loads(json.dumps(current_plan.get('itinerary', [])))  # Deep copy
+                    
+                    logger.info(f"   ✏️ Applying {len(response_data['changes'])} change(s)...")
+                    
+                    for change in response_data['changes']:
+                        day = change.get('day', 1)
+                        activity_index = change.get('activity_index', 0)
+                        new_activity = change.get('new_activity')
+                        
+                        if (modified_plan.get('itinerary') and 
+                            day <= len(modified_plan['itinerary']) and
+                            new_activity):
+                            
+                            day_data = modified_plan['itinerary'][day - 1]
+                            if 'activities' in day_data and activity_index < len(day_data['activities']):
+                                old_title = day_data['activities'][activity_index].get('title', 'N/A')
+                                day_data['activities'][activity_index] = new_activity
+                                logger.info(f"      ✅ Day {day}, Activity {activity_index}: '{old_title}' → '{new_activity.get('title')}'")
+                    
+                    # Yield the modified plan
+                    yield {'type': 'plan', 'content': modified_plan}
+                    
+                    # Stream explanation
+                    explanation = response_data.get('explanation', 'Đã cập nhật kế hoạch theo yêu cầu của bạn.')
+                    response_message = f"✅ **Đã chỉnh sửa kế hoạch!**\n\n{explanation}\n\n💡 Bạn có thể xem kế hoạch đã cập nhật bên dưới hoặc tiếp tục yêu cầu chỉnh sửa khác."
+                    
+                    logger.info(f"   ✅ Plan modified successfully")
+                    
+                    words = response_message.split(' ')
+                    for i, word in enumerate(words):
+                        yield {'type': 'text', 'content': word + (' ' if i < len(words) - 1 else '')}
+                        time.sleep(0.02)
+                    
+                except Exception as gemini_error:
+                    logger.error(f"   ❌ Gemini error: {str(gemini_error)}")
+                    # Fallback to simple response
+                    response = f"⚠️ Xin lỗi, tôi gặp lỗi khi xử lý yêu cầu chỉnh sửa: {str(gemini_error)}\n\nBạn có thể:\n• Thử lại với yêu cầu rõ ràng hơn\n• Tự chỉnh sửa bằng nút '✏️ Chỉnh sửa' trên trang chi tiết kế hoạch"
+                    
+                    for word in response.split(' '):
+                        yield {'type': 'text', 'content': word + ' '}
+                        time.sleep(0.02)
+            else:
+                # Fallback if Gemini not available
+                logger.warning("   ⚠️ Gemini not available, using fallback response")
+                response = f"📝 Tôi đã ghi nhận yêu cầu chỉnh sửa: '{message}'\n\n⚙️ Để chỉnh sửa kế hoạch, bạn có thể:\n• Tự chỉnh sửa bằng nút '✏️ Chỉnh sửa' trên trang chi tiết kế hoạch\n• Hoặc yêu cầu tạo kế hoạch mới với @plan"
+                
+                for word in response.split(' '):
+                    yield {'type': 'text', 'content': word + ' '}
+                    time.sleep(0.02)
         
-        for word in response.split(' '):
-            yield {'type': 'text', 'content': word + ' '}
-            time.sleep(0.02)
+        except Exception as e:
+            logger.error(f"   ❌ Edit plan error: {str(e)}")
+            import traceback
+            logger.error(f"   Traceback: {traceback.format_exc()}")
+            
+            error_msg = "⚠️ Xin lỗi, có lỗi khi xử lý yêu cầu chỉnh sửa. Vui lòng thử lại."
+            for word in error_msg.split(' '):
+                yield {'type': 'text', 'content': word + ' '}
+                time.sleep(0.02)
+        
+        finally:
+            logger.info("   ✅ Edit mode stream completed")
     
     def _handle_plan_mode_stream(self, message: str, requirements: Optional[Dict] = None):
         """Streaming version of plan mode handler"""
@@ -574,33 +784,53 @@ TRẢ VỀ CHỈ JSON, KHÔNG CÓ TEXT KHÁC:"""
             'reasoning': 'No clear pattern, defaulting to plan mode'
         }
     
-    def _handle_ask_mode(self, message: str) -> Dict:
+    def _handle_ask_mode(self, message: str, current_plan: Optional[Dict] = None) -> Dict:
         """
-        Handle @ask mode - Answer general questions using RAG
+        Handle @ask mode - Answer general questions using RAG with plan context
         """
         logger.info("❓ ASK MODE - Answering general question")
+        logger.info(f"   Has current_plan: {current_plan is not None}")
         
         try:
+            # Build enhanced search query using plan context
+            search_query = message
+            plan_context = ""
+            
+            if current_plan:
+                destination = current_plan.get('destination', '')
+                preferences = current_plan.get('preferences', '')
+                
+                logger.info(f"   📍 Plan context: destination={destination}")
+                
+                # Enhance search query with destination context
+                if destination:
+                    search_query = f"{message} {destination}"
+                    plan_context = f"\n\n**BỐI CẢNH KẾ HOẠCH:**\n- Điểm đến: {destination}\n- Số ngày: {current_plan.get('duration_days', 'N/A')}\n- Sở thích: {preferences if preferences else 'Chưa có'}"
+                    logger.info(f"   🔍 Enhanced search query: '{search_query}'")
+            
             # Search for relevant information
-            logger.info(f"🔍 Searching for: '{message}'")
-            search_results = self.search.search(message, max_results=5)
+            logger.info(f"🔍 Searching for: '{search_query}'")
+            search_results = self.search.search(search_query, max_results=5)
             formatted_results = self.search.format_results_for_llm(search_results)
             search_sources = self.search.extract_sources_for_storage(search_results)
             
             # Generate answer using Gemini
             if self.use_gemini:
                 try:
-                    prompt = f"""Dựa trên câu hỏi và thông tin tìm kiếm, hãy trả lời câu hỏi một cách chi tiết, hữu ích.
+                    prompt = f"""Bạn là trợ lý du lịch thông minh. Trả lời câu hỏi dựa trên thông tin tìm kiếm và bối cảnh kế hoạch du lịch.
 
 CÂU HỎI: {message}
+{plan_context}
 
+THÔNG TIN TÌM KIẾM:
 {formatted_results}
 
-HÃY TRẢ LỜI:
-- Ngắn gọn, súc tích
-- Dựa trên thông tin tìm kiếm
-- Thân thiện, hữu ích
-- Sử dụng emoji phù hợp
+YÊU CẦU TRẢ LỜI:
+- Tập trung vào câu hỏi của người dùng
+- Sử dụng thông tin từ kế hoạch (nếu có) để đưa ra gợi ý phù hợp với địa điểm
+- Nếu câu hỏi về món ăn/địa điểm: liệt kê cụ thể tên, địa chỉ, giá tiền
+- Ngắn gọn, thân thiện, sử dụng emoji phù hợp
+- Nếu thông tin tìm kiếm không liên quan, hãy trả lời dựa trên kiến thức về du lịch của bạn
 - Hôm nay là ngày {datetime.now().strftime('%d/%m/%Y')}
 """
                     logger.debug(prompt)

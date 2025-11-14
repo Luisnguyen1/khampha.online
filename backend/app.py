@@ -61,6 +61,36 @@ ai_agent = TravelAgent(
     max_tokens=Config.GEMINI_MAX_TOKENS
 )
 
+# ===== PLAN GENERATION REQUEST TRACKING =====
+# Track active plan generation requests to prevent concurrent creation
+active_plan_requests = {}  # {session_id: timestamp}
+
+def is_plan_generation_active(session_id: str) -> bool:
+    """Check if a plan generation is currently active for this session"""
+    if session_id not in active_plan_requests:
+        return False
+    
+    # Check if request has timed out
+    request_time = active_plan_requests[session_id]
+    elapsed = (datetime.now() - request_time).total_seconds()
+    
+    if elapsed > Config.PLAN_GENERATION_TIMEOUT:
+        # Request timed out, clean it up
+        del active_plan_requests[session_id]
+        return False
+    
+    return True
+
+def set_plan_generation_status(session_id: str, active: bool):
+    """Set plan generation status for a session"""
+    if active:
+        active_plan_requests[session_id] = datetime.now()
+        app.logger.info(f"🔒 Plan generation started for session: {session_id}")
+    else:
+        if session_id in active_plan_requests:
+            del active_plan_requests[session_id]
+            app.logger.info(f"🔓 Plan generation completed for session: {session_id}")
+
 # ===== HELPER FUNCTIONS =====
 
 def get_or_create_session():
@@ -271,6 +301,26 @@ def chat_stream():
             # Get current plan if needed
             current_plan = data.get('current_plan')
             
+            # Quick intent check to determine if this is a plan generation request
+            # We need to check BEFORE starting the actual generation
+            try:
+                intent_analysis = ai_agent._analyze_user_intent(user_message, current_plan)
+                detected_mode = intent_analysis.get('mode', 'ask')
+                
+                # If user is trying to create a plan, check for concurrent requests
+                if detected_mode == 'plan':
+                    if is_plan_generation_active(session_id):
+                        app.logger.warning(f"🚫 Blocked concurrent plan request for session: {session_id}")
+                        error_msg = "Bạn đang có một kế hoạch đang được tạo. Vui lòng đợi hoàn thành trước khi tạo kế hoạch mới."
+                        yield f"event: error\ndata: {json_module.dumps({{'error': error_msg, 'type': 'concurrent_request'}}, ensure_ascii=False)}\n\n"
+                        return
+                    
+                    # Mark this session as actively generating a plan
+                    set_plan_generation_status(session_id, True)
+            except Exception as intent_error:
+                app.logger.error(f"Error analyzing intent: {str(intent_error)}")
+                # Continue anyway if intent analysis fails
+            
             # Send thinking update
             yield f"event: thinking\ndata: {{\"status\": \"processing\"}}\n\n"
             
@@ -343,10 +393,15 @@ def chat_stream():
             }
             yield f"event: done\ndata: {json_module.dumps(completion_data, ensure_ascii=False)}\n\n"
             
+            # Clear plan generation status if it was a plan request
+            set_plan_generation_status(session_id, False)
+            
         except Exception as e:
             app.logger.error(f"Streaming error: {str(e)}")
             import json as json_module
             yield f"event: error\ndata: {json_module.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
+            # Clear plan generation status on error
+            set_plan_generation_status(session_id, False)
     
     return Response(
         stream_with_context(generate()),

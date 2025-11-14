@@ -64,6 +64,9 @@ class Config:
     SESSION_TIMEOUT_HOURS = int(os.getenv('SESSION_TIMEOUT_HOURS', 24))
     MAX_CONVERSATION_HISTORY = int(os.getenv('MAX_CONVERSATION_HISTORY', 50))
     
+    # Plan Generation Settings
+    PLAN_GENERATION_TIMEOUT = int(os.getenv('PLAN_GENERATION_TIMEOUT_SECONDS', 120))  # seconds
+    
     # Development Settings
     DEBUG_MODE = os.getenv('DEBUG_MODE', 'True').lower() == 'true'
     VERBOSE_LOGGING = os.getenv('VERBOSE_LOGGING', 'True').lower() == 'true'

@@ -45,6 +45,10 @@ ENV PATH=/root/.local/bin:$PATH
 COPY backend/ ./backend/
 COPY frontend/ ./frontend/
 
+# Copy entrypoint script
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
 # Create necessary directories
 RUN mkdir -p backend/data \
     backend/uploads \
@@ -63,5 +67,5 @@ EXPOSE 5002
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:5002/api/health || exit 1
 
-# Run the application
-CMD ["python", "backend/app.py"]
+# Run the application via entrypoint script
+ENTRYPOINT ["/docker-entrypoint.sh"]

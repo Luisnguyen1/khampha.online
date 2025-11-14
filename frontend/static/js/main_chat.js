@@ -238,9 +238,14 @@ async function handleSendMessage() {
             conversation_session_id: currentConversationId
         };
 
-        // Include current plan if in edit mode
-        if (currentMode === 'edit_plan' && currentPlan) {
+        // Always include current plan if available (server will decide if it's needed)
+        if (currentPlan) {
             requestData.current_plan = currentPlan;
+            console.log('📋 Including current plan in request:', {
+                plan_name: currentPlan.plan_name,
+                destination: currentPlan.destination,
+                days: currentPlan.duration_days
+            });
         }
 
         console.log('Request data:', requestData);
@@ -349,7 +354,14 @@ async function handleSendMessage() {
                             if (thinkingMsg && thinkingMsg.parentNode) {
                                 thinkingMsg.remove();
                             }
-                            addErrorMessage(data.error || 'Có lỗi xảy ra');
+                            
+                            // Check if this is a concurrent request error
+                            if (data.type === 'concurrent_request') {
+                                // Show a more prominent notification for concurrent requests
+                                showNotification('warning', 'Đang tạo kế hoạch', data.error);
+                            } else {
+                                addErrorMessage(data.error || 'Có lỗi xảy ra');
+                            }
                         }
                     } catch (parseError) {
                         console.error('Error parsing event data:', parseError, eventData);
@@ -793,11 +805,19 @@ function formatCurrency(amount) {
 function showNotification(type, title, message) {
     // Create notification element
     const notif = document.createElement('div');
-    const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+    const bgColor = type === 'success' ? 'bg-green-500' : 
+                    type === 'error' ? 'bg-red-500' : 
+                    type === 'warning' ? 'bg-yellow-500' : 
+                    'bg-blue-500';
+    const icon = type === 'success' ? 'check_circle' : 
+                 type === 'warning' ? 'warning' : 
+                 type === 'error' ? 'error' : 
+                 'info';
+    
     notif.className = `fixed top-4 right-4 ${bgColor} text-white rounded-lg shadow-lg p-4 max-w-sm z-50`;
     notif.innerHTML = `
         <div class="flex items-start gap-3">
-            <span class="material-symbols-outlined">${type === 'success' ? 'check_circle' : 'error'}</span>
+            <span class="material-symbols-outlined">${icon}</span>
             <div class="flex-1">
                 <p class="font-bold">${title}</p>
                 <p class="text-sm mt-1">${message}</p>
